@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "@supabase/auth-helpers-nextjs": "^0.15.0",
-    "@supabase/auth-ui-react": "^0.4.7",
-    "@supabase/supabase-js": "^2.110.2"
-  }
-}
