@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import type { Player } from '@/lib/types';
@@ -15,6 +16,7 @@ export default function RebirthPanel({
   onReborn: (message: string) => void;
 }) {
   const { t } = useLanguage();
+  const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<string | null>(null);
@@ -36,25 +38,27 @@ export default function RebirthPanel({
     }
 
     const reborn = data as Player;
-    // Celebration first: this panel unmounts as soon as the level
-    // resets below Godfather, so the parent shows the message.
     onReborn(
-      t('rebirth_done').replace('{bonus}', String(reborn.rebirths * 50))
+      t('rebirth_done').replace('{bonus}', String((reborn.rebirths || 1) * 50))
     );
     onPlayerUpdate(reborn);
+    // Full correct flow: refresh context + hard revalidate page
+    router.refresh();
+    // Also force a full reload for clean state across the game
+    setTimeout(() => { window.location.reload(); }, 1200);
   };
 
   return (
-    <section className="bg-gradient-to-r from-yellow-950/60 to-zinc-900 border border-yellow-700 rounded-2xl p-6 mb-10">
-      <h2 className="text-xl font-bold text-yellow-400 mb-2">
-        👑 {t('rebirth_title')}
+    <section className="card bg-gradient-to-r from-yellow-950/70 to-zinc-900 border border-yellow-800 px-5 py-4 mb-6">
+      <h2 className="font-semibold text-yellow-400 mb-1 flex items-center gap-2 text-sm tracking-wider">
+        👑 {t('rebirth_title').toUpperCase()}
       </h2>
 
       {done ? (
         <p className="text-yellow-300 font-semibold">{done}</p>
       ) : (
         <>
-          <p className="text-zinc-300 mb-4">{t('rebirth_desc')}</p>
+          <p className="text-zinc-400 text-sm mb-3 leading-snug">{t('rebirth_desc')}</p>
 
           {confirming ? (
             <div>
@@ -65,14 +69,14 @@ export default function RebirthPanel({
                 <button
                   onClick={doRebirth}
                   disabled={busy}
-                  className="bg-yellow-600 hover:bg-yellow-500 disabled:opacity-50 text-black px-6 py-2.5 rounded-lg font-bold transition-colors"
+                  className="bg-yellow-600 hover:bg-yellow-500 disabled:opacity-50 text-black px-6 py-2.5 rounded-lg font-bold transition-all active:scale-[0.985]"
                 >
                   {busy ? t('loading') : t('rebirth_confirm_button')}
                 </button>
                 <button
                   onClick={() => setConfirming(false)}
                   disabled={busy}
-                  className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 px-6 py-2.5 rounded-lg font-semibold transition-colors"
+                  className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 px-6 py-2.5 rounded-lg font-semibold transition-all active:scale-[0.985]"
                 >
                   {t('rebirth_cancel')}
                 </button>
@@ -81,7 +85,7 @@ export default function RebirthPanel({
           ) : (
             <button
               onClick={() => setConfirming(true)}
-              className="bg-yellow-600 hover:bg-yellow-500 text-black px-6 py-2.5 rounded-lg font-bold transition-colors"
+              className="bg-yellow-600 hover:bg-yellow-500 text-black px-6 py-2.5 rounded-lg font-bold transition-all active:scale-[0.985]"
             >
               👑 {t('rebirth_button')}
             </button>

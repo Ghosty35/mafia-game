@@ -14,10 +14,11 @@ alter table public.players
 alter table public.crimes
   add column cooldown_seconds int not null default 30;
 
-update public.crimes set cooldown_seconds = 20  where key = 'pickpocket';
-update public.crimes set cooldown_seconds = 60  where key = 'rob_store';
-update public.crimes set cooldown_seconds = 180 where key = 'steal_car';
-update public.crimes set cooldown_seconds = 900 where key = 'bank_heist';
+-- Updated via 017 migration for user-specified values
+-- pickpocket: 180s (3 min)
+-- rob_store: 300s (5 min)
+-- steal_car: 420s (7 min)
+-- warehouse_heist (ex bank): 1800s (30 min)
 
 alter table public.crimes
   drop column energy_cost;

@@ -1,11 +1,13 @@
 import type { ReactNode } from 'react';
-import GameNav from '../components/GameNav';
+import { Suspense } from 'react';
+import GameLayout from '../components/GameLayout';
 
 export default function FamiliesLayout({ children }: { children: ReactNode }) {
   return (
-    <>
-      <GameNav />
-      {children}
-    </>
+    <GameLayout>
+      <Suspense fallback={<div className="p-8 text-zinc-500">Loading...</div>}>
+        {children}
+      </Suspense>
+    </GameLayout>
   );
 }

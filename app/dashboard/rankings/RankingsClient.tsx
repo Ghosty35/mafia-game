@@ -23,7 +23,7 @@ export default function RankingsClient({
   }
 
   return (
-    <main className="p-6 max-w-5xl mx-auto">
+    <main className="px-4 py-6 max-w-5xl mx-auto">
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-red-500">{t('rankings_title')}</h1>
         <p className="text-zinc-400 mt-1">Global Player Rankings • Season 1</p>
@@ -64,14 +64,8 @@ export default function RankingsClient({
         )}
       </div>
 
-      <div className="mt-8 text-center">
-        <Link href="/leaderboard" className="text-red-400 hover:underline">
-          → View the full Global Leaderboard with more categories
-        </Link>
-        <br />
-        <Link href="/families/leaderboard" className="text-red-400 hover:underline mt-2 inline-block">
-          → View the Families Leaderboard
-        </Link>
+      <div className="mt-8 text-center text-sm text-zinc-400">
+        Redirected to the main Leaderboard.
       </div>
     </main>
   );

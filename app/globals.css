@@ -1,8 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --background: #09090b;
-  --foreground: #fafafa;
+  --background: #0a0a0c;
+  --background-alt: #111114;
+  --foreground: #f4f4f5;
+  --red-accent: #b91c1c;
+  --red-accent-light: #ef4444;
+  --border: #27272a;
+  --card: #18181b;
 }
 
 @theme inline {
@@ -16,4 +21,141 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Richer mafia-style background with subtle vignette */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 50% 20%, rgba(185, 28, 28, 0.035) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(0, 0, 0, 0.4) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Fase 5 UI Polish - Tighter, richer cards */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  transition: transform 0.1s ease, border-color 0.1s ease, box-shadow 0.15s ease;
+  border-radius: 14px;
+}
+
+.card:hover {
+  transform: translateY(-1px);
+  border-color: #3f3f46;
+  box-shadow: 0 4px 12px -2px rgb(0 0 0 / 0.3);
+}
+
+/* More engaging buttons */
+button {
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 600;
+}
+
+button:not(:disabled):hover {
+  filter: brightness(1.05);
+}
+
+button:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+/* Primary action buttons (crimes, etc) */
+.btn-primary {
+  background-color: var(--red-accent);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--red-accent-light);
+}
+
+/* Result banners */
+.result-banner {
+  animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mafia flair + animations */
+.level-up {
+  animation: levelPulse 1.6s cubic-bezier(0.34, 1.56, 0.64, 1), levelGlow 2s ease-in-out infinite;
+  box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.3);
+}
+
+@keyframes levelPulse {
+  0% { transform: scale(0.92); }
+  30% { transform: scale(1.08); }
+  60% { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+
+@keyframes levelGlow {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.25); }
+  50% { box-shadow: 0 0 0 8px rgba(234, 179, 8, 0.15); }
+}
+
+.crime-card {
+  transition: transform 0.1s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.crime-card:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.family-card {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.family-card:hover {
+  box-shadow: 0 0 0 1px rgba(185, 28, 28, 0.2);
+}
+
+/* Subtle mafia red accent glow on important actions */
+.btn-danger {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-danger::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -100%;
+  width: 40%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,0.15),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.btn-danger:hover::after {
+  left: 250%;
+}
+
+/* Compact stat cards */
+.stat-card {
+  padding: 1rem 1.25rem;
+}
+
+/* Smaller, punchier crime cards */
+.crime-card {
+  padding: 1rem 1.1rem;
+  border-radius: 12px;
 }

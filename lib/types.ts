@@ -8,10 +8,46 @@ export type Player = {
   xp: number;
   created_at: string;
   jailed_until: string | null;
+  heat: number;
   crimes_succeeded: number;
   crimes_failed: number;
   rebirths: number;
   family_id?: string | null;   // NEW: link to Families (added in migration 008)
+  health: number;              // 0-100
+  murder_skill: number;        // KillSkill / Murder experience points (0.02 per success)
+  power: number;               // Total power (buyable in weapon shop later)
+  protection: number;          // Reduces health loss from crimes/heists
+  personal_bank: number;       // Personal bank balance (protected cash)
+  current_city: string;        // Current city for travel system
+  death_until: string | null;  // If set, player is dead until this time
+  kill_protected_until: string | null; // Protected from PvP kills
+  bullets: number;             // Ammo for murder/PvP
+  leaderboard_rank?: number;   // Current global rank
+  drug_storage?: Record<string, number>; // KGs for each drug
+  weed_progress?: number;      // 0-5 for watering
+  murder_cooldown?: string;    // ISO for cooldown
+  owned_properties?: Array<{id: string, name: string, type: string, city: string, purchase_date: string, bank_balance: number, maintenance_due: number, autopay: boolean}>;
+  money_rank?: string;
+  total_wealth?: number;
+  last_active?: string;            // for online / server status
+  transaction_log?: Array<any>;    // last transactions
+  autopay_bills?: boolean;
+  bill_history?: Array<any>;
+  total_taxes?: number;
+  // Cooldowns sometimes attached to player or separate
+  heist_cooldown?: string | null;
+  crime_cooldowns?: Record<string, string>;
+  energy?: number;
+  max_energy?: number;
+  // Garage / cars from 028
+  cars?: Array<any>;
+  garage_level?: number;
+  // Donator / VIP status (030)
+  is_donator?: boolean;
+  donator_since?: string;
+  breakout_skill?: number;  // for jail breakout training
+  gov_tax_bank?: number;    // Gov Tax fund contributions
+  stock_holdings?: Record<string, number>;  // ticker -> shares
 };
 
 // Matches the public.crimes table in Supabase
@@ -34,13 +70,14 @@ export type CooldownRow = {
   available_at: string;
 };
 
-// One row from get_leaderboard() — no cash or email exposed
+// One row from get_leaderboard()
 export type LeaderboardEntry = {
   pos: number;
   username: string;
   level: number;
   rebirths: number;
   crimes: number;
+  cash: number;
   family_tag: string | null;
   family_name: string | null;
 };
@@ -59,6 +96,10 @@ export type CrimeResult = {
   leveled_up: boolean;
   available_at: string;
   player: Player;
+  family_respect_gained?: number;
+  in_family?: boolean;
+  health_lost?: number;
+  murder_skill_gained?: number;
 };
 
 // =====================
@@ -74,6 +115,8 @@ export type Family = {
   territory: number;
   wars_won: number;
   member_count: number;
+  bank: number;
+  power?: number;           // NEW: family power (attack/def + hourly)
   created_at: string;
 };
 

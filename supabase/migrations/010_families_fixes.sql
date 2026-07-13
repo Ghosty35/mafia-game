@@ -76,6 +76,7 @@ as $$
       p.rebirths,
       p.xp,
       p.crimes_succeeded,
+      p.cash,
       p.created_at,
       f.tag as family_tag,
       f.name as family_name,
@@ -96,6 +97,7 @@ as $$
             'level', level,
             'rebirths', rebirths,
             'crimes', crimes_succeeded,
+            'cash', cash,
             'family_tag', family_tag,
             'family_name', family_name
           )
@@ -112,6 +114,7 @@ as $$
         'level', level,
         'rebirths', rebirths,
         'crimes', crimes_succeeded,
+        'cash', cash,
         'family_tag', family_tag,
         'family_name', family_name
       )

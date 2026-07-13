@@ -16,8 +16,13 @@ export const translations = {
 
     // Navigation
     nav_dashboard: 'Dashboard',
+    nav_crimes: 'Crimes',
+    nav_heists: 'Heists',
+    nav_armory: 'Armory',
     nav_shop: 'Shop',
+    nav_hospital: 'Hospital',
     nav_family: 'Families',
+    nav_leaderboard: 'Leaderboard',
     nav_rankings: 'Rankings',
     nav_soon: 'Soon',
 
@@ -61,10 +66,10 @@ export const translations = {
     dash_welcome: 'Welcome back, boss',
     dash_sign_out: 'Sign Out',
     dash_cash: 'Cash',
-    dash_energy: 'Energy',
+    dash_diamonds: 'Diamonds',
     dash_level: 'Level',
     dash_xp: 'Experience',
-    dash_coming_soon: 'Shop, Families and more coming soon...',
+    dash_coming_soon: 'More features coming soon...',
     error_load_player:
       'Could not load your player profile. Try refreshing the page.',
 
@@ -77,14 +82,13 @@ export const translations = {
     crime_ready_in: 'Ready in',
     crime_unlocks_at: 'Unlocks at level',
     crime_result_success: 'Success! You got away with {cash} (+{xp} XP)',
-    crime_result_fail: 'Busted! The cops threw you in jail. (+{xp} XP)',
+    crime_result_fail: 'Busted! The cops threw you in jail. No XP gained on failure.',
     crime_level_up: 'LEVEL UP! You are now level {level}!',
     error_on_cooldown: 'Too hot right now — this crime is still on cooldown.',
     error_in_jail: 'You are in jail. Wait until you are released.',
     error_level_too_low: 'Your level is too low for this crime.',
 
-    // Diamonds
-    dash_diamonds: 'Diamonds',
+    // Shop
     dash_shop_soon: 'Shop coming soon...',
 
     // Rankings
@@ -146,8 +150,10 @@ export const translations = {
     crime_rob_store_desc: 'Quick cash, but the owner might fight back.',
     crime_steal_car: 'Steal a Car',
     crime_steal_car_desc: 'Hotwire it and race to the chop shop.',
-    crime_bank_heist: 'Bank Heist',
-    crime_bank_heist_desc: 'The big league. High risk, huge reward.',
+    crime_warehouse_heist: 'Warehouse Heist',
+    crime_warehouse_heist_desc: 'Hit a warehouse for big scores.',
+    crime_train_murder: 'Train Your MurderSkill',
+    crime_train_murder_desc: 'Practice your killing skills. High risk PvP training.',
   },
 
   nl: {
@@ -164,8 +170,13 @@ export const translations = {
 
     // Navigatie
     nav_dashboard: 'Dashboard',
+    nav_crimes: 'Crimes',
+    nav_heists: 'Heists',
+    nav_armory: 'Wapenwinkel',
     nav_shop: 'Shop',
+    nav_hospital: 'Ziekenhuis',
     nav_family: 'Families',
+    nav_leaderboard: 'Leaderboard',
     nav_rankings: 'Ranglijst',
     nav_soon: 'Binnenkort',
 
@@ -209,10 +220,10 @@ export const translations = {
     dash_welcome: 'Welkom terug, baas',
     dash_sign_out: 'Uitloggen',
     dash_cash: 'Geld',
-    dash_energy: 'Energie',
+    dash_diamonds: 'Diamanten',
     dash_level: 'Level',
     dash_xp: 'Ervaring',
-    dash_coming_soon: 'Shop, Families en meer komen binnenkort...',
+    dash_coming_soon: 'Meer features komen binnenkort...',
     error_load_player:
       'Kon je spelersprofiel niet laden. Probeer de pagina te verversen.',
 
@@ -225,14 +236,13 @@ export const translations = {
     crime_ready_in: 'Klaar over',
     crime_unlocks_at: 'Ontgrendelt op level',
     crime_result_success: 'Gelukt! Je bent ontkomen met {cash} (+{xp} XP)',
-    crime_result_fail: 'Gepakt! De politie heeft je in de cel gegooid. (+{xp} XP)',
+    crime_result_fail: 'Gepakt! De politie heeft je in de cel gegooid. Geen XP bij falen.',
     crime_level_up: 'LEVEL OMHOOG! Je bent nu level {level}!',
     error_on_cooldown: 'Te heet op dit moment — deze misdaad is nog in cooldown.',
     error_in_jail: 'Je zit in de cel. Wacht tot je vrijkomt.',
     error_level_too_low: 'Je level is te laag voor deze misdaad.',
 
-    // Diamanten
-    dash_diamonds: 'Diamanten',
+    // Shop
     dash_shop_soon: 'Shop komt binnenkort...',
 
     // Ranglijst
@@ -294,8 +304,10 @@ export const translations = {
     crime_rob_store_desc: 'Snel geld, maar de eigenaar kan terugvechten.',
     crime_steal_car: 'Auto Stelen',
     crime_steal_car_desc: 'Kortsluiten en snel naar de sloperij.',
-    crime_bank_heist: 'Bankoverval',
-    crime_bank_heist_desc: 'Het grote werk. Hoog risico, enorme beloning.',
+    crime_warehouse_heist: 'Warenhuis Heist',
+    crime_warehouse_heist_desc: 'Overval op een warenhuis voor grote buit.',
+    crime_train_murder: 'Train Your MurderSkill',
+    crime_train_murder_desc: 'Oefen je moordvaardigheden. Riskante PvP training.',
   },
 } as const;
 

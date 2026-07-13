@@ -3,6 +3,14 @@ import { createClient } from '@/lib/supabase/server';
 import type { CooldownRow, Crime, Player } from '@/lib/types';
 import DashboardClient from './DashboardClient';
 
+type FamilyStatus = {
+  family_id: string | null;
+  family_name: string | null;
+  family_tag: string | null;
+  family_respect: number | null;
+  my_role: string | null;
+};
+
 // Server component: checks login, loads player stats, crimes and
 // active cooldown timers.
 export default async function DashboardPage() {
@@ -15,23 +23,21 @@ export default async function DashboardPage() {
     redirect('/login');
   }
 
-  const [{ data: player, error: playerError }, { data: crimes }, { data: cooldowns }] =
+  const [{ data: player, error: playerError }, { data: familyStatus }] =
     await Promise.all([
       supabase.rpc('get_my_player'),
-      supabase.from('crimes').select('*').order('sort_order'),
-      supabase.from('crime_cooldowns').select('*'),
+      supabase.rpc('get_my_family_status'),
     ]);
 
   if (playerError) {
-    console.error('get_my_player failed:', playerError.message);
+    // Silent in production; player will see error state
   }
 
   return (
     <DashboardClient
       email={user.email ?? ''}
       initialPlayer={(player as Player) ?? null}
-      crimes={(crimes as Crime[]) ?? []}
-      initialCooldowns={(cooldowns as CooldownRow[]) ?? []}
+      familyStatus={(familyStatus as FamilyStatus) ?? null}
     />
   );
 }

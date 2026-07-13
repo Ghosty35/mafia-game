@@ -1,167 +1,131 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { formatCash } from '@/lib/format';
+import { getRank } from '@/lib/ranks';
 import type { LeaderboardData, LeaderboardEntry } from '@/lib/types';
 
-type MetricTab = 'overall' | 'crimes';
-type SeasonTab = 'current' | 'previous' | 'alltime';
+// Overall Power calculation (Bulletstar style - heavy on rebirths + level + activity)
+function calculatePower(entry: LeaderboardEntry): number {
+  const crimes = entry.crimes || 0;
+  return Math.floor((entry.rebirths * 100000) + (entry.level * 5000) + (crimes * 150));
+}
 
-export default function Leaderboard() {
+function formatPower(n: number, language: string) {
+  return new Intl.NumberFormat(language === 'nl' ? 'nl-NL' : 'en-US', {
+    maximumFractionDigits: 0,
+  }).format(n);
+}
+
+export default function LeaderboardPage() {
+  const { t, language } = useLanguage();
   const [data, setData] = useState<LeaderboardData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<MetricTab>('overall');
-  const [seasonTab, setSeasonTab] = useState<SeasonTab>('current');
 
   useEffect(() => {
     const fetchLeaderboard = async () => {
       setLoading(true);
       const supabase = createClient();
-      const { data, error } = await supabase.rpc('get_leaderboard');
-      if (error) {
-        console.error('Leaderboard error:', error);
+      const { data: result, error } = await supabase.rpc('get_leaderboard');
+
+      if (error || !result) {
         setData({ top: [], me: null });
       } else {
-        setData((data as LeaderboardData) ?? { top: [], me: null });
+        setData(result as LeaderboardData);
       }
       setLoading(false);
     };
+
     fetchLeaderboard();
   }, []);
 
-  const players: LeaderboardEntry[] =
-    activeTab === 'crimes'
-      ? [...(data?.top ?? [])].sort((a, b) => b.crimes - a.crimes)
-      : (data?.top ?? []);
+  const players = (data?.top ?? []).map((p) => ({
+    ...p,
+    power: calculatePower(p),
+  }));
 
   const me = data?.me ?? null;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-red-500 tracking-wider">GLOBAL LEADERBOARD</h1>
-          <p className="text-zinc-400 mt-3">Season 1 • Individual Player Rankings</p>
+    <div className="max-w-4xl mx-auto px-4 py-6">
+      {/* Compact header matching other sections */}
+      <div className="mb-4">
+        <h1 className="text-2xl font-bold tracking-tight">Leaderboard</h1>
+        <p className="text-xs text-zinc-400">All criminals • Ranked by overall power</p>
+      </div>
+
+      {/* Compact table - smaller, less overwhelming */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden text-sm">
+        <div className="grid grid-cols-12 bg-zinc-800 px-3 py-1.5 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
+          <div className="col-span-1 text-center">#</div>
+          <div className="col-span-3">Name</div>
+          <div className="col-span-2 text-right">Power</div>
+          <div className="col-span-2 text-right">Cash</div>
+          <div className="col-span-2">Rank</div>
+          <div className="col-span-2">Family</div>
         </div>
 
-        {/* Season Tabs (historical views arrive with the seasons system) */}
-        <div className="flex justify-center mb-4">
-          <div className="inline-flex bg-zinc-900 rounded-xl p-1">
-            {[
-              { id: 'current' as const, label: 'Current Season' },
-              { id: 'previous' as const, label: 'Previous Season' },
-              { id: 'alltime' as const, label: 'All-Time' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setSeasonTab(tab.id)}
-                className={`px-6 py-2 rounded-xl font-medium text-sm transition-all ${
-                  seasonTab === tab.id
-                    ? 'bg-zinc-700 text-white'
-                    : 'text-zinc-400 hover:text-white'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
+        {loading ? (
+          <div className="p-8 text-center text-zinc-500 text-sm">Loading...</div>
+        ) : players.length === 0 ? (
+          <div className="p-8 text-center text-zinc-500 text-sm">No players yet.</div>
+        ) : (
+          players.map((player) => {
+            const rankInfo = getRank(player.level);
+            const displayRank = t(rankInfo.key as any);
+            const hasFamily = !!player.family_tag;
 
-        {/* Metric Tabs */}
-        <div className="flex justify-center mb-8">
-          <div className="inline-flex bg-zinc-900 rounded-xl p-1">
-            {[
-              { id: 'overall' as const, label: 'Overall Power' },
-              { id: 'crimes' as const, label: 'Criminal Mastermind' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-8 py-3 rounded-xl font-medium transition-all ${
-                  activeTab === tab.id
-                    ? 'bg-red-600 text-white shadow-md'
-                    : 'text-zinc-400 hover:text-white'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {seasonTab !== 'current' && (
-          <div className="text-center mb-4 text-amber-400 text-sm">
-            Previous season and All-time views will show historical data once seasons are implemented.
-          </div>
-        )}
-
-        <div className="bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-700">
-          <div className="grid grid-cols-12 bg-zinc-800 p-5 text-sm font-semibold text-zinc-400">
-            <div className="col-span-1">Rank</div>
-            <div className="col-span-5">Player</div>
-            <div className="col-span-2 text-center">Level</div>
-            <div className="col-span-2 text-center">Rebirths</div>
-            <div className="col-span-2 text-center">Crimes</div>
-          </div>
-
-          {loading ? (
-            <div className="p-20 text-center text-zinc-500">Loading the underworld rankings...</div>
-          ) : players.length === 0 ? (
-            <div className="p-20 text-center text-zinc-500">No players found yet</div>
-          ) : (
-            players.map((player, index) => (
+            return (
               <div
                 key={player.username}
-                className={`grid grid-cols-12 p-5 border-t border-zinc-800 hover:bg-zinc-800/70 transition-all items-center ${
-                  me && player.username === me.username ? 'bg-red-950/30' : ''
+                className={`grid grid-cols-12 px-3 py-1.5 border-t border-zinc-800 items-center hover:bg-zinc-800/60 transition-all ${
+                  me && player.username === me.username ? 'bg-red-950/20' : ''
                 }`}
               >
-                <div className="col-span-1 text-3xl font-bold text-red-500">#{index + 1}</div>
-
-                <div className="col-span-5 flex items-center gap-4">
-                  <div className="w-12 h-12 bg-zinc-700 rounded-full flex items-center justify-center text-3xl">
-                    {player.rebirths > 0 ? '👑' : '👤'}
-                  </div>
-                  <div>
-                    <div className="font-semibold text-xl">{player.username}</div>
-                    {player.family_tag && (
-                      <div className="text-xs text-red-400 font-mono tracking-wider">
-                        {player.family_tag} • {player.family_name}
-                      </div>
-                    )}
-                  </div>
+                <div className="col-span-1 text-center font-mono text-red-500 font-semibold text-xs">
+                  #{player.pos}
                 </div>
 
-                <div className="col-span-2 text-center text-4xl font-mono text-white">
-                  {player.level}
+                <div className="col-span-3 font-medium truncate pr-2">
+                  <Link href={`/profile?user=${player.username}`} className="hover:underline text-red-400">
+                    {player.username}
+                  </Link>
                 </div>
 
-                <div className="col-span-2 text-center text-2xl text-amber-400 font-medium">
-                  {player.rebirths}
+                <div className="col-span-2 text-right font-mono font-semibold text-white tabular-nums">
+                  {formatPower(player.power, language)}
                 </div>
 
-                <div className="col-span-2 text-center text-2xl font-semibold text-white">
-                  {player.crimes}
+                <div className="col-span-2 text-right font-mono text-emerald-400 tabular-nums">
+                  {formatCash(player.cash ?? 0, language)}
+                </div>
+
+                <div className="col-span-2 text-xs text-zinc-300 truncate">
+                  {displayRank}
+                </div>
+
+                <div className="col-span-2 text-[10px] text-red-400 font-mono truncate">
+                  {hasFamily ? `${player.family_tag} — ${player.family_name}` : '—'}
                 </div>
               </div>
-            ))
-          )}
-        </div>
-
-        {me && (
-          <p className="text-center text-sm text-zinc-400 mt-4">
-            Your position: <span className="text-red-400 font-bold">#{me.pos}</span> • {me.username}
-          </p>
+            );
+          })
         )}
+      </div>
 
-        <p className="text-center text-xs text-zinc-500 mt-6">
-          Global Leaderboard • See the{' '}
-          <Link href="/families/leaderboard" className="text-red-400 hover:underline">
-            Families Leaderboard
-          </Link>{' '}
-          for Family rankings.
+      {me && (
+        <p className="mt-2 text-center text-[10px] text-zinc-400">
+          Your rank: <span className="text-red-400 font-semibold">#{me.pos}</span>
         </p>
+      )}
+
+      <div className="mt-6 text-center">
+        <Link href="/families/leaderboard" className="text-xs text-red-400 hover:underline">
+          View Families Leaderboard →
+        </Link>
       </div>
     </div>
   );

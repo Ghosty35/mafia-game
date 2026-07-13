@@ -1,11 +1,6 @@
 import type { ReactNode } from 'react';
-import GameNav from '../components/GameNav';
+import GameLayout from '../components/GameLayout';
 
 export default function LeaderboardLayout({ children }: { children: ReactNode }) {
-  return (
-    <>
-      <GameNav />
-      {children}
-    </>
-  );
+  return <GameLayout>{children}</GameLayout>;
 }
