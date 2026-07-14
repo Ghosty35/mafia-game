@@ -53,16 +53,16 @@ export default function HospitalPage() {
     const { data, error } = await supabase.rpc('buy_health', { amount });
 
     if (error) {
-      let msg = 'Something went wrong.';
-      if (error.message.includes('NOT_ENOUGH_CASH')) msg = 'Not enough cash!';
-      if (error.message.includes('ALREADY_FULL_HEALTH')) msg = 'You are already at full health.';
+      let msg = t('common_error');
+      if (error.message.includes('NOT_ENOUGH_CASH')) msg = t('common_not_enough_cash');
+      if (error.message.includes('ALREADY_FULL_HEALTH')) msg = t('hospital_already_full');
       setMessage(msg);
     } else {
       const healed = data?.healed || amount;
       const newHealth = Math.min(100, currentHealth + healed);
       setCurrentHealth(newHealth);
       setAmount(Math.max(1, 100 - newHealth));
-      setMessage(`Successfully bought ${healed} health for $${data?.cost || totalCost}!`);
+      setMessage(t('hospital_bought', { healed, cost: `$${data?.cost || totalCost}` }));
     }
 
     setBusy(false);
@@ -71,14 +71,14 @@ export default function HospitalPage() {
   return (
     <div className="max-w-3xl mx-auto p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">🏥 Hospital</h1>
-        <p className="text-sm text-zinc-400">Buy blood to restore your health. The streets are dangerous.</p>
+        <h1 className="text-3xl font-bold tracking-tight">🏥 {t('hospital_title')}</h1>
+        <p className="text-sm text-zinc-400">{t('hospital_desc')}</p>
       </div>
 
       {/* Current Health */}
       <div className="card p-5 mb-6">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-zinc-400">Current Health</span>
+          <span className="text-sm text-zinc-400">{t('hospital_current_health')}</span>
           <span className="text-2xl font-bold text-emerald-400">{currentHealth}%</span>
         </div>
         <div className="h-4 bg-zinc-800 rounded-full overflow-hidden">
@@ -87,16 +87,16 @@ export default function HospitalPage() {
             style={{ width: `${currentHealth}%` }} 
           />
         </div>
-        <p className="text-xs text-zinc-500 mt-1.5">Health drops every time you commit a crime. Higher risk jobs cost more.</p>
+        <p className="text-xs text-zinc-500 mt-1.5">{t('hospital_drop_note')}</p>
       </div>
 
       {/* Flexible Purchase */}
       <div className="card p-6">
-        <h2 className="font-semibold mb-4">Purchase Health</h2>
+        <h2 className="font-semibold mb-4">{t('hospital_purchase_title')}</h2>
 
         <div className="mb-4">
           <label className="block text-sm text-zinc-400 mb-1.5">
-            How much health do you want to buy? (max {maxAmount})
+            {t('hospital_amount_label', { max: maxAmount })}
           </label>
           <div className="flex gap-2">
             <input
@@ -112,7 +112,7 @@ export default function HospitalPage() {
               disabled={maxAmount <= 0}
               className="px-5 py-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-sm font-semibold whitespace-nowrap disabled:opacity-50"
             >
-              Fill to 100%
+              {t('hospital_fill_full')}
             </button>
           </div>
         </div>
@@ -122,21 +122,21 @@ export default function HospitalPage() {
           <button onClick={() => quickAdd(10)} className="px-3 py-1 text-xs rounded bg-zinc-800 hover:bg-zinc-700">+10</button>
           <button onClick={() => quickAdd(25)} className="px-3 py-1 text-xs rounded bg-zinc-800 hover:bg-zinc-700">+25</button>
           <button onClick={() => quickAdd(50)} className="px-3 py-1 text-xs rounded bg-zinc-800 hover:bg-zinc-700">+50</button>
-          <button onClick={fillToFull} disabled={maxAmount <= 0} className="px-3 py-1 text-xs rounded bg-amber-900 hover:bg-amber-800">Full Restore</button>
+          <button onClick={fillToFull} disabled={maxAmount <= 0} className="px-3 py-1 text-xs rounded bg-amber-900 hover:bg-amber-800">{t('hospital_full_restore')}</button>
         </div>
 
         {/* Live Cost Preview */}
         <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-4 mb-5">
           <div className="flex justify-between text-sm">
-            <span className="text-zinc-400">Amount</span>
-            <span className="font-mono">{amount} health</span>
+            <span className="text-zinc-400">{t('common_amount')}</span>
+            <span className="font-mono">{t('hospital_amount_value', { amount })}</span>
           </div>
           <div className="flex justify-between text-sm mt-1">
-            <span className="text-zinc-400">Price</span>
+            <span className="text-zinc-400">{t('hospital_price')}</span>
             <span className="font-mono text-emerald-400">${totalCost}</span>
           </div>
           <div className="flex justify-between text-sm mt-1 pt-1 border-t border-zinc-800">
-            <span className="text-zinc-400">After purchase</span>
+            <span className="text-zinc-400">{t('hospital_after_purchase')}</span>
             <span className="font-mono text-emerald-400">{Math.min(100, currentHealth + amount)}%</span>
           </div>
         </div>
@@ -146,7 +146,9 @@ export default function HospitalPage() {
           disabled={busy || amount < 1 || amount > maxAmount || currentHealth >= 100}
           className="w-full py-3 rounded-lg bg-red-700 hover:bg-red-600 font-bold disabled:opacity-50 disabled:cursor-not-allowed transition"
         >
-          {busy ? 'Purchasing...' : `Buy ${amount} Health for $${totalCost}`}
+          {busy
+            ? t('hospital_buying')
+            : t('hospital_buy_button', { amount, cost: `$${totalCost}` })}
         </button>
 
         {message && (
@@ -156,12 +158,10 @@ export default function HospitalPage() {
         )}
       </div>
 
-      <div className="mt-6 text-xs text-zinc-500">
-        Price: $8 per health unit. Enter any amount or use quick buttons to fill exactly what you need.
-      </div>
+      <div className="mt-6 text-xs text-zinc-500">{t('hospital_price_note')}</div>
 
       <Link href="/dashboard" className="mt-6 inline-block text-sm text-red-400 hover:underline">
-        ← Back to Dashboard
+        ← {t('common_back_dashboard')}
       </Link>
     </div>
   );

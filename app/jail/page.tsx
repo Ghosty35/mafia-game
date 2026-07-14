@@ -4,10 +4,13 @@ import { useState, useEffect } from 'react';
 import { usePlayer } from '../components/PlayerContext';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { formatCash } from '@/lib/format';
 import Link from 'next/link';
 
 export default function JailPage() {
-  const { player, updatePlayer, refreshPlayer } = usePlayer();
+  const { player, refreshPlayer } = usePlayer();
+  const { t } = useLanguage();
   const router = useRouter();
   const [breakoutSkill, setBreakoutSkill] = useState(10);
   const [message, setMessage] = useState('');
@@ -29,7 +32,7 @@ export default function JailPage() {
     if (!player) return;
     const cost = 500;
     if (player.cash < cost) {
-      setMessage('Not enough cash to train.');
+      setMessage(t('jail_train_no_cash'));
       return;
     }
     const newSkill = Math.min(100, breakoutSkill + 5);
@@ -39,54 +42,78 @@ export default function JailPage() {
       patch: { breakout_skill: newSkill },
     });
     if (error) {
-      setMessage(error.message.includes('NOT_ENOUGH_CASH') ? 'Not enough cash to train.' : (error.message || 'Training failed.'));
+      setMessage(
+        error.message.includes('NOT_ENOUGH_CASH')
+          ? t('jail_train_no_cash')
+          : error.message || t('jail_train_failed'),
+      );
       return;
     }
     setBreakoutSkill(newSkill);
-    setMessage(`Trained breakout experience! Skill now ${newSkill}%.`);
+    setMessage(t('jail_train_success', { skill: newSkill }));
     if (refreshPlayer) await refreshPlayer();
     router.refresh();
   };
 
   const attemptBreakout = async () => {
     if (!player?.jailed_until) {
-      setMessage('You are not in jail.');
+      setMessage(t('jail_not_in_jail'));
       return;
     }
     // Escape roll happens server-side (attempt_breakout RPC)
     const supabase = createClient();
     const { data, error } = await supabase.rpc('attempt_breakout');
     if (error) {
-      setMessage(error.message.includes('NOT_IN_JAIL') ? 'You are not in jail.' : (error.message || 'Breakout failed.'));
+      setMessage(
+        error.message.includes('NOT_IN_JAIL')
+          ? t('jail_not_in_jail')
+          : error.message || t('jail_breakout_error'),
+      );
       return;
     }
-    setMessage(data?.success ? 'Breakout successful! You escaped.' : `Failed breakout. +${data?.added_minutes || 5} minutes added.`);
+    setMessage(
+      data?.success
+        ? t('jail_breakout_success')
+        : t('jail_breakout_failed', { minutes: data?.added_minutes || 5 }),
+    );
     if (refreshPlayer) await refreshPlayer();
     router.refresh();
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-4">🔒 City Jail</h1>
-      <p className="text-sm text-zinc-400 mb-6">See who's locked up. Train your breakout skills like in Bulletstar.</p>
+    <div className="max-w-4xl mx-auto p-4 sm:p-6">
+      <h1 className="text-3xl font-bold mb-4">🔒 {t('jail_title')}</h1>
+      <p className="text-sm text-zinc-400 mb-6">{t('jail_desc')}</p>
 
       <div className="card p-5 mb-6">
-        <h3 className="font-bold mb-2">Inmates (Live Demo)</h3>
+        <h3 className="font-bold mb-2">{t('jail_inmates')}</h3>
         {jailedPlayers.map((j, idx) => (
-          <div key={idx} className="text-sm mb-1">{j.username} - {j.time} in {j.city}</div>
+          <div key={idx} className="text-sm mb-1">
+            {j.username} - {t('jail_time_in_city', { time: j.time, city: j.city })}
+          </div>
         ))}
       </div>
 
       <div className="card p-5 mb-6">
-        <h3 className="font-bold mb-2">Your Breakout Training</h3>
-        <div>Skill: {breakoutSkill}%</div>
-        <button onClick={trainBreakout} className="mt-2 px-4 py-1 bg-blue-700 rounded text-sm">Train (+5% for $500)</button>
-        {player?.jailed_until && <button onClick={attemptBreakout} className="ml-2 px-4 py-1 bg-red-700 rounded text-sm">Attempt Breakout</button>}
+        <h3 className="font-bold mb-2">{t('jail_training_title')}</h3>
+        <div>
+          {t('jail_skill')}: {breakoutSkill}%
+        </div>
+        <button onClick={trainBreakout} className="mt-2 px-4 py-1 bg-blue-700 rounded text-sm">
+          {t('jail_train_button', { cost: formatCash(500) })}
+        </button>
+        {player?.jailed_until && (
+          <button onClick={attemptBreakout} className="ml-2 px-4 py-1 bg-red-700 rounded text-sm">
+            {t('jail_attempt_breakout')}
+          </button>
+        )}
       </div>
 
       {message && <div className="p-3 bg-zinc-900 rounded">{message}</div>}
 
-      <Link href="/dashboard" className="mt-4 inline-block text-sm text-red-400">← Back</Link>
+      <Link href="/dashboard" className="mt-4 inline-block text-sm text-red-400">
+        ← {t('common_back')}
+      </Link>
     </div>
   );
 }
