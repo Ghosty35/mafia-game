@@ -4,9 +4,11 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function MetalFactoryPage() {
   const { player, refreshPlayer } = usePlayer();
+  const { t } = useLanguage();
   const [amount, setAmount] = useState(100);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
@@ -23,28 +25,28 @@ export default function MetalFactoryPage() {
     const { data, error } = await supabase.rpc('buy_bullets', { amount });
 
     if (error) {
-      setMessage(error.message.includes('NOT_ENOUGH_CASH') ? 'Not enough cash!' : (error.message || 'Purchase failed.'));
+      setMessage(error.message.includes('NOT_ENOUGH_CASH') ? t('common_not_enough_cash') : (error.message || t('factory_purchase_failed')));
     } else if (data?.busted) {
       await refreshPlayer();
-      setMessage(`Police caught you! Fined $${data.fine}, +30 heat, bullets confiscated. 5 min jail risk.`);
+      setMessage(t('factory_busted', { fine: `$${data.fine}` }));
     } else {
       await refreshPlayer();
-      setMessage(`Bought ${data?.bullets_bought || amount} bullets for $${data?.cost || amount * pricePerBullet}.`);
+      setMessage(t('factory_bought', { bullets: data?.bullets_bought || amount, cost: `$${data?.cost || amount * pricePerBullet}` }));
     }
 
     setBusy(false);
   };
 
-  if (!player) return <div>Loading...</div>;
+  if (!player) return <div>{t('loading')}</div>;
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-4">🏭 Metal Factory</h1>
-      <p className="text-sm text-zinc-400 mb-6">Buy illegal bullets. High volume purchases risk police attention.</p>
+      <h1 className="text-3xl font-bold mb-4">🏭 {t('factory_title')}</h1>
+      <p className="text-sm text-zinc-400 mb-6">{t('factory_desc')}</p>
 
       <div className="card p-6">
         <div className="mb-4">
-          <label className="block text-sm mb-1">Amount of Bullets</label>
+          <label className="block text-sm mb-1">{t('factory_amount_label')}</label>
           <input 
             type="number" 
             value={amount} 
@@ -54,8 +56,8 @@ export default function MetalFactoryPage() {
         </div>
 
         <div className="text-sm mb-4">
-          Cost: <span className="font-mono">${amount * pricePerBullet}</span> 
-          {amount > 5000 && <span className="text-red-400 ml-2">(High risk!)</span>}
+          {t('factory_cost')} <span className="font-mono">${amount * pricePerBullet}</span> 
+          {amount > 5000 && <span className="text-red-400 ml-2">{t('factory_high_risk')}</span>}
         </div>
 
         <button 
@@ -63,17 +65,17 @@ export default function MetalFactoryPage() {
           disabled={busy}
           className="w-full py-3 bg-red-700 hover:bg-red-600 rounded font-bold"
         >
-          {busy ? 'Buying...' : 'Buy Bullets'}
+          {busy ? t('factory_buying') : t('factory_buy')}
         </button>
       </div>
 
       {message && <div className="mt-4 p-3 bg-zinc-900 border border-zinc-700 rounded">{message}</div>}
 
       <div className="mt-6 text-xs text-zinc-500">
-        Current bullets: {player.bullets || 0}. Use in PvP kills.
+        {t('factory_current', { bullets: player.bullets || 0 })}
       </div>
 
-      <Link href="/dashboard" className="mt-4 inline-block text-sm text-red-400">← Back</Link>
+      <Link href="/dashboard" className="mt-4 inline-block text-sm text-red-400">← {t('common_back')}</Link>
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 interface ServerStats {
   online_people: number;
@@ -14,6 +15,7 @@ interface ServerStats {
 }
 
 export default function ServerStatusPage() {
+  const { t } = useLanguage();
   const [stats, setStats] = useState<ServerStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -69,12 +71,12 @@ export default function ServerStatusPage() {
   const formatMoney = (n: number) => '$' + n.toLocaleString();
 
   const statCards = stats ? [
-    { label: 'Online People', value: stats.online_people.toLocaleString(), icon: '🟢', sub: 'Right now in the game' },
-    { label: 'Logged In This Week', value: stats.logged_in_this_week.toLocaleString(), icon: '📅', sub: 'Active players (7 days)' },
-    { label: 'Total Families', value: stats.total_families.toLocaleString(), icon: '👑', sub: 'Criminal organizations' },
-    { label: 'Total Family Members', value: stats.total_family_members.toLocaleString(), icon: '👥', sub: 'Players in families' },
-    { label: 'Total Money Circulation', value: formatMoney(stats.total_money_circulation), icon: '💵', sub: 'Cash + Bank across all players' },
-    { label: 'People Registered', value: stats.people_registered.toLocaleString(), icon: '📋', sub: 'Total accounts created' },
+    { label: t('status_online'), value: stats.online_people.toLocaleString(), icon: '🟢', sub: t('status_online_sub') },
+    { label: t('status_week'), value: stats.logged_in_this_week.toLocaleString(), icon: '📅', sub: t('status_week_sub') },
+    { label: t('status_families'), value: stats.total_families.toLocaleString(), icon: '👑', sub: t('status_families_sub') },
+    { label: t('status_members'), value: stats.total_family_members.toLocaleString(), icon: '👥', sub: t('status_members_sub') },
+    { label: t('status_money'), value: formatMoney(stats.total_money_circulation), icon: '💵', sub: t('status_money_sub') },
+    { label: t('status_registered'), value: stats.people_registered.toLocaleString(), icon: '📋', sub: t('status_registered_sub') },
   ] : [];
 
   return (
@@ -82,24 +84,24 @@ export default function ServerStatusPage() {
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-black tracking-tighter">SERVER STATUS</h1>
-            <p className="text-zinc-400 mt-1">Live pulse of the underworld • 2026</p>
+            <h1 className="text-4xl font-black tracking-tighter">{t('status_title')}</h1>
+            <p className="text-zinc-400 mt-1">{t('status_subtitle')}</p>
           </div>
           <button 
             onClick={loadStats} 
             disabled={loading}
             className="px-4 py-2 text-sm rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 disabled:opacity-50"
           >
-            {loading ? 'Refreshing...' : 'Refresh Now'}
+            {loading ? t('status_refreshing') : t('status_refresh')}
           </button>
         </div>
         {lastUpdated && (
-          <p className="text-[10px] text-zinc-500 mt-1">Last updated: {lastUpdated.toLocaleTimeString()}</p>
+          <p className="text-[10px] text-zinc-500 mt-1">{t('status_last_updated', { time: lastUpdated.toLocaleTimeString() })}</p>
         )}
       </div>
 
       {loading && !stats ? (
-        <div className="text-center py-12 text-zinc-400">Loading live server data...</div>
+        <div className="text-center py-12 text-zinc-400">{t('status_loading')}</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {statCards.map((card, idx) => (
@@ -118,18 +120,18 @@ export default function ServerStatusPage() {
       )}
 
       <div className="mt-8 p-5 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-zinc-300">
-        <div className="font-semibold text-red-400 mb-2">How these numbers work</div>
+        <div className="font-semibold text-red-400 mb-2">{t('status_how_title')}</div>
         <ul className="space-y-1 text-xs text-zinc-400 list-disc pl-5">
-          <li><span className="text-white">Online</span> = players with activity in the last 15 minutes (updated on every action/login).</li>
-          <li><span className="text-white">Logged in this week</span> = unique players active within the last 7 days.</li>
-          <li><span className="text-white">Total Money Circulation</span> = sum of all cash + personal bank balances across the entire server.</li>
-          <li>Family stats update live when players create, join, donate, or buy power.</li>
+          <li><span className="text-white">{t('status_how_1_label')}</span> {t('status_how_1_text')}</li>
+          <li><span className="text-white">{t('status_how_2_label')}</span> {t('status_how_2_text')}</li>
+          <li><span className="text-white">{t('status_how_3_label')}</span> {t('status_how_3_text')}</li>
+          <li>{t('status_how_4')}</li>
         </ul>
-        <p className="mt-3 text-[10px] text-zinc-500">Numbers are fully dynamic via database. Press Online in the top bar anytime to return here.</p>
+        <p className="mt-3 text-[10px] text-zinc-500">{t('status_footer')}</p>
       </div>
 
       <div className="mt-6">
-        <Link href="/dashboard" className="text-sm text-red-400 hover:underline">← Back to Dashboard</Link>
+        <Link href="/dashboard" className="text-sm text-red-400 hover:underline">← {t('common_back_dashboard')}</Link>
       </div>
     </div>
   );
