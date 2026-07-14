@@ -34,9 +34,33 @@ are hotfixes that belong at a specific point in the chain:
 - `get_my_player()` returns the full `players` row type, so a new column
   added with `alter table` is automatically available client-side.
 
-## Current status
+## Current status (live-DB audit, 2026-07-15)
 
-The live project already has 001 through 036 (+ all FIX scripts) applied.
-Only `037_language_preference.sql` is new: it adds `players.language`
-('en'/'nl') and the `set_my_language(p_language)` RPC used by the in-game
-language switcher.
+An API probe of the live project found that **8 scripts were never
+(fully) applied** — the SQL Editor runs each script as one transaction,
+so a single error rolls the whole script back. As a result 31 RPCs,
+8 tables and 7 player columns the frontend depends on are missing live.
+
+### 🔧 Repair: run ONLY these, in this order
+
+```
+015 → 016 → 018 → 020 → 021 → 025 → 035 → 036 → 037
+```
+
+| Script | Restores |
+|---|---|
+| `015_pending_donations_and_bank.sql` | family donations / pending bank |
+| `016_heat_jail_heists.sql` | heists table + jail breakout |
+| `018_health_protection_hospital.sql` | buy_protection |
+| `020_commit_heist.sql` | commit_heist |
+| `021_heist_pvp_balance.sql` | attempt_hit, buy_power |
+| `025_health_deduction_pvp_heist.sql` | PvP/heist health loss |
+| `035_admin_tools_and_persistence.sql` | apply_action, update_my_state, travel, property, bullets, all admin_* (25 fns) |
+| `036_idle_income_events_races_territory.sql` | races, territories, game_events |
+| `037_language_preference.sql` | players.language + set_my_language |
+
+All eight are rerun-safe: every `CREATE TABLE` / `ADD COLUMN` uses
+`IF NOT EXISTS` and every seed insert is `ON CONFLICT`-guarded. If a
+script errors, stop and report the message instead of continuing.
+
+(The full 001→037 order above remains the contract for a fresh database.)
