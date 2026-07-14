@@ -1,12 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
 
 export default function ProfilePage() {
+  return (
+    <Suspense fallback={<div className="max-w-4xl mx-auto p-6 text-zinc-400">Loading profile...</div>}>
+      <ProfileContent />
+    </Suspense>
+  );
+}
+
+function ProfileContent() {
   const { player } = usePlayer();
   const searchParams = useSearchParams();
   const viewUser = searchParams.get('user') || searchParams.get('username');
@@ -22,15 +30,11 @@ export default function ProfilePage() {
 
       try {
         if (viewUser) {
-          // Try to find by username (simple public lookup)
-          const { data: found } = await supabase
-            .from('players')
-            .select('id, username, level, cash, diamonds, is_donator, crimes_succeeded, crimes_failed, family_id, power, protection, health, murder_skill')
-            .ilike('username', viewUser)
-            .limit(1)
-            .single();
+          // Public lookup via RPC (RLS blocks reading other players' rows directly)
+          const { data: found, error: lookupError } = await supabase
+            .rpc('get_public_profile', { p_username: viewUser });
 
-          if (found) {
+          if (found && !lookupError) {
             setProfile(found);
           } else {
             setError('Player not found.');

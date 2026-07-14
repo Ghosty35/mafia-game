@@ -8,7 +8,7 @@ import { usePlayer } from '../components/PlayerContext';
 
 export default function ShopPage() {
   const { t } = useLanguage();
-  const { player, updatePlayer } = usePlayer();
+  const { player, refreshPlayer } = usePlayer();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -44,16 +44,14 @@ export default function ShopPage() {
     setMessage(null);
     const supabase = createClient();
 
-    // Deduct diamonds
-    await supabase.from('players').update({ diamonds: (player.diamonds || 0) - costDiamonds }).eq('id', player.id);
-
-    // Grant donator
-    const { error } = await supabase.rpc('grant_donator_status');
+    // Atomic server-side purchase: checks + deducts diamonds + grants donator
+    const { error } = await supabase.rpc('purchase_donator', { cost_diamonds: costDiamonds });
     if (error) {
-      setMessage('Failed to activate Donator status.');
+      if (error.message.includes('NOT_ENOUGH_DIAMONDS')) setMessage('Not enough diamonds for Donator Status.');
+      else if (error.message.includes('ALREADY_DONATOR')) setMessage('You are already a Donator!');
+      else setMessage('Failed to activate Donator status.');
     } else {
-      const updated = { ...player, diamonds: (player.diamonds || 0) - costDiamonds, is_donator: true, donator_since: new Date().toISOString() };
-      updatePlayer(updated as any);
+      await refreshPlayer();
       setMessage('🎉 Welcome to Donator Status! All global XP +25%, earnings +20%, and shop items are now 25% cheaper. Donator tag unlocked.');
     }
     setBusy(false);
@@ -237,6 +235,7 @@ export default function ShopPage() {
           </div>
         )}
       </div>
+      )}
     </main>
   );
 }
@@ -244,6 +243,7 @@ export default function ShopPage() {
 // Local component for family VIP buffs with proper pricing ratios
 function FamilyBuffsShop({ busy, setMessage, isDonator }: { busy: boolean; setMessage: (m: string) => void; isDonator?: boolean }) {
   const [localBusy, setLocalBusy] = useState(false);
+  const { refreshPlayer } = usePlayer();
   const supabase = createClient();
 
   // Pricing philosophy:
@@ -270,34 +270,24 @@ function FamilyBuffsShop({ busy, setMessage, isDonator }: { busy: boolean; setMe
         if (error) throw error;
         setMessage(`Bought ${buff.label} for family (via bank conversion). Stronger crew!`);
       } else {
-        // Diamond path — deduct diamonds from player (VIP premium)
-        const { data: me } = await supabase.rpc('get_my_player');
+        // Diamond path — atomic server-side: checks + deducts diamonds + adds family power
         const costD = useBundle ? buff.diamondsBundle : buff.diamonds;
-        if (!me || (me.diamonds || 0) < costD) {
-          setMessage('Not enough diamonds.');
+        const powerGain = useBundle ? buff.bundlePower : Math.floor(buff.diamonds * 1.8);
+
+        const { error } = await supabase.rpc('buy_family_buff_diamonds', {
+          cost_diamonds: costD,
+          power_gain: powerGain,
+        });
+        if (error) {
+          if (error.message.includes('NOT_ENOUGH_DIAMONDS')) setMessage('Not enough diamonds.');
+          else if (error.message.includes('NOT_IN_FAMILY')) setMessage('You must be in a family to buy VIP buffs.');
+          else setMessage(error.message || 'Purchase failed.');
           setLocalBusy(false);
           return;
         }
 
-        // Deduct diamonds
-        await supabase.from('players').update({ diamonds: (me.diamonds || 0) - costD }).eq('id', me.id);
-
-        // Apply family power gain (bundle gives more)
-        const powerGain = useBundle ? buff.bundlePower : Math.floor((useBundle ? buff.bundlePower : 0) || (buff.diamonds * 1.8));
-        // Best effort: buy power effect or direct
-        try {
-          await supabase.rpc('buy_family_power', { spend_amount: 25000 }); // symbolic
-        } catch {}
-
-        // Direct power add to family (demo reliable path)
-        const { data: famData } = await supabase.rpc('get_my_family');
-        if (famData?.family?.id) {
-          const famId = famData.family.id;
-          const currentPower = famData.family.power || 0;
-          await supabase.from('families').update({ power: currentPower + powerGain }).eq('id', famId);
-        }
-
         const label = useBundle ? `${buff.label} (BUNDLE)` : buff.label;
+        await refreshPlayer();
         setMessage(`VIP: ${label} applied to your Family. +${powerGain} power.`);
       }
     } catch (e: any) {

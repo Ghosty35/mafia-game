@@ -100,15 +100,16 @@ export default function StocksPage() {
     return v;
   };
 
+  const isAdmin = player?.username === 'YGhosty';
+
   const nudgeStock = async (ticker: string, pct: number) => {
-    // Direct update for specific driver effect (server RPC would be ideal in prod)
-    try {
-      const stock = stocks.find(st => st.ticker === ticker);
-      if (!stock) return;
-      const newP = Math.max(3, Math.round((stock.current_price * (1 + pct / 100)) * 100) / 100);
-      await supabase.from('stocks').update({ current_price: newP, prev_price: stock.current_price, last_tick: new Date().toISOString() }).eq('ticker', ticker);
-      setMsg(`Market mover: ${ticker} ${pct > 0 ? '+' : ''}${pct}%`);
-    } catch {}
+    // Admin-only market mover via RPC (direct table writes are blocked by RLS)
+    const { error } = await supabase.rpc('admin_nudge_stock', { p_ticker: ticker, pct });
+    if (error) {
+      setMsg(error.message.includes('NOT_AUTHORIZED') ? 'Only the admin can move the market.' : (error.message || 'Market move failed'));
+      return;
+    }
+    setMsg(`Market mover: ${ticker} ${pct > 0 ? '+' : ''}${pct}%`);
   };
 
   return (
@@ -163,8 +164,9 @@ export default function StocksPage() {
         <br />Specific drivers active: Real Estate buys → GOTHAM up. Drug sales → PHARMA. Family power buys → FAMPOW. Heists → HEISTX. Racing → RACERZ. Casino play → CASROY.
       </div>
 
-      <div className="mt-4 card p-4">
-        <div className="text-xs font-semibold mb-2">MARKET ACTIVITY (In-game actions move these live)</div>
+      {isAdmin && (
+      <div className="mt-4 card p-4 border border-amber-900/50">
+        <div className="text-xs font-semibold mb-2">🛠️ ADMIN MARKET MOVERS (only visible to you)</div>
         <div className="flex flex-wrap gap-2 text-xs">
           <button onClick={async () => { await nudgeStock('GOTHAM', 3.2); await loadMarket(); }} className="px-3 py-1 bg-zinc-800 rounded">Real Estate boom (+GOTHAM)</button>
           <button onClick={async () => { await nudgeStock('PHARMA', 2.8); await loadMarket(); }} className="px-3 py-1 bg-zinc-800 rounded">Street sales spike (+PHARMA)</button>
@@ -172,6 +174,7 @@ export default function StocksPage() {
           <button onClick={async () => { await nudgeStock('CASROY', -1.5); await loadMarket(); }} className="px-3 py-1 bg-zinc-800 rounded">Big casino losses (+CASROY slow)</button>
         </div>
       </div>
+      )}
 
       <Link href="/bank" className="mt-4 inline-block text-red-400 text-sm">← Back (or check Bank Assets)</Link>
     </div>

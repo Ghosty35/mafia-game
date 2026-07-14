@@ -21,30 +21,14 @@ export default function TravelPage() {
 
     const supabase = createClient();
 
-    // Higher travel cost but keep drug runs profitable
-    const cost = 380;
-
-    if (player.cash < cost) {
-      setMessage('Not enough cash to travel!');
-      setBusy(false);
-      return;
-    }
-
-    // Update player city (in real, use RPC)
-    const { error } = await supabase
-      .from('players')
-      .update({ 
-        cash: player.cash - cost, 
-        current_city: city 
-      })
-      .eq('id', player.id);
+    // Cost is enforced server-side ($380)
+    const { data, error } = await supabase.rpc('travel_to_city', { city });
 
     if (error) {
-      setMessage('Travel failed.');
+      setMessage(error.message.includes('NOT_ENOUGH_CASH') ? 'Not enough cash to travel!' : (error.message || 'Travel failed.'));
     } else {
-      const updated = { ...player, cash: player.cash - cost, current_city: city };
-      updatePlayer(updated as any);
-      setMessage(`Traveled to ${city} for $${cost}.`);
+      await refreshPlayer();
+      setMessage(`Traveled to ${city} for $${data?.cost || 380}.`);
     }
 
     setBusy(false);

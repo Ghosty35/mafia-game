@@ -33,32 +33,31 @@ export default function SafehousePage() {
   };
 
   const upgradeShed = async (propId: string) => {
-    const owned = player?.owned_properties || [];
-    const idx = owned.findIndex((p: any) => p.id === propId);
-    if (idx === -1) return;
-    const prop = { ...owned[idx] };
+    if (!player) return;
+    const owned = player.owned_properties || [];
+    const prop = owned.find((p: any) => p.id === propId);
+    if (!prop) return;
     const currentLvl = prop.shed_level || 1;
     if (currentLvl >= 3) {
       alert('Max shed level 3.');
       return;
     }
     const cost = 50000 * currentLvl;
-    if ((player?.cash || 0) < cost) {
-      alert('Not enough cash for upgrade.');
+    if (!confirm(`Confirm shed upgrade to lvl ${currentLvl + 1} for $${cost.toLocaleString()}?`)) return;
+    const supabase = createClient();
+    const { data, error } = await supabase.rpc('upgrade_shed', { prop_id: propId });
+    if (error) {
+      alert(error.message.includes('NOT_ENOUGH_CASH') ? 'Not enough cash for upgrade.' : (error.message || 'Upgrade failed.'));
       return;
     }
-    prop.shed_level = currentLvl + 1;
-    const newOwned = [...owned];
-    newOwned[idx] = prop;
-    const updated = { ...player, cash: (player?.cash || 0) - cost, owned_properties: newOwned };
-    updatePlayer(updated as any);
     if (refreshPlayer) await refreshPlayer();
     router.refresh();
-    alert(`Shed upgraded to lvl ${prop.shed_level}!`);
+    alert(`Shed upgraded to lvl ${data?.new_level}!`);
   };
 
   const simulateEarnings = async (propId: string) => {
-    const owned = player?.owned_properties || [];
+    if (!player) return;
+    const owned = player.owned_properties || [];
     const idx = owned.findIndex((p: any) => p.id === propId);
     if (idx === -1) return;
     const prop = { ...owned[idx] };
@@ -74,8 +73,12 @@ export default function SafehousePage() {
     prop.maintenance_due = (prop.maintenance_due || 0) + tax;
     const newOwned = [...owned];
     newOwned[idx] = prop;
-    const updated = { ...player, owned_properties: newOwned };
-    updatePlayer(updated as any);
+    const supabase = createClient();
+    const { error } = await supabase.rpc('update_my_state', { patch: { owned_properties: newOwned } });
+    if (error) {
+      alert(error.message || 'Failed to save earnings.');
+      return;
+    }
     if (refreshPlayer) await refreshPlayer();
     router.refresh();
     alert(`Day earnings: +$${net} (after 20% tax $${tax}). Weekly earnings tracking updated.`);
@@ -120,17 +123,19 @@ export default function SafehousePage() {
               <h4 className="font-bold">🛡️ Villa Bodyguard Team (Raid Protection)</h4>
               <div>Current Bodyguards: {prop.bodyguards || 0}/10</div>
               <div>Base Raid Chance: 30% | -4% per guard</div>
-              <button onClick={() => {
+              <button onClick={async () => {
+                if (!player) return;
                 const current = prop.bodyguards || 0;
                 if (current >= 10) { alert('Max 10.'); return; }
-                let cost = 2000;
-                if (current >= 5) cost = Math.floor(cost * (1 - (current-5)*0.002));
-                if ((player?.cash || 0) < cost) { alert('Not enough.'); return; }
-                prop.bodyguards = current + 1;
-                const newOwned = [...owned]; newOwned[i] = prop;
-                const updated = { ...player, cash: player.cash - cost, owned_properties: newOwned };
-                updatePlayer(updated as any);
-                alert(`Hired bodyguard #${current+1} for $${cost}. Raid chance now ${30 - (current+1)*4}%.`);
+                const supabase = createClient();
+                const { data, error } = await supabase.rpc('hire_bodyguard', { prop_id: prop.id });
+                if (error) {
+                  alert(error.message.includes('NOT_ENOUGH_CASH') ? 'Not enough cash.' : (error.message || 'Hire failed.'));
+                  return;
+                }
+                if (refreshPlayer) await refreshPlayer();
+                router.refresh();
+                alert(`Hired bodyguard #${data?.bodyguards} for $${data?.cost}. Raid chance now ${30 - (data?.bodyguards || 1)*4}%.`);
               }} className="mt-2 px-3 py-1 bg-blue-700 rounded text-sm">Hire Bodyguard ($2000, discount after 5)</button>
               <p className="text-[10px] text-zinc-500">Need 2+ to be effective. Max 10. Alternative: buy house weapon for protection.</p>
             </div>
@@ -142,6 +147,7 @@ export default function SafehousePage() {
               <div className="flex gap-2 mt-2">
                 <input type="number" id={`piggy-deposit-${i}`} placeholder="Amount" className="bg-zinc-900 border px-2 py-1 w-24" />
                 <button onClick={async () => {
+                  if (!player) return;
                   const amt = parseInt((document.getElementById(`piggy-deposit-${i}`) as HTMLInputElement)?.value || '0');
                   if (amt <= 0 || (player?.cash || 0) < amt) {
                     alert('Invalid amount or not enough cash!');
@@ -150,13 +156,12 @@ export default function SafehousePage() {
                   if (!confirm(`Confirm deposit of $${amt} to Piggybank? This will be hidden from global leaderboard.`)) {
                     return;
                   }
-                  prop.piggy_bank = (prop.piggy_bank || 0) + amt;
-                  const newOwned = [...owned]; newOwned[i] = prop;
-                  // Persist to DB
                   const supabase = createClient();
-                  await supabase.from('players').update({ owned_properties: newOwned }).eq('id', player.id);
-                  const updated = { ...player, cash: player.cash - amt, owned_properties: newOwned };
-                  updatePlayer(updated as any);
+                  const { error } = await supabase.rpc('piggy_deposit', { prop_id: prop.id, amount: amt });
+                  if (error) {
+                    alert(error.message.includes('NOT_ENOUGH_CASH') ? 'Not enough cash!' : (error.message || 'Deposit failed.'));
+                    return;
+                  }
                   if (refreshPlayer) await refreshPlayer();
                   router.refresh();
                   alert(`Deposited $${amt} to Piggybank (hidden from global total). Transferred successfully.`);
@@ -165,6 +170,7 @@ export default function SafehousePage() {
               <div className="flex gap-2 mt-2">
                 <input type="number" id={`piggy-withdraw-${i}`} placeholder="Amount" className="bg-zinc-900 border px-2 py-1 w-24" />
                 <button onClick={async () => {
+                  if (!player) return;
                   const amt = parseInt((document.getElementById(`piggy-withdraw-${i}`) as HTMLInputElement)?.value || '0');
                   if (amt <= 0 || (prop.piggy_bank || 0) < amt) {
                     alert('Invalid amount or not enough in Piggybank!');
@@ -175,19 +181,12 @@ export default function SafehousePage() {
                   if (!confirm(`Confirm withdraw of $${amt} from Piggybank to Cash? (0.8% fee $${fee} to Gov Tax, you get $${net})`)) {
                     return;
                   }
-                  prop.piggy_bank = (prop.piggy_bank || 0) - amt;
-                  // Add fee to gov tax (we'll track in player for demo)
-                  const govTax = (player as any).gov_tax_bank || 0;
-                  const newOwned = [...owned]; newOwned[i] = prop;
-                  const updated = { 
-                    ...player, 
-                    cash: player.cash + net, 
-                    owned_properties: newOwned,
-                    gov_tax_bank: govTax + fee 
-                  };
                   const supabase = createClient();
-                  await supabase.from('players').update({ owned_properties: newOwned, gov_tax_bank: govTax + fee }).eq('id', player.id);
-                  updatePlayer(updated as any);
+                  const { error } = await supabase.rpc('piggy_withdraw', { prop_id: prop.id, amount: amt });
+                  if (error) {
+                    alert(error.message.includes('NOT_ENOUGH_IN_PIGGYBANK') ? 'Not enough in Piggybank!' : (error.message || 'Withdraw failed.'));
+                    return;
+                  }
                   if (refreshPlayer) await refreshPlayer();
                   router.refresh();
                   alert(`Withdrew $${net} from Piggybank (fee $${fee} to Gov Tax). Transferred successfully.`);
@@ -204,7 +203,7 @@ export default function SafehousePage() {
             <div>Successful Harvest Total: {successKg} Kg's</div>
             <div>Failed Harvest Total: {failedKg} Kg's</div>
             <div className="mt-2 text-xs">Live trackers: Progress, quality % (see Weed Grow for details). Cooldowns sync globally.</div>
-            <button onClick={() => upgradeShed(prop.id)} className="mt-2 px-3 py-1 bg-red-700 rounded text-sm">Upgrade Shed ($${50000 * (prop.shed_level || 1)})</button>
+            <button onClick={() => upgradeShed(prop.id)} className="mt-2 px-3 py-1 bg-red-700 rounded text-sm">Upgrade Shed (${50000 * (prop.shed_level || 1)})</button>
             <button onClick={() => simulateEarnings(prop.id)} className="mt-2 ml-2 px-3 py-1 bg-emerald-700 rounded text-sm">Simulate 24h Earnings (20% tax applied live)</button>
           </div>
 
@@ -235,11 +234,11 @@ export default function SafehousePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
           <div>
             <label>Avatar URL</label>
-            <input type="text" placeholder="https://picsum... " className="w-full bg-zinc-900 border px-2 py-1" defaultValue={player?.avatar_url || 'https://picsum.photos/id/1005/100/100'} />
+            <input id="profile-avatar" type="text" placeholder="https://picsum... " className="w-full bg-zinc-900 border px-2 py-1" defaultValue={player?.avatar_url || 'https://picsum.photos/id/1005/100/100'} />
           </div>
           <div>
             <label>Bio / Description</label>
-            <textarea className="w-full bg-zinc-900 border px-2 py-1" rows={2} defaultValue={player?.bio || 'The streets made me...'} />
+            <textarea id="profile-bio" className="w-full bg-zinc-900 border px-2 py-1" rows={2} defaultValue={player?.bio || 'The streets made me...'} />
           </div>
           <div>
             <label>Favorite Crime</label>
@@ -250,7 +249,20 @@ export default function SafehousePage() {
             <input type="text" className="w-full bg-zinc-900 border px-2 py-1" defaultValue="Building the empire" />
           </div>
         </div>
-        <button onClick={() => alert('Profile updated (demo - would save to DB)')} className="mt-3 px-4 py-1 bg-red-700 rounded text-sm">Save Profile</button>
+        <button onClick={async () => {
+          if (!player) return;
+          const avatar = (document.getElementById('profile-avatar') as HTMLInputElement)?.value || '';
+          const bio = (document.getElementById('profile-bio') as HTMLTextAreaElement)?.value || '';
+          const supabase = createClient();
+          const { error } = await supabase.rpc('update_my_state', { patch: { avatar_url: avatar, bio } });
+          if (error) {
+            alert(error.message || 'Failed to save profile.');
+            return;
+          }
+          if (refreshPlayer) await refreshPlayer();
+          router.refresh();
+          alert('Profile saved!');
+        }} className="mt-3 px-4 py-1 bg-red-700 rounded text-sm">Save Profile</button>
       </div>
 
       {/* Post Office - Bills, Debts, Taxes, Property Info */}
@@ -258,18 +270,27 @@ export default function SafehousePage() {
         <h3 className="font-bold mb-2">📮 Post Office (Bills & Taxes)</h3>
         <p className="text-xs text-zinc-400 mb-3">Pay open bills, debts, unpaid taxes. Live trackers. Property tax rates and info.</p>
         <div className="text-sm">
-          <div>Open Bills: ${player?.maintenance_due || 0} (from properties)</div>
-          <div>Weekly Tax Bill: ${Math.floor((player?.earnings_week || 0) * 0.20)} (20% on earnings)</div>
+          <div>Open Bills: ${(player?.owned_properties || []).reduce((sum: number, p: any) => sum + (p.maintenance_due || 0), 0).toLocaleString()} (from properties)</div>
+          <div>Weekly Tax Bill: ${Math.floor((player?.owned_properties || []).reduce((sum: number, p: any) => sum + (p.earnings_week || 0), 0) * 0.20).toLocaleString()} (20% on earnings)</div>
           <div>Property Tax Rate: 10% on purchase, 20% on earnings (to Gov Fund)</div>
-          <button onClick={() => {
-            // Pay all demo
-            if (player) {
-              const paid = player.maintenance_due || 0;
-              const updated = { ...player, cash: Math.max(0, player.cash - paid), maintenance_due: 0 };
-              updatePlayer(updated as any);
-              alert(`Paid $${paid} in taxes/bills to Gov Fund.`);
+          <button onClick={async () => {
+            if (!player) return;
+            const props = (player.owned_properties || []).filter((p: any) => (p.maintenance_due || 0) > 0);
+            const total = props.reduce((sum: number, p: any) => sum + (p.maintenance_due || 0), 0);
+            if (total <= 0) { alert('No open bills. All clear!'); return; }
+            if (!confirm(`Confirm pay all open property bills: $${total.toLocaleString()} (cash)?`)) return;
+            const supabase = createClient();
+            for (const p of props) {
+              const { error } = await supabase.rpc('pay_property_bill', { prop_id: p.id, amount: p.maintenance_due, method: 'cash' });
+              if (error) {
+                alert(error.message.includes('NOT_ENOUGH_CASH') ? 'Not enough cash for all bills!' : (error.message || 'Payment failed.'));
+                break;
+              }
             }
-          }} className="mt-2 px-3 py-1 bg-emerald-700 rounded text-sm">Pay All Open (Demo)</button>
+            if (refreshPlayer) await refreshPlayer();
+            router.refresh();
+            alert(`Bills paid to Gov Fund.`);
+          }} className="mt-2 px-3 py-1 bg-emerald-700 rounded text-sm">Pay All Open Bills</button>
         </div>
         <div className="mt-2 text-xs">All tax to Government Fund. Admin sees summary.</div>
       </div>

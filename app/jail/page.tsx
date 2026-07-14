@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { usePlayer } from '../components/PlayerContext';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 
 export default function JailPage() {
@@ -32,11 +33,17 @@ export default function JailPage() {
       return;
     }
     const newSkill = Math.min(100, breakoutSkill + 5);
-    const updated = { ...player, cash: player.cash - cost, breakout_skill: newSkill };
-    updatePlayer(updated as any);
+    const supabase = createClient();
+    const { error } = await supabase.rpc('apply_action', {
+      cash_delta: -cost,
+      patch: { breakout_skill: newSkill },
+    });
+    if (error) {
+      setMessage(error.message.includes('NOT_ENOUGH_CASH') ? 'Not enough cash to train.' : (error.message || 'Training failed.'));
+      return;
+    }
     setBreakoutSkill(newSkill);
     setMessage(`Trained breakout experience! Skill now ${newSkill}%.`);
-    // Refresh page and player state after action
     if (refreshPlayer) await refreshPlayer();
     router.refresh();
   };
@@ -46,15 +53,14 @@ export default function JailPage() {
       setMessage('You are not in jail.');
       return;
     }
-    const chance = breakoutSkill / 100;
-    if (Math.random() < chance) {
-      const updated = { ...player, jailed_until: null };
-      updatePlayer(updated as any);
-      setMessage('Breakout successful! You escaped.');
-    } else {
-      setMessage('Failed breakout. Added time.');
+    // Escape roll happens server-side (attempt_breakout RPC)
+    const supabase = createClient();
+    const { data, error } = await supabase.rpc('attempt_breakout');
+    if (error) {
+      setMessage(error.message.includes('NOT_IN_JAIL') ? 'You are not in jail.' : (error.message || 'Breakout failed.'));
+      return;
     }
-    // Refresh page and player state after action
+    setMessage(data?.success ? 'Breakout successful! You escaped.' : `Failed breakout. +${data?.added_minutes || 5} minutes added.`);
     if (refreshPlayer) await refreshPlayer();
     router.refresh();
   };

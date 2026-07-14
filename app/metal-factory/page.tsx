@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
 
 export default function MetalFactoryPage() {
-  const { player, updatePlayer } = usePlayer();
+  const { player, refreshPlayer } = usePlayer();
   const [amount, setAmount] = useState(100);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
@@ -16,48 +16,20 @@ export default function MetalFactoryPage() {
   const buyBullets = async () => {
     if (!player) return;
 
-    const totalCost = amount * pricePerBullet;
-
-    if (player.cash < totalCost) {
-      setMessage('Not enough cash!');
-      return;
-    }
-
-    if (amount > 5000) {
-      const fine = Math.floor(amount * 0.8);
-      const newHeat = Math.min(100, (player.heat || 0) + 30);
-      const updated = { 
-        ...player, 
-        cash: Math.max(0, player.cash - fine), 
-        heat: newHeat,
-        bullets: Math.max(0, (player.bullets || 0) - Math.floor(amount * 0.6))
-      };
-      updatePlayer(updated as any);
-      setMessage(`Police caught you! Fined $${fine}, +30 heat, bullets confiscated. 5 min jail risk.`);
-      return;
-    }
-
     setBusy(true);
-
     const supabase = createClient();
 
-    const newBullets = (player.bullets || 0) + amount;
+    // Purchase + police risk are enforced server-side (buy_bullets RPC)
+    const { data, error } = await supabase.rpc('buy_bullets', { amount });
 
-    // Update (demo)
-    const { error } = await supabase
-      .from('players')
-      .update({ 
-        cash: player.cash - totalCost, 
-        bullets: newBullets 
-      })
-      .eq('id', player.id);
-
-    if (!error) {
-      const updated = { ...player, cash: player.cash - totalCost, bullets: newBullets };
-      updatePlayer(updated as any);
-      setMessage(`Bought ${amount} bullets for $${totalCost}.`);
+    if (error) {
+      setMessage(error.message.includes('NOT_ENOUGH_CASH') ? 'Not enough cash!' : (error.message || 'Purchase failed.'));
+    } else if (data?.busted) {
+      await refreshPlayer();
+      setMessage(`Police caught you! Fined $${data.fine}, +30 heat, bullets confiscated. 5 min jail risk.`);
     } else {
-      setMessage('Purchase failed.');
+      await refreshPlayer();
+      setMessage(`Bought ${data?.bullets_bought || amount} bullets for $${data?.cost || amount * pricePerBullet}.`);
     }
 
     setBusy(false);

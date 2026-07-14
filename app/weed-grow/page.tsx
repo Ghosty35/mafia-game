@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
 
 export default function WeedGrowPage() {
-  const { player, updatePlayer } = usePlayer();
+  const { player, refreshPlayer } = usePlayer();
   const [weedProgress, setWeedProgress] = useState(0);
   const [harvestPercent, setHarvestPercent] = useState(100);
   const [message, setMessage] = useState('');
@@ -18,8 +19,9 @@ export default function WeedGrowPage() {
 
   useEffect(() => {
     if (player?.weed_progress !== undefined) setWeedProgress(player.weed_progress);
-    // load harvest % if stored, default 100
-    // for demo, use state
+    // Quality % persists in the weed_plants jsonb column
+    const quality = (player?.weed_plants as any)?.quality;
+    if (typeof quality === 'number') setHarvestPercent(quality);
   }, [player]);
 
   const waterPlant = async () => {
@@ -31,28 +33,34 @@ export default function WeedGrowPage() {
     setBusy(true);
     // Simulate water: 70% success +15%, 30% fail -10%
     const success = Math.random() > 0.3;
-    let change = success ? 15 : -10;
+    const change = success ? 15 : -10;
     const newPercent = Math.max(-50, Math.min(200, harvestPercent + change));
     const newProgress = Math.min(5, weedProgress + 1);
 
+    const supabase = createClient();
+    const { error } = await supabase.rpc('apply_action', {
+      cash_delta: 0,
+      patch: { weed_progress: newProgress, weed_plants: { quality: newPercent } },
+    });
+    if (error) {
+      setMessage(error.message || 'Watering failed to save.');
+      setBusy(false);
+      return;
+    }
+
     setHarvestPercent(newPercent);
     setWeedProgress(newProgress);
+    if (refreshPlayer) await refreshPlayer();
 
-    const updated = { 
-      ...player, 
-      weed_progress: newProgress 
-    };
-    updatePlayer(updated as any);
-
-    setMessage(success 
-      ? `Watered successfully! Gained +${change}% harvest quality. Current: ${newPercent}%` 
+    setMessage(success
+      ? `Watered successfully! Gained +${change}% harvest quality. Current: ${newPercent}%`
       : `Water failed! Lost ${Math.abs(change)}% harvest quality. Current: ${newPercent}%`);
 
     setBusy(false);
   };
 
   const WEED_CAP = 1000;
-  const harvest = () => {
+  const harvest = async () => {
     if (!player || weedProgress < 4) {
       setMessage('Need at least 4/5 progress to harvest.');
       return;
@@ -67,22 +75,42 @@ export default function WeedGrowPage() {
       return;
     }
 
+    const supabase = createClient();
+
     if (harvestPercent < 0) {
+      const { error } = await supabase.rpc('apply_action', {
+        cash_delta: 0,
+        patch: {
+          weed_progress: 0,
+          weed_plants: { quality: 100 },
+          failed_harvest_kg: (player.failed_harvest_kg || 0) + kgBase,
+        },
+      });
+      if (error) { setMessage(error.message || 'Failed to save.'); return; }
       setMessage('Harvest destroyed due to negative quality! All progress lost.');
-      const updated = { ...player, weed_progress: 0 };
-      updatePlayer(updated as any);
       setWeedProgress(0);
       setHarvestPercent(100);
+      if (refreshPlayer) await refreshPlayer();
       return;
     }
 
     const storage = player.drug_storage || {};
     const newStorage = { ...storage, Weed: (storage.Weed || 0) + kg };
 
-    const updated = { ...player, weed_progress: 0, drug_storage: newStorage };
-    updatePlayer(updated as any);
+    const { error } = await supabase.rpc('apply_action', {
+      cash_delta: 0,
+      patch: {
+        weed_progress: 0,
+        drug_storage: newStorage,
+        weed_plants: { quality: 100 },
+        successful_harvest_kg: (player.successful_harvest_kg || 0) + kg,
+      },
+    });
+    if (error) { setMessage(error.message || 'Failed to save harvest.'); return; }
+
     setWeedProgress(0);
     setHarvestPercent(100);
+    if (refreshPlayer) await refreshPlayer();
 
     setMessage(`Harvested ${kg}kg Weed at ${harvestPercent}% quality! Added to storage.`);
   };

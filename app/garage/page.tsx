@@ -2,11 +2,12 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
 import { useRouter } from 'next/navigation';
 
 export default function GaragePage() {
-  const { player, updatePlayer, refreshPlayer } = usePlayer();
+  const { player, refreshPlayer } = usePlayer();
   const router = useRouter();
   const [message, setMessage] = useState('');
   const [selectedCar, setSelectedCar] = useState<any>(null);
@@ -34,48 +35,48 @@ export default function GaragePage() {
     ];
   }
 
-  const warehouseUpgrade = () => {
+  // Shared persistence helper: every garage action goes through the
+  // apply_action RPC so cash + cars survive navigation and refresh.
+  const applyGarage = async (cashDelta: number, patch: Record<string, any>, successMsg: string, notEnoughMsg = 'Not enough cash.') => {
+    const supabase = createClient();
+    const { error } = await supabase.rpc('apply_action', { cash_delta: cashDelta, patch });
+    if (error) {
+      setMessage(error.message.includes('NOT_ENOUGH_CASH') ? notEnoughMsg : (error.message || 'Action failed.'));
+      return false;
+    }
+    if (refreshPlayer) await refreshPlayer();
+    router.refresh();
+    setMessage(successMsg);
+    return true;
+  };
+
+  const warehouseUpgrade = async () => {
     if (!hasVilla && !hasMansion) {
       setMessage('Need Villa or Mansion to upgrade Warehouse.');
       return;
     }
     const cost = 10000 * (garageLevel + 1);
-    if (player.cash < cost) {
-      setMessage('Not enough cash for upgrade.');
-      return;
-    }
     const newLevel = garageLevel + 1;
-    const newMax = hasMansion ? 8 + (newLevel * 10) : newLevel * 25; // example
-    const updated = { ...player, cash: player.cash - cost, garage_level: newLevel };
-    updatePlayer(updated as any);
-    setMessage(`Warehouse upgraded to lvl ${newLevel}! Now holds ${newMax} cars.`);
+    const newMax = hasMansion ? 8 + (newLevel * 10) : newLevel * 25;
+    await applyGarage(-cost, { garage_level: newLevel },
+      `Warehouse upgraded to lvl ${newLevel}! Now holds ${newMax} cars.`, 'Not enough cash for upgrade.');
   };
 
   const repairCar = async (car: any) => {
     const repairCost = Math.floor((100 - car.condition) * 50);
-    if (player.cash < repairCost) {
-      setMessage('Not enough for repair.');
-      return;
-    }
     const updatedCars = cars.map((c: any) => c.id === car.id ? { ...c, condition: 100 } : c);
-    const updated = { ...player, cash: player.cash - repairCost, cars: updatedCars };
-    updatePlayer(updated as any);
-    if (refreshPlayer) await refreshPlayer();
-    router.refresh();
-    setMessage(`Car repaired for $${repairCost}. Ready to tune!`);
+    await applyGarage(-repairCost, { cars: updatedCars },
+      `Car repaired for $${repairCost}. Ready to tune!`, 'Not enough for repair.');
   };
 
-  const tuneCar = (car: any) => {
+  const tuneCar = async (car: any) => {
     if (car.condition < 100) {
       setMessage('Repair to 100% first.');
       return;
     }
     const tuneCost = 1000;
-    if (player.cash < tuneCost) return;
     const updatedCars = cars.map((c: any) => c.id === car.id ? { ...c, tuned: true, value: c.value + 2000 } : c);
-    const updated = { ...player, cash: player.cash - tuneCost, cars: updatedCars };
-    updatePlayer(updated as any);
-    setMessage('Car tuned! +value, better for races/heists.');
+    await applyGarage(-tuneCost, { cars: updatedCars }, 'Car tuned! +value, better for races/heists.');
   };
 
   // Tuning Parts Shop - purchase and apply for small speed bonuses
@@ -86,16 +87,12 @@ export default function GaragePage() {
     { name: 'Bodykit', cost: 1200, bonus: 2, desc: '+2% overall' }
   ];
 
-  const buyTuningPart = (car: any, part: any) => {
-    if (player.cash < part.cost) {
-      setMessage('Not enough cash for part.');
-      return;
-    }
+  const buyTuningPart = async (car: any, part: any) => {
     const updatedCars = cars.map((c: any) => {
       if (c.id === car.id) {
         const currentBonus = c.speed_bonus || 0;
-        return { 
-          ...c, 
+        return {
+          ...c,
           speed_bonus: currentBonus + part.bonus,
           value: c.value + Math.floor(part.cost * 0.5),
           mods: [...(c.mods || []), part.name]
@@ -103,50 +100,40 @@ export default function GaragePage() {
       }
       return c;
     });
-    const updated = { ...player, cash: player.cash - part.cost, cars: updatedCars };
-    updatePlayer(updated as any);
-    setMessage(`Applied ${part.name} to ${car.name}! +${part.bonus}% speed bonus.`);
+    await applyGarage(-part.cost, { cars: updatedCars },
+      `Applied ${part.name} to ${car.name}! +${part.bonus}% speed bonus.`, 'Not enough cash for part.');
   };
 
-  const sellCar = (car: any) => {
+  const sellCar = async (car: any) => {
     const sellPrice = Math.floor(car.value * (car.condition / 100));
     const updatedCars = cars.filter((c: any) => c.id !== car.id);
-    const updated = { ...player, cash: player.cash + sellPrice, cars: updatedCars };
-    updatePlayer(updated as any);
-    setMessage(`Sold car for $${sellPrice}.`);
+    await applyGarage(sellPrice, { cars: updatedCars }, `Sold car for $${sellPrice}.`);
   };
 
-  const crushCar = (car: any) => {
+  const crushCar = async (car: any) => {
     const bullets = 15; // small, city vary in real
     const updatedCars = cars.filter((c: any) => c.id !== car.id);
-    const updated = { ...player, bullets: (player.bullets || 0) + bullets, cars: updatedCars };
-    updatePlayer(updated as any);
-    setMessage(`Crushed for ${bullets} bullets at Junkyard.`);
+    await applyGarage(0, { cars: updatedCars, bullets: (player.bullets || 0) + bullets },
+      `Crushed for ${bullets} bullets at Junkyard.`);
   };
 
-  const startRace = () => {
+  const startRace = async () => {
     // Basic race with bet/pinkslip
     if (!selectedCar) {
       setMessage('Select a car first.');
       return;
     }
     const win = Math.random() > 0.5;
-    let gain = 500;
+    const gain = 500;
     if (win) {
-      const updated = { ...player, cash: player.cash + gain };
-      updatePlayer(updated as any);
-      setMessage(`Won race! +$${gain}`);
+      await applyGarage(gain, {}, `Won race! +$${gain}`);
     } else {
+      const loss = Math.min(gain, player.cash);
       if (selectedCar.pinkslip) {
-        // lose car
         const updatedCars = cars.filter((c: any) => c.id !== selectedCar.id);
-        const updated = { ...player, cash: Math.max(0, player.cash - gain), cars: updatedCars };
-        updatePlayer(updated as any);
-        setMessage(`Lost pinkslip drag! Car gone.`);
+        await applyGarage(-loss, { cars: updatedCars }, 'Lost pinkslip drag! Car gone.');
       } else {
-        const updated = { ...player, cash: Math.max(0, player.cash - gain) };
-        updatePlayer(updated as any);
-        setMessage(`Lost bet. -$${gain}`);
+        await applyGarage(-loss, {}, `Lost bet. -$${gain}`);
       }
     }
   };
@@ -160,7 +147,7 @@ export default function GaragePage() {
         <div className="text-red-400 mb-4">Buy a House, Villa or Mansion in Real Estate to unlock Garage!</div>
       )}
 
-      {hasVilla || hasMansion && (
+      {(hasVilla || hasMansion) && (
         <div className="mb-4">
           <button onClick={warehouseUpgrade} className="px-4 py-2 bg-blue-700 rounded">Upgrade Warehouse (for more car spots)</button>
           <p className="text-xs">Villa: base 4, +25/75/125 per lvl. Mansion: +10 more.</p>

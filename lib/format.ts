@@ -1,6 +1,6 @@
 import type { Language } from './i18n/translations';
 
-export function formatCash(amount: number, language: Language) {
+export function formatCash(amount: number, language: Language = 'en') {
   return new Intl.NumberFormat(language === 'nl' ? 'nl-NL' : 'en-US', {
     style: 'currency',
     currency: 'USD',

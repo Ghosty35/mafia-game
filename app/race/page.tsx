@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
 
 interface PostedRace {
@@ -15,7 +16,7 @@ interface PostedRace {
 }
 
 export default function RacePage() {
-  const { player, updatePlayer } = usePlayer();
+  const { player, refreshPlayer } = usePlayer();
   const [postedRaces, setPostedRaces] = useState<PostedRace[]>([]);
   const [history, setHistory] = useState<any[]>([]);
   const [bet, setBet] = useState(500);
@@ -42,7 +43,7 @@ export default function RacePage() {
     return () => clearInterval(iv);
   }, [cooldown]);
 
-  const postRace = () => {
+  const postRace = async () => {
     if (!player || !selectedCarId || validCars.length === 0) {
       setMessage('Select a valid car (75%+ health) to post race.');
       return;
@@ -53,8 +54,10 @@ export default function RacePage() {
       return;
     }
     const entryFee = Math.max(100, Math.floor(bet * 0.1)); // 10% entry fee balanced
-    if (player.cash < entryFee) {
-      setMessage('Not enough for entry fee.');
+    const supabase = createClient();
+    const { error } = await supabase.rpc('apply_action', { cash_delta: -entryFee, patch: {} });
+    if (error) {
+      setMessage(error.message.includes('NOT_ENOUGH_CASH') ? 'Not enough for entry fee.' : (error.message || 'Failed to post race.'));
       return;
     }
     const expireAt = Date.now() + expireMinutes * 60 * 1000;
@@ -67,25 +70,25 @@ export default function RacePage() {
       status: 'open'
     };
     setPostedRaces(prev => [...prev, newRace]);
-    const updated = { ...player, cash: player.cash - entryFee };
-    updatePlayer(updated as any);
+    if (refreshPlayer) await refreshPlayer();
     setMessage(`Race posted! Entry fee $${entryFee}. Expires in ${expireMinutes} min.`);
   };
 
-  const joinRace = (race: PostedRace) => {
+  const joinRace = async (race: PostedRace) => {
     if (!player) return;
     const entryFee = Math.max(100, Math.floor(race.bet * 0.1));
-    if (player.cash < entryFee) {
-      setMessage('Not enough for entry fee.');
+    const supabase = createClient();
+    const { error } = await supabase.rpc('apply_action', { cash_delta: -entryFee, patch: {} });
+    if (error) {
+      setMessage(error.message.includes('NOT_ENOUGH_CASH') ? 'Not enough for entry fee.' : (error.message || 'Failed to join race.'));
       return;
     }
     setPostedRaces(prev => prev.map(r => r.id === race.id ? { ...r, joinedBy: player.username || 'Opponent', status: 'ready' } : r));
-    const updated = { ...player, cash: player.cash - entryFee };
-    updatePlayer(updated as any);
+    if (refreshPlayer) await refreshPlayer();
     setMessage(`Joined ${race.poster}'s race. Ready to start!`);
   };
 
-  const startRace = (race: PostedRace) => {
+  const startRace = async (race: PostedRace) => {
     if (!player || !race.joinedBy) {
       setMessage('No opponent joined yet.');
       return;
@@ -98,10 +101,14 @@ export default function RacePage() {
     const pot = race.bet * 2;
     const winner = win ? player.username : race.joinedBy;
     const loser = win ? race.joinedBy : player.username;
-    const updated = win 
-      ? { ...player, cash: player.cash + pot }
-      : { ...player, cash: Math.max(0, player.cash - race.bet) };
-    updatePlayer(updated as any);
+    const delta = win ? pot : -Math.min(race.bet, player.cash);
+    const supabase = createClient();
+    const { error } = await supabase.rpc('apply_action', { cash_delta: delta, patch: {} });
+    if (error) {
+      setMessage(error.message || 'Race failed to settle.');
+      return;
+    }
+    if (refreshPlayer) await refreshPlayer();
     setHistory(prev => [...prev, { winner, loser, amount: pot, time: new Date().toISOString() }]);
     setMessage(win ? `You won the race vs ${race.joinedBy}! +$${pot}` : `You lost to ${race.joinedBy}. -$${race.bet}`);
     setCooldown(600); // 10 min

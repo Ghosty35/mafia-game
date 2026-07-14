@@ -23,17 +23,10 @@ export default function AdminPage() {
 
   const fetchPlayers = async (search?: string) => {
     setLoadingPlayers(true);
-    let q = supabase
-      .from('players')
-      .select('id, username, cash, power, level, rebirths, murder_skill, is_donator, jailed_until, death_until, heat, personal_bank')
-      .order('cash', { ascending: false })
-      .limit(50);
-
-    if (search) {
-      q = q.ilike('username', `%${search}%`);
-    }
-    const { data, error } = await q;
-    if (!error && data) setAllPlayers(data);
+    // RLS only allows reading your own row directly; the roster goes
+    // through the admin_list_players RPC.
+    const { data, error } = await supabase.rpc('admin_list_players', { search: search || null });
+    if (!error && data) setAllPlayers(data as any[]);
     setLoadingPlayers(false);
   };
 
@@ -62,45 +55,48 @@ export default function AdminPage() {
     return <div className="p-8 text-red-400">Access denied. Only YGhosty has full admin tools.</div>;
   }
 
-  // FULL WORKING GIVE via RPC or direct (RPC preferred)
+  // All admin writes go through SECURITY DEFINER RPCs (035):
+  // direct table updates are blocked by RLS and fail silently.
   const giveCash = async (username: string, amt: number) => {
     if (!amt || amt === 0) return;
-    const { data: target } = await supabase.from('players').select('id,cash,username').ilike('username', username).limit(1).single();
-    if (!target) { addLog('ERROR', `Player ${username} not found`); return; }
-
-    const newCash = Math.max(0, (target.cash || 0) + amt);
-    await supabase.from('players').update({ cash: newCash }).eq('id', target.id);
-    addLog('GIVE', `Gave $${amt.toLocaleString()} to ${username}. New cash: $${newCash.toLocaleString()}`);
+    const { data, error } = await supabase.rpc('admin_give_cash', { target_username: username, amount: amt });
+    if (error) {
+      addLog('ERROR', error.message.includes('PLAYER_NOT_FOUND') ? `Player ${username} not found` : error.message);
+      return;
+    }
+    addLog('GIVE', `Gave $${amt.toLocaleString()} to ${data?.username || username}. New cash: $${(data?.new_cash || 0).toLocaleString()}`);
     if (username.toLowerCase() === (player?.username || '').toLowerCase()) {
-      updatePlayer({ ...player!, cash: newCash } as any);
+      await refreshPlayer();
     }
     fetchPlayers();
   };
 
   const setDonator = async (username: string, val: boolean) => {
-    const { data: target } = await supabase.from('players').select('id').ilike('username', username).single();
-    if (!target) return;
-    await supabase.from('players').update({ is_donator: val, donator_since: val ? new Date().toISOString() : null }).eq('id', target.id);
+    const { error } = await supabase.rpc('admin_set_donator', { target_username: username, val });
+    if (error) { addLog('ERROR', error.message); return; }
     addLog('VIP', `${username} donator status set to ${val}`);
     fetchPlayers();
   };
 
   const forceClearStatus = async (pid: string, type: 'jail' | 'death') => {
-    const field = type === 'jail' ? 'jailed_until' : 'death_until';
-    await supabase.from('players').update({ [field]: null }).eq('id', pid);
+    const { error } = await supabase.rpc('admin_clear_status', { target_id: pid, status_type: type });
+    if (error) { addLog('ERROR', error.message); return; }
     addLog('FORCE', `Cleared ${type} for player`);
     fetchPlayers();
     refreshPlayer();
   };
 
   const updateFieldDirect = async (pid: string, field: string, value: any) => {
-    const numFields = ['cash', 'power', 'level', 'murder_skill', 'heat'];
-    const parsed = numFields.includes(field) ? Number(value) : value;
-    const { error } = await supabase.from('players').update({ [field]: parsed }).eq('id', pid);
+    const { error } = await supabase.rpc('admin_update_player_field', {
+      target_id: pid,
+      field_name: field,
+      field_value: String(value),
+    });
     if (error) addLog('ERROR', error.message);
     else {
-      addLog('EDIT', `Set ${field}=${parsed}`);
+      addLog('EDIT', `Set ${field}=${value}`);
       fetchPlayers();
+      if (pid === player?.id) await refreshPlayer();
     }
   };
 
@@ -113,15 +109,11 @@ export default function AdminPage() {
   };
 
   const giveToAllOnlineSim = async (amt: number) => {
-    // For fun economy stimulus: give small amount to top 10
-    const { data } = await supabase.from('players').select('id,cash').order('cash', { ascending: false }).limit(10);
-    if (data) {
-      for (const pl of data) {
-        await supabase.from('players').update({ cash: (pl.cash || 0) + amt }).eq('id', pl.id);
-      }
-      addLog('STIM', `Stimulus: +$${amt} to top 10 richest (economy boost)`);
-      fetchPlayers();
-    }
+    // Economy stimulus: +amt to top 10 richest, server-side
+    const { data, error } = await supabase.rpc('admin_stimulus', { amount: amt });
+    if (error) { addLog('ERROR', error.message); return; }
+    addLog('STIM', `Stimulus: +$${amt} to top ${data?.players_affected || 10} richest (economy boost)`);
+    fetchPlayers();
   };
 
   return (
@@ -246,7 +238,7 @@ export default function AdminPage() {
               </tbody>
             </table>
           </div>
-          <div className="text-[10px] text-zinc-500 mt-2">Edits write directly to DB. Use responsibly. YGhosty overrides always active on login.</div>
+          <div className="text-[10px] text-zinc-500 mt-2">Edits persist via secure admin RPCs. Use responsibly.</div>
         </div>
       </div>
 

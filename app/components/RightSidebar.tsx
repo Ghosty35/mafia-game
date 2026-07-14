@@ -14,39 +14,32 @@ interface MenuCategory {
   items: MenuItem[];
 }
 
+// Right sidebar: the social side of the game.
+// All Family business lives here (single Family hub, Bulletstar style);
+// action menus live in the left sidebar.
 const rightMenuCategories: MenuCategory[] = [
   {
-    title: 'Family (Main Hub - Bulletstar Style)',
+    title: 'Family',
     items: [
       { label: 'My Family', href: '/families', icon: '👥' },
       { label: 'Family Bank', href: '/families?tab=banking', icon: '💰' },
-      { label: 'Family Donation Bank', href: '/families?tab=donations', icon: '🏦' },
-      { label: 'Family Members', href: '/families', icon: '👥' },
-      { label: 'Family Online (Live)', href: '/families', icon: '🟢' },
+      { label: 'Family Donations', href: '/families?tab=donations', icon: '🏦' },
       { label: 'Family Profile', href: '/families?tab=profile', icon: '📋' },
+      { label: 'Families Leaderboard', href: '/families/leaderboard', icon: '👑' },
     ],
   },
   {
     title: 'Reputation',
     items: [
       { label: 'Leaderboard', href: '/leaderboard', icon: '🏆' },
-      { label: 'Families Leaderboard', href: '/families/leaderboard', icon: '👑' },
+      { label: 'My Profile', href: '/profile', icon: '👤' },
+      { label: 'Server Status', href: '/server-status', icon: '🟢' },
     ],
   },
   {
-    title: 'Murder & PvP',
+    title: 'Communication',
     items: [
-      { label: 'Murder (Hitman+50%)', href: '/murder', icon: '🔫' },
-      { label: 'Race', href: '/race', icon: '🏁' },
-      { label: 'Detective Agency', href: '/detective', icon: '🕵️' },
-    ],
-  },
-  {
-    title: 'Information & Economy',
-    items: [
-      { label: 'Real Estate', href: '/real-estate', icon: '🏠' },
-      { label: 'Marketplace', href: '/marketplace', icon: '🏛️' },
-      { label: 'Street Dealer', href: '/street-dealer', icon: '💊' },
+      { label: 'Messages', href: '/messages', icon: '✉️' },
     ],
   },
 ];
@@ -58,7 +51,7 @@ export default function RightSidebar() {
   const isItemActive = (item: MenuItem) => {
     const currentUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
     if (item.href === currentUrl) return true;
-    if (item.href.includes('?tab=') && pathname === '/families' && searchParams.get('tab') === 'banking') return true;
+    if (!item.href.includes('?') && pathname === item.href && !searchParams.get('tab')) return true;
     return false;
   };
 
@@ -94,7 +87,7 @@ export default function RightSidebar() {
 
         <div className="mt-8 pt-4 border-t border-zinc-800 px-3">
           <div className="text-[10px] text-zinc-600">
-            Right Sidebar • Family / Info / Murder
+            Family • Reputation • Social
           </div>
         </div>
       </div>

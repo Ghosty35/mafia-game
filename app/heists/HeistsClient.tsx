@@ -78,14 +78,9 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
       });
       setCooldowns(cdMap);
 
-      // Load potential PvP targets (other players)
-      const { data: targetData } = await supabase
-        .from('players')
-        .select('id, username, level, power, murder_skill')
-        .neq('id', player.id)
-        .order('power', { ascending: false })
-        .limit(8);
-      setTargets(targetData || []);
+      // Load potential PvP targets via RPC (RLS blocks reading other players directly)
+      const { data: targetData } = await supabase.rpc('list_pvp_targets');
+      setTargets((targetData as any[]) || []);
     };
 
     loadData();

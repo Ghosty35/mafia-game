@@ -93,9 +93,17 @@ This document is created so another AI (or future session) can quickly understan
 
 ## Important Conventions & Rules (for future AI)
 
+0. **NEVER write to Supabase tables directly from the client.** The players
+   table has RLS with no update policy: `.from('players').update(...)` silently
+   updates 0 rows. ALWAYS go through a SECURITY DEFINER RPC (see migration
+   035_admin_tools_and_persistence.sql: `apply_action`, `update_my_state`,
+   `admin_*`, `piggy_*`, `purchase_property`, `pay_property_bill`, etc.).
+   The same applies to reads of OTHER players' rows — use `admin_list_players`,
+   `get_public_profile` or `list_pvp_targets`.
+
 1. **After every important action** (especially money, family, jail, crimes):
    ```ts
-   updatePlayer(updated);
+   await supabase.rpc('the_right_rpc', { ... });  // real DB write
    if (refreshPlayer) await refreshPlayer();
    router.refresh();
    ```

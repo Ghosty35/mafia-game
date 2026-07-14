@@ -117,21 +117,14 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
     }
     setLoading(true);
     const supabase = createClient();
-    const currentGov = (player as any).gov_tax_bank || 0;
-    const updated = { 
-      ...player, 
-      cash: player.cash - amount, 
-      gov_tax_bank: currentGov + amount 
-    };
-    // Persist
-    await supabase.from('players').update({ 
-      cash: updated.cash, 
-      gov_tax_bank: updated.gov_tax_bank 
-    }).eq('id', playerId);
-    updatePlayer(updated);
-    setAmount(100);
-    await refreshPlayer();
-    alert('Deposited to Gov Tax Fund. Thank you for your contribution!');
+    const { error } = await supabase.rpc('gov_tax_deposit', { amount });
+    if (error) {
+      alert(error.message.includes('NOT_ENOUGH_CASH') ? 'Not enough cash!' : (error.message || 'Deposit failed'));
+    } else {
+      setAmount(100);
+      await refreshPlayer();
+      alert('Deposited to Gov Tax Fund. Thank you for your contribution!');
+    }
     setLoading(false);
   };
 

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { usePlayer } from '../../components/PlayerContext';
 
 export default function LotteryPage() {
-  const { player, updatePlayer } = usePlayer();
+  const { player, refreshPlayer } = usePlayer();
   const [message, setMessage] = useState('');
   const [timeToFriday, setTimeToFriday] = useState('');
 
@@ -32,31 +32,17 @@ export default function LotteryPage() {
 
   const enterLottery = async () => {
     if (!player) return;
-    // Non-donators have higher chance (as requested) to attract the crowd
-    const winChance = isDonator ? 0.14 : 0.37;
-    const won = Math.random() < winChance;
-    if (won) {
-      const supabase = (await import('@/lib/supabase/client')).createClient();
-      // Pull from lottery pool if possible
-      let prizeCash = Math.floor(25000 + Math.random() * 80000);
-      try {
-        const { data: pools } = await supabase.rpc('get_casino_pools');
-        if (pools?.lottery > 200000) prizeCash = Math.floor(pools.lottery * 0.08); // big slice
-      } catch {}
-
-      const prizes = [
-        { type: 'VIP Item', desc: 'Exclusive Donator Buff Pack' },
-        { type: 'Cash Jackpot', desc: `$${prizeCash.toLocaleString()}` },
-        { type: 'Normal Item', desc: 'Rare Weapon + Car Parts' },
-      ];
-      const prize = prizes[Math.floor(Math.random() * prizes.length)];
-      setMessage(`🎉 FRIDAY DRAW WINNER! ${prize.type} — ${prize.desc}. Cash added.`);
-
-      if (prize.type.includes('Cash') || prize.desc.includes('$')) {
-        const supa = (await import('@/lib/supabase/client')).createClient();
-        await supa.from('players').update({ cash: (player.cash || 0) + prizeCash }).eq('id', player.id);
-        updatePlayer({ ...player, cash: (player.cash || 0) + prizeCash } as any);
-      }
+    // Draw happens server-side (enter_weekly_lottery RPC):
+    // donators 14%, non-donators 37%, big pool pays an 8% slice.
+    const supabase = (await import('@/lib/supabase/client')).createClient();
+    const { data, error } = await supabase.rpc('enter_weekly_lottery');
+    if (error) {
+      setMessage(error.message || 'Lottery entry failed. Try again.');
+      return;
+    }
+    if (data?.won) {
+      setMessage(`🎉 FRIDAY DRAW WINNER! Cash Jackpot — $${(data.prize || 0).toLocaleString()}. Cash added.`);
+      await refreshPlayer?.();
     } else {
       setMessage('Tough draw. Non-donators get better odds to keep the economy moving. Try again next Friday!');
     }

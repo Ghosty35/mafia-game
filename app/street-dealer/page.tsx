@@ -18,7 +18,7 @@ const DRUG_CAPS: Record<typeof DRUGS[number], number> = {
 };
 
 export default function StreetDealerPage() {
-  const { player, updatePlayer, canPerformAction, recordAction } = usePlayer();
+  const { player, refreshPlayer, canPerformAction, recordAction } = usePlayer();
   const [prices, setPrices] = useState<DrugPrices>({ Coke: 120, Weed: 80, Meth: 200, Pills: 50 });
   const [city, setCity] = useState<City>('New York');
   const [message, setMessage] = useState('');
@@ -114,10 +114,16 @@ export default function StreetDealerPage() {
       return;
     }
     const newStorage = { ...drugStorage, [drug]: current + amount };
-    setDrugStorage(newStorage);
-    const updated = { ...player, cash: player.cash - total, drug_storage: newStorage };
-    updatePlayer(updated as any);
-    setMessage(`Bought ${amount} ${drug} for $${total} (incl tax). Sell high in another city!`);
+    const supabase = createClient();
+    supabase.rpc('apply_action', { cash_delta: -total, patch: { drug_storage: newStorage } }).then(async ({ error }) => {
+      if (error) {
+        setMessage(error.message.includes('NOT_ENOUGH_CASH') ? 'Not enough cash (incl. 1.5% tax to Fund)!' : (error.message || 'Purchase failed.'));
+        return;
+      }
+      setDrugStorage(newStorage);
+      if (refreshPlayer) await refreshPlayer();
+      setMessage(`Bought ${amount} ${drug} for $${total} (incl tax). Sell high in another city!`);
+    });
   };
 
   const sellDrug = (drug: typeof DRUGS[number], qty: number) => {
@@ -128,10 +134,16 @@ export default function StreetDealerPage() {
     }
     const revenue = Math.floor(prices[drug] * qty);
     const newStorage = { ...drugStorage, [drug]: current - qty };
-    setDrugStorage(newStorage);
-    const updated = { ...player, cash: (player?.cash || 0) + revenue, drug_storage: newStorage };
-    updatePlayer(updated as any);
-    setMessage(`Sold ${qty} ${drug} for $${revenue}. Profit from the run!`);
+    const supabase = createClient();
+    supabase.rpc('apply_action', { cash_delta: revenue, patch: { drug_storage: newStorage } }).then(async ({ error }) => {
+      if (error) {
+        setMessage(error.message || 'Sale failed.');
+        return;
+      }
+      setDrugStorage(newStorage);
+      if (refreshPlayer) await refreshPlayer();
+      setMessage(`Sold ${qty} ${drug} for $${revenue}. Profit from the run!`);
+    });
   };
 
   if (!player) return <div>Loading...</div>;

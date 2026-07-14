@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePlayer } from './PlayerContext';
 
 export default function LiveLogs() {
@@ -9,11 +9,19 @@ export default function LiveLogs() {
     { time: new Date().toLocaleTimeString(), msg: 'Server started. Welcome to 2026.' },
   ]);
 
+  // Keep the username in a ref so the ticker interval below never has to
+  // restart when the player object refreshes. This keeps the news widget
+  // fully standalone: clicking buttons elsewhere no longer re-triggers it.
+  const usernameRef = useRef<string>('Player');
+  useEffect(() => {
+    if (player?.username) usernameRef.current = player.username;
+  }, [player?.username]);
+
   useEffect(() => {
     const interval = setInterval(() => {
       // Simulate live game activity
       const events = [
-        `${player?.username || 'Player'} promoted to new rank!`,
+        `${usernameRef.current} promoted to new rank!`,
         'Big heist robbed in New York!',
         'Rival killed in Chicago.',
         'Family war started.',
@@ -25,7 +33,7 @@ export default function LiveLogs() {
       }
     }, 15000);
     return () => clearInterval(interval);
-  }, [player]);
+  }, []);
 
   return (
     <div className="card p-4 mb-4 bg-zinc-900 border border-zinc-700">

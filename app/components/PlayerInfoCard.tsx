@@ -46,8 +46,8 @@ export default function PlayerInfoCard({ player: propPlayer, familyStatus: propF
   const level = player.level ?? 1;
   const xp = player.xp ?? 0;
   const murderSkill = player.murder_skill ?? 0;
-  const realCash = player.cash ?? 0;
-  const cash = (player.username === 'YGhosty') ? Math.max(realCash, 4000000) : realCash;
+  // Always show real DB cash — a display-only boost caused desync between menus
+  const cash = player.cash ?? 0;
   const diamonds = player.diamonds ?? 0;
   const power = player.power ?? (level * 50 + (player.rebirths ?? 0) * 500);
   const heat = player.heat ?? 0;

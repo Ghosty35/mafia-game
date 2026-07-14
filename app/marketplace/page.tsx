@@ -13,7 +13,7 @@ interface Bid {
 }
 
 export default function MarketplacePage() {
-  const { player, updatePlayer } = usePlayer();
+  const { player } = usePlayer();
   const [bids, setBids] = useState<Bid[]>([
     { propertyId: '1', name: 'New York Train Station', currentBid: 25000, bidder: 'PlayerX', timeLeft: 45 },
     { propertyId: '2', name: 'Chicago Metal Factory', currentBid: 42000, bidder: 'BossY', timeLeft: 120 },
@@ -24,44 +24,36 @@ export default function MarketplacePage() {
   const [selected, setSelected] = useState<string>('');
   const [message, setMessage] = useState('');
 
+  // NOTE: real auctions need a server-side auctions table (roadmap).
+  // The old demo deducted real cash without giving anything back —
+  // now it's a visual preview that never touches your money.
   const placeBid = (prop: Bid) => {
     if (!player || bidAmount <= prop.currentBid) {
       setMessage('Bid must be higher than current!');
       return;
     }
-    if (player.cash < bidAmount) {
-      setMessage('Not enough cash for bid!');
-      return;
-    }
-
-    const newBids = bids.map(b => 
-      b.propertyId === prop.propertyId 
-        ? { ...b, currentBid: bidAmount, bidder: player.username || 'You', timeLeft: auctionTime * 60 } 
+    const newBids = bids.map(b =>
+      b.propertyId === prop.propertyId
+        ? { ...b, currentBid: bidAmount, bidder: player.username || 'You', timeLeft: auctionTime * 60 }
         : b
     );
     setBids(newBids);
-    const updated = { ...player, cash: player.cash - bidAmount };
-    updatePlayer(updated as any);
-    setMessage(`Bid of $${bidAmount} placed! Auction ends in ${auctionTime}h.`);
+    setMessage(`PREVIEW: Bid of $${bidAmount} registered (no cash taken). Real auctions with escrow are coming soon!`);
     setBidAmount(0);
   };
 
   const instantBuy = (prop: Bid) => {
-    if (!player || !instantBuyPrice || player.cash < instantBuyPrice) {
-      setMessage('Invalid instant buy price or not enough cash.');
+    if (!player || !instantBuyPrice) {
+      setMessage('Enter an instant buy price first.');
       return;
     }
-
-    // Instant purchase
-    const updated = { ...player, cash: player.cash - instantBuyPrice };
-    updatePlayer(updated as any);
-    setMessage(`Instant buy successful for ${prop.name} at $${instantBuyPrice}! Property assigned.`);
+    setMessage(`PREVIEW: Instant buy for ${prop.name} at $${instantBuyPrice} (no cash taken). Real marketplace is coming soon!`);
   };
 
   return (
     <div className="max-w-5xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-4">🏛️ Marketplace</h1>
-      <p className="text-sm text-zinc-400 mb-6">Bid on properties released by the dev. Highest bid wins when timer runs out. Properties come with management (bank, pricing control, maintenance costs).</p>
+      <h1 className="text-3xl font-bold mb-4">🏛️ Marketplace <span className="text-xs align-middle px-2 py-0.5 bg-amber-900/50 text-amber-400 rounded">PREVIEW</span></h1>
+      <p className="text-sm text-zinc-400 mb-6">Bid on properties released by the dev. Highest bid wins when timer runs out. Real auctions with escrow are in development — this preview never touches your cash.</p>
 
       <div className="mb-4 flex gap-3 items-end">
         <div>

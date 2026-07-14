@@ -23,26 +23,15 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     const supabase = createClient();
     const { data } = await supabase.rpc('get_my_player');
     if (data) {
-      let p = data as Player;
-      // Admin override for YGhosty - no restrictions, high stats for testing.
-      // Cash is kept real so that bank transfers, deposits, withdrawals persist correctly in DB.
-      // Display will boost it for admin in PlayerInfoCard.
-      if (p.username === 'YGhosty') {
-        p = {
-          ...p,
-          // cash left as real value from DB
-          power: Math.max(p.power || 0, 50000),
-          level: Math.max(p.level || 0, 50), // Godfather
-          murder_skill: Math.max(p.murder_skill || 0, 15), // ~75%
-          is_donator: true,
-        };
-      }
-      // Basic client-side death check / respawn
+      const p = data as Player;
+      // NOTE: the old client-side stat inflation for YGhosty was removed —
+      // it made components disagree with the DB (tracker desync). Admin
+      // stats are now persisted server-side by migration 035.
       if (p.death_until && new Date(p.death_until).getTime() <= Date.now()) {
-        // Respawn with 1% health
-        const updated = { ...p, health: 1, death_until: null, kill_protected_until: null };
-        setPlayer(updated as Player);
-        // In real, call a respawn RPC
+        // Death timer expired: respawn server-side, then re-fetch the real row
+        await supabase.rpc('check_and_respawn');
+        const { data: fresh } = await supabase.rpc('get_my_player');
+        setPlayer((fresh as Player) || { ...p, health: 1, death_until: null, kill_protected_until: null });
       } else {
         setPlayer(p);
       }

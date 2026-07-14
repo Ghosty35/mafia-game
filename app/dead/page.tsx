@@ -48,10 +48,10 @@ export default function DeadPage() {
           onClick={async () => {
             if (player) {
               const supabase = createClient();
-              await supabase.from('players').update({ death_until: null, health: 1 }).eq('id', player.id);
+              await supabase.rpc('force_respawn');
               window.location.href = '/dashboard';
             }
-          }} 
+          }}
           className="mt-4 px-4 py-2 bg-red-700 rounded text-sm"
         >
           Force Respawn (Testing - clears death)

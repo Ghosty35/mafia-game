@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { usePlayer } from '../components/PlayerContext';
 import { createClient } from '@/lib/supabase/client';
 
@@ -18,7 +19,8 @@ interface Property {
 }
 
 export default function RealEstatePage() {
-  const { player, updatePlayer } = usePlayer();
+  const { player, refreshPlayer } = usePlayer();
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [billAmount, setBillAmount] = useState(0);
@@ -127,8 +129,8 @@ export default function RealEstatePage() {
       return;
     }
 
-    // Demo buy
-    const newOwned = [...owned, {
+    // Server-side purchase: deducts cash + tax atomically and appends the property
+    const newProp = {
       id: prop.id,
       name: customName,
       type: prop.type,
@@ -140,14 +142,20 @@ export default function RealEstatePage() {
       shed_level: 1,
       earnings_week: 0,
       last_earned: new Date().toISOString()
-    }];
-
-    const updated = { 
-      ...player, 
-      cash: player.cash - totalCost,
-      owned_properties: newOwned
     };
-    updatePlayer(updated as any);
+
+    const supabase = createClient();
+    const { error } = await supabase.rpc('purchase_property', { prop: newProp, price: prop.price });
+    if (error) {
+      if (error.message.includes('NOT_ENOUGH_CASH')) setMessage('Not enough cash including 10% property tax!');
+      else if (error.message.includes('PROPERTY_LIMIT_REACHED')) setMessage('Total property limit reached (4).');
+      else setMessage(error.message || 'Purchase failed.');
+      setBusy(false);
+      return;
+    }
+
+    if (refreshPlayer) await refreshPlayer();
+    router.refresh();
     setMessage(`Bought ${customName} in ${prop.city} for $${prop.price} (+$${tax} 10% tax to Gov Fund)!`);
     setBusy(false);
   };
@@ -163,48 +171,23 @@ export default function RealEstatePage() {
     const totalDebt = prop.maintenance_due || 850;
     const pay = Math.min(amount, totalDebt);
 
-    let newCash = player.cash || 0;
-    let newBank = player.personal_bank || 0;
-
-    if (method === 'cash') {
-      if (newCash < pay) {
-        setMessage('Not enough cash!');
-        return;
-      }
-      newCash -= pay;
-    } else {
-      const bankPay = pay * 1.05; // 5% tax
-      if (newBank < bankPay) {
-        setMessage('Not enough in bank (5% extra tax)!');
-        return;
-      }
-      newBank -= bankPay;
+    if (!confirm(`Confirm pay $${pay} via ${method} for this property?${method === 'bank' ? ' (5% extra tax from bank)' : ''}`)) {
+      return;
     }
 
-    if (!confirm(`Confirm pay $${pay} via ${method} for this property?`)) {
+    // Server-side payment: validates funds and updates debt atomically
+    const supabase = createClient();
+    const { error } = await supabase.rpc('pay_property_bill', { prop_id: propId, amount: pay, method });
+    if (error) {
+      if (error.message.includes('NOT_ENOUGH_CASH')) setMessage('Not enough cash!');
+      else if (error.message.includes('NOT_ENOUGH_IN_BANK')) setMessage('Not enough in bank (5% extra tax)!');
+      else setMessage(error.message || 'Payment failed.');
       return;
     }
 
     const newDebt = totalDebt - pay;
-    const updatedOwned = owned.map(p => 
-      p.id === propId ? { ...p, maintenance_due: newDebt, bank_balance: newBank } : p
-    );
-
-    // Persist to DB
-    const supabase = createClient();
-    await supabase.from('players').update({ 
-      cash: newCash, 
-      personal_bank: newBank, 
-      owned_properties: updatedOwned 
-    }).eq('id', player.id);
-
-    const updated = {
-      ...player,
-      cash: newCash,
-      personal_bank: newBank,
-      owned_properties: updatedOwned
-    };
-    updatePlayer(updated as any);
+    if (refreshPlayer) await refreshPlayer();
+    router.refresh();
     setMessage(`Paid $${pay} via ${method}. Remaining debt: $${newDebt}. ${newDebt > 0 ? 'Pay more or set autopay!' : 'All clear!'}`);
   };
 
@@ -213,12 +196,14 @@ export default function RealEstatePage() {
     if (!confirm(`Confirm ${enable ? 'enable' : 'disable'} autopay for this property?`)) {
       return;
     }
-    const owned = player.owned_properties || [];
-    const updatedOwned = owned.map(p => p.id === propId ? { ...p, autopay: enable } : p);
     const supabase = createClient();
-    await supabase.from('players').update({ owned_properties: updatedOwned, autopay_bills: enable }).eq('id', player.id);
-    const updated = { ...player, owned_properties: updatedOwned, autopay_bills: enable };
-    updatePlayer(updated as any);
+    const { error } = await supabase.rpc('set_property_autopay', { prop_id: propId, enable });
+    if (error) {
+      setMessage(error.message || 'Failed to update autopay.');
+      return;
+    }
+    if (refreshPlayer) await refreshPlayer();
+    router.refresh();
     setMessage(enable ? 'Autopay enabled! Will deduct weekly before Sunday.' : 'Autopay disabled.');
   };
 

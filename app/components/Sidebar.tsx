@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
+import { usePlayer } from './PlayerContext';
 
 interface MenuItem {
   label: string;
@@ -14,6 +15,8 @@ interface MenuCategory {
   items: MenuItem[];
 }
 
+// Left sidebar: everything you DO in the city.
+// Social structures (Family, leaderboards, messages) live in the right sidebar.
 const menuCategories: MenuCategory[] = [
   {
     title: 'Street Operations',
@@ -23,29 +26,46 @@ const menuCategories: MenuCategory[] = [
       { label: 'Rob Store', href: '/crimes/rob_store', icon: '🏪' },
       { label: 'Steal Car', href: '/crimes/steal_car', icon: '🚗' },
       { label: 'Warehouse Heist', href: '/crimes/bank_heist', icon: '🏦' },
+      { label: 'Heists', href: '/heists', icon: '💣' },
       { label: 'Murder', href: '/murder', icon: '🔫' },
       { label: 'Street Dealer', href: '/street-dealer', icon: '💊' },
       { label: 'Weed Grow', href: '/weed-grow', icon: '🌱' },
-      { label: 'Safehouse', href: '/safehouse', icon: '🏠' },
-      { label: 'Race', href: '/race', icon: '🏁' },
-      { label: 'Admin Tools', href: '/admin', icon: '🛠' },
+      { label: 'Detective Agency', href: '/detective', icon: '🕵️' },
     ],
   },
   {
-    title: 'Family',
+    title: 'Economy',
     items: [
-      { label: 'My Family', href: '/families', icon: '👥' },
-      { label: 'Family Bank', href: '/families?tab=banking', icon: '💰' },
-      { label: 'Family Profile', href: '/families?tab=profile', icon: '📋' },
+      { label: 'General Bank', href: '/bank', icon: '🏦' },
+      { label: 'Stock Exchange', href: '/stocks', icon: '📈' },
+      { label: 'Real Estate', href: '/real-estate', icon: '🏠' },
+      { label: 'Marketplace', href: '/marketplace', icon: '🏛️' },
+      { label: 'Shop', href: '/shop', icon: '🛒' },
+      { label: 'Armory', href: '/armory', icon: '🗡️' },
+      { label: 'Metal Factory', href: '/metal-factory', icon: '🏭' },
+    ],
+  },
+  {
+    title: 'Garage & Travel',
+    items: [
+      { label: 'Garage', href: '/garage', icon: '🚙' },
+      { label: 'Race', href: '/race', icon: '🏁' },
+      { label: 'Travel', href: '/travel', icon: '✈️' },
+    ],
+  },
+  {
+    title: 'City Services',
+    items: [
+      { label: 'Safehouse', href: '/safehouse', icon: '🏠' },
+      { label: 'Hospital', href: '/hospital', icon: '🏥' },
       { label: 'Jail', href: '/jail', icon: '🔒' },
     ],
   },
   {
-    title: 'Support Services',
+    title: 'Casino',
     items: [
-      { label: 'Hospital', href: '/hospital', icon: '🏥' },
-      { label: 'Metal Factory', href: '/metal-factory', icon: '🏭' },
-      { label: 'General Bank', href: '/bank', icon: '🏦' },
+      { label: 'Casino Floor', href: '/casino', icon: '🎰' },
+      { label: 'Lottery', href: '/casino/lottery', icon: '🎟️' },
     ],
   },
   {
@@ -57,29 +77,25 @@ const menuCategories: MenuCategory[] = [
       { label: 'Roadmap & Future', href: '/journey/roadmap', icon: '🚀' },
     ],
   },
-  {
-    title: 'Casino',
-    items: [
-      { label: 'Casino Floor', href: '/casino', icon: '🎰' },
-      { label: 'Lottery', href: '/casino/lottery', icon: '🎟️' },
-    ],
-  },
-  {
-    title: 'Markets',
-    items: [
-      { label: 'Stock Exchange', href: '/stocks', icon: '📈' },
-    ],
-  },
 ];
+
+const adminCategory: MenuCategory = {
+  title: 'Administration',
+  items: [{ label: 'Admin Tools', href: '/admin', icon: '🛠' }],
+};
 
 export default function Sidebar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { player } = usePlayer();
+
+  const isAdmin = player?.username === 'YGhosty';
+  const categories = isAdmin ? [...menuCategories, adminCategory] : menuCategories;
 
   const isItemActive = (item: MenuItem) => {
     const currentUrl = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
 
-    // Exact match for href (handles query for family)
+    // Exact match for href (handles query params)
     if (item.href === currentUrl) return true;
 
     // For crime dedicated paths
@@ -90,25 +106,8 @@ export default function Sidebar() {
     // Main Commit Crimes only on /crimes (not sub)
     if (item.label === 'Commit Crimes' && pathname === '/crimes') return true;
 
-    // Family
-    if (item.label === 'My Family' && pathname === '/families' && !searchParams.get('tab')) return true;
-    if (item.label === 'Donation Bank' && pathname === '/families' && searchParams.get('tab') === 'banking') return true;
-
-    // Reputation / Leaderboards
-    if (item.label === 'Leaderboard' && pathname === '/leaderboard') return true;
-    if (item.label === 'Families Leaderboard' && pathname === '/families/leaderboard') return true;
-
-    // Personal Bank
-    if (item.label === 'General Bank' && pathname === '/bank') return true;
-
-    // Shop
-    if (item.label === 'Shop' && pathname === '/shop') return true;
-
-    // Hospital
-    if (item.label === 'Hospital' && pathname === '/hospital') return true;
-
-    // Armory
-    if (item.label === 'Armory' && pathname === '/armory') return true;
+    // Plain path match for everything without query params
+    if (!item.href.includes('?') && pathname === item.href) return true;
 
     return false;
   };
@@ -116,7 +115,7 @@ export default function Sidebar() {
   return (
     <aside className="w-64 bg-zinc-950 border-r border-zinc-800 h-[calc(100vh-56px)] overflow-y-auto sticky top-14 hidden lg:block">
       <div className="p-4">
-        {menuCategories.map((category) => (
+        {categories.map((category) => (
           <div key={category.title} className="mb-6">
             <div className="px-3 mb-2 text-xs font-bold uppercase tracking-widest text-red-500/70">
               {category.title}

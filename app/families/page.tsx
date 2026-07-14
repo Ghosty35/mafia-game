@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -50,6 +50,14 @@ type MyFamilyData = {
 export const dynamic = 'force-dynamic';
 
 export default function FamiliesPage() {
+  return (
+    <Suspense fallback={<div className="max-w-5xl mx-auto p-6 text-zinc-400">Loading families...</div>}>
+      <FamiliesContent />
+    </Suspense>
+  );
+}
+
+function FamiliesContent() {
   const { t } = useLanguage();
   const { player, updatePlayer, refreshPlayer } = usePlayer();  // need player for level/cash/diamonds checks + updates
   const router = useRouter();
@@ -589,8 +597,12 @@ export default function FamiliesPage() {
                         const newTag = prompt('New 2-5 letter tag?');
                         if (!newTag || newTag.length < 2) return;
                         setBusy(true);
-                        await supabase.from('families').update({ tag: newTag.toUpperCase() }).eq('id', myFamily!.family!.id);
+                        const { error } = await supabase.rpc('set_family_tag', { new_tag: newTag });
                         setBusy(false);
+                        if (error) {
+                          addLogLocal(error.message.includes('NOT_AUTHORIZED') ? 'Only the Boss can change the tag.' : (error.message || 'Tag change failed'));
+                          return;
+                        }
                         await loadData();
                         addLogLocal('Family tag updated');
                       }} className="text-xs px-3 py-1 bg-zinc-800 rounded mb-1 mr-1">Change Tag</button>
@@ -739,6 +751,8 @@ function FamilyPowerHourlySection({
   const [busyClaim, setBusyClaim] = useState(false);
   const [msg, setMsg] = useState('');
 
+  const { refreshPlayer } = usePlayer();
+  const router = useRouter();
   const supabase = createClient();
 
   const loadPower = async () => {

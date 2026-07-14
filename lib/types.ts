@@ -1,3 +1,22 @@
+// One entry in the owned_properties jsonb array on players
+export type OwnedProperty = {
+  id: string;
+  name: string;
+  type: string;
+  city: string;
+  purchase_date: string;
+  bank_balance: number;
+  maintenance_due: number;
+  autopay: boolean;
+  shed_level?: number;      // 1-3, storage upgrades
+  income?: number;          // base income per hour
+  earnings_week?: number;   // weekly earnings tracker (pre-tax)
+  last_earned?: string;     // ISO timestamp of last earnings tick
+  piggy_bank?: number;      // Mansion only: hidden safe
+  bodyguards?: number;      // Villa only: raid protection (0-10)
+  spots?: number;           // weed grow spots
+};
+
 // Matches the public.players table in Supabase
 export type Player = {
   id: string;
@@ -26,7 +45,7 @@ export type Player = {
   drug_storage?: Record<string, number>; // KGs for each drug
   weed_progress?: number;      // 0-5 for watering
   murder_cooldown?: string;    // ISO for cooldown
-  owned_properties?: Array<{id: string, name: string, type: string, city: string, purchase_date: string, bank_balance: number, maintenance_due: number, autopay: boolean}>;
+  owned_properties?: OwnedProperty[];
   money_rank?: string;
   total_wealth?: number;
   last_active?: string;            // for online / server status
@@ -48,6 +67,16 @@ export type Player = {
   breakout_skill?: number;  // for jail breakout training
   gov_tax_bank?: number;    // Gov Tax fund contributions
   stock_holdings?: Record<string, number>;  // ticker -> shares
+  // Weed harvest lifetime stats
+  successful_harvest_kg?: number;
+  failed_harvest_kg?: number;
+  weed_plants?: Record<string, any>;  // { quality: number } — grow quality persists here
+  // Profile customization (Bulletstar style)
+  avatar_url?: string;
+  bio?: string;
+  // Bills / taxes aggregated on player
+  maintenance_due?: number;
+  earnings_week?: number;
 };
 
 // Matches the public.crimes table in Supabase

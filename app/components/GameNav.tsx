@@ -7,11 +7,10 @@ import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import type { TranslationKey } from '@/lib/i18n/translations';
 
-// High-level navigation. Some features are fully live, others can be marked with Soon if we want to tease.
+// High-level navigation. Every item links to a distinct destination.
 const baseItems: { label: string; href: string; icon: string }[] = [
   { label: 'Home', href: '/dashboard', icon: '🏠' },
-  { label: 'Updates', href: '/dashboard', icon: '📰' },
-  { label: 'Logs', href: '/dashboard', icon: '📜' },
+  { label: 'Rankings', href: '/dashboard/rankings', icon: '📊' },
   { label: 'About', href: '/about', icon: 'ℹ️' },
 ];
 
@@ -57,7 +56,7 @@ export default function GameNav() {
 
           <div className="flex items-center gap-1 overflow-x-auto pl-2 border-l border-zinc-800">
             {navItems.map(({ label, href, icon }) => {
-              const isActive = href && (pathname === href || (href === '/dashboard' && pathname.startsWith('/dashboard')));
+              const isActive = href && pathname === href;
               return (
                 <Link
                   key={label}
