@@ -5,10 +5,11 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function ProfilePage() {
   return (
-    <Suspense fallback={<div className="max-w-4xl mx-auto p-6 text-zinc-400">Loading profile...</div>}>
+    <Suspense fallback={<div className="max-w-4xl mx-auto p-6 text-zinc-400" />}>
       <ProfileContent />
     </Suspense>
   );
@@ -16,6 +17,7 @@ export default function ProfilePage() {
 
 function ProfileContent() {
   const { player } = usePlayer();
+  const { t } = useLanguage();
   const searchParams = useSearchParams();
   const viewUser = searchParams.get('user') || searchParams.get('username');
 
@@ -37,69 +39,69 @@ function ProfileContent() {
           if (found && !lookupError) {
             setProfile(found);
           } else {
-            setError('Player not found.');
+            setError(t('profile_not_found'));
           }
         } else if (player) {
           // Show own full profile
           setProfile(player);
         }
       } catch (e: any) {
-        setError('Failed to load profile.');
+        setError(t('profile_load_failed'));
       }
       setLoading(false);
     };
     load();
   }, [viewUser, player]);
 
-  if (loading) return <div className="p-8">Loading profile...</div>;
+  if (loading) return <div className="p-8">{t('profile_loading')}</div>;
 
   const p = profile || player;
-  if (!p) return <div className="p-8">No player data. <Link href="/dashboard">Go back</Link></div>;
+  if (!p) return <div className="p-8">{t('profile_no_data')} <Link href="/dashboard">{t('profile_go_back')}</Link></div>;
 
   return (
     <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-1">👤 Profile</h1>
-      <p className="text-zinc-400 mb-6">{p.username || 'Unknown'} {p.is_donator && <span className="ml-2 px-2 py-0.5 text-xs bg-amber-500 text-black rounded">DONATOR</span>}</p>
+      <h1 className="text-3xl font-bold mb-1">👤 {t('profile_title')}</h1>
+      <p className="text-zinc-400 mb-6">{p.username || t('profile_unknown')} {p.is_donator && <span className="ml-2 px-2 py-0.5 text-xs bg-amber-500 text-black rounded">{t('profile_donator_badge')}</span>}</p>
 
       {error && <div className="text-red-400 mb-4">{error}</div>}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="card p-5">
-          <div className="text-xs text-zinc-500">LEVEL &amp; PROGRESS</div>
+          <div className="text-xs text-zinc-500">{t('profile_level_section')}</div>
           <div className="text-2xl font-bold">{p.level}</div>
-          <div className="text-sm mt-1">XP: {p.xp || 0}</div>
-          <div>Health: {p.health || 100}</div>
-          <div>Murder Skill: {(p.murder_skill || 0).toFixed(2)}</div>
+          <div className="text-sm mt-1">{t('profile_xp', { xp: p.xp || 0 })}</div>
+          <div>{t('profile_health', { health: p.health || 100 })}</div>
+          <div>{t('profile_murder_skill', { skill: (p.murder_skill || 0).toFixed(2) })}</div>
         </div>
 
         <div className="card p-5">
-          <div className="text-xs text-zinc-500">WEALTH</div>
-          <div>Cash: <span className="font-mono">${(p.cash || 0).toLocaleString()}</span></div>
-          <div>Bank: <span className="font-mono">${(p.personal_bank || 0).toLocaleString()}</span></div>
-          <div>Diamonds: <span className="font-mono">{p.diamonds || 0} 💎</span></div>
-          <div>Power: {p.power || 0}</div>
+          <div className="text-xs text-zinc-500">{t('profile_wealth_section')}</div>
+          <div>{t('profile_cash')} <span className="font-mono">${(p.cash || 0).toLocaleString()}</span></div>
+          <div>{t('profile_bank')} <span className="font-mono">${(p.personal_bank || 0).toLocaleString()}</span></div>
+          <div>{t('profile_diamonds')} <span className="font-mono">{p.diamonds || 0} 💎</span></div>
+          <div>{t('profile_power', { power: p.power || 0 })}</div>
         </div>
 
         <div className="card p-5">
-          <div className="text-xs text-zinc-500">CRIMINAL RECORD</div>
-          <div>Crimes Succeeded: {p.crimes_succeeded || 0}</div>
-          <div>Crimes Failed: {p.crimes_failed || 0}</div>
-          <div>Heat: {p.heat || 0}</div>
+          <div className="text-xs text-zinc-500">{t('profile_record_section')}</div>
+          <div>{t('profile_crimes_ok', { count: p.crimes_succeeded || 0 })}</div>
+          <div>{t('profile_crimes_fail', { count: p.crimes_failed || 0 })}</div>
+          <div>{t('profile_heat', { heat: p.heat || 0 })}</div>
         </div>
 
         <div className="card p-5">
-          <div className="text-xs text-zinc-500">STATUS</div>
-          <div>Donator: {p.is_donator ? '✅ YES' : 'No'}</div>
-          {p.donator_since && <div className="text-xs">Since: {new Date(p.donator_since).toLocaleDateString()}</div>}
-          <div>Protection: {p.protection || 0}</div>
-          <div>Bullets: {p.bullets || 0}</div>
+          <div className="text-xs text-zinc-500">{t('profile_status_section')}</div>
+          <div>{t('profile_donator', { status: p.is_donator ? t('profile_donator_yes') : t('profile_donator_no') })}</div>
+          {p.donator_since && <div className="text-xs">{t('profile_since', { date: new Date(p.donator_since).toLocaleDateString() })}</div>}
+          <div>{t('profile_protection', { value: p.protection || 0 })}</div>
+          <div>{t('profile_bullets', { value: p.bullets || 0 })}</div>
         </div>
       </div>
 
       <div className="text-xs text-zinc-500">
-        Full detailed profile with family history, owned properties, and more coming soon.
+        {t('profile_footer')}
         <br />
-        <Link href="/families" className="text-red-400">← Back to Families</Link> • <Link href="/dashboard" className="text-red-400">Dashboard</Link>
+        <Link href="/families" className="text-red-400">{t('profile_back_families')}</Link> • <Link href="/dashboard" className="text-red-400">{t('nav_dashboard')}</Link>
       </div>
     </div>
   );
