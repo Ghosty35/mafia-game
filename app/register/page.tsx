@@ -102,26 +102,26 @@ export default function RegisterPage() {
           <div className="flex-1 max-w-md text-center lg:text-left">
             <Link href="/" className="inline-block mb-8">
               <div className="text-6xl font-black tracking-[-3px] leading-none">
-                <span className="text-red-600">MAFIA</span><br />
-                <span className="text-white">GAME 2026</span>
+                <span className="text-red-600">HUSTLER&apos;S</span><br />
+                <span className="text-white">WAY</span>
               </div>
-              <div className="text-red-500/80 text-sm tracking-[4px] mt-1 font-semibold">EST. 2026 • UNDERWORLD EDITION</div>
+              <div className="text-red-500/80 text-sm tracking-[4px] mt-1 font-semibold">{t('auth_est')}</div>
             </Link>
 
             <div className="text-2xl font-semibold text-white mb-3 tracking-tight">
-              THE CITY IS YOURS<br />TO TAKE.
+              {t('auth_hero_register_1')}<br />{t('auth_hero_register_2')}
             </div>
             <p className="text-zinc-400 max-w-xs mx-auto lg:mx-0 mb-8">
-              Create your gangster. Build your family. Dominate every system.
+              {t('auth_hero_register_sub')}
             </p>
 
             <div className="hidden lg:block bg-zinc-900/60 border border-zinc-800 rounded-2xl p-5 text-left backdrop-blur">
-              <div className="uppercase text-[10px] tracking-[2px] text-red-500 font-bold mb-3">JOIN THE RANKS</div>
+              <div className="uppercase text-[10px] tracking-[2px] text-red-500 font-bold mb-3">{t('auth_join_title')}</div>
               <ul className="space-y-2 text-sm text-zinc-300">
-                <li>• Full crime &amp; heist progression</li>
-                <li>• Live Stock Market + Casino economy</li>
-                <li>• Powerful Families with hourly payouts</li>
-                <li>• Properties, Weed, Racing &amp; more</li>
+                <li>• {t('auth_join_1')}</li>
+                <li>• {t('auth_join_2')}</li>
+                <li>• {t('auth_join_3')}</li>
+                <li>• {t('auth_join_4')}</li>
               </ul>
             </div>
           </div>
@@ -132,7 +132,7 @@ export default function RegisterPage() {
               {checkEmail ? (
                 <div className="text-center py-4">
                   <div className="text-3xl mb-3">📨</div>
-                  <h2 className="text-xl font-bold mb-2 text-green-400">Check your email</h2>
+                  <h2 className="text-xl font-bold mb-2 text-green-400">{t('auth_check_email_title')}</h2>
                   <p className="text-zinc-400">{t('register_check_email')}</p>
                   <Link href="/login" className="inline-block mt-6 text-red-500 hover:underline">Back to login</Link>
                 </div>
@@ -140,7 +140,7 @@ export default function RegisterPage() {
                 <>
                   <div className="mb-6">
                     <h1 className="text-3xl font-bold tracking-tight">{t('register_title')}</h1>
-                    <p className="text-zinc-400 text-sm mt-1">One account. Infinite crime.</p>
+                    <p className="text-zinc-400 text-sm mt-1">{t('auth_register_tagline')}</p>
                   </div>
 
                   <form onSubmit={handleRegister} className="space-y-4">
@@ -241,7 +241,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="text-center mt-4 text-[10px] text-zinc-600 tracking-widest">
-              YOUR SECRETS ARE SAFE WITH US
+              {t('auth_secrets_footer')}
             </div>
           </div>
         </div>
