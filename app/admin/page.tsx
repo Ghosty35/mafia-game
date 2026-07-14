@@ -3,9 +3,11 @@
 import { usePlayer } from '../components/PlayerContext';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function AdminPage() {
   const { player, updatePlayer, refreshPlayer } = usePlayer();
+  const { t } = useLanguage();
   const [logs, setLogs] = useState<any[]>([]);
   const [allPlayers, setAllPlayers] = useState<any[]>([]);
   const [loadingPlayers, setLoadingPlayers] = useState(false);
@@ -52,7 +54,7 @@ export default function AdminPage() {
   }, [isAdmin]);
 
   if (!isAdmin) {
-    return <div className="p-8 text-red-400">Access denied. Only YGhosty has full admin tools.</div>;
+    return <div className="p-8 text-red-400">{t('admin_denied')}</div>;
   }
 
   // All admin writes go through SECURITY DEFINER RPCs (035):
@@ -118,62 +120,62 @@ export default function AdminPage() {
 
   return (
     <div className="max-w-7xl mx-auto p-6">
-      <h1 className="text-4xl font-bold mb-1">🛠️ CREW COMMAND — ADMIN</h1>
-      <p className="text-amber-400 mb-6 text-sm">Absolute control. No restrictions. Everything you touch persists.</p>
+      <h1 className="text-4xl font-bold mb-1">{t('admin_title')}</h1>
+      <p className="text-amber-400 mb-6 text-sm">{t('admin_subtitle')}</p>
 
       <div className="grid lg:grid-cols-3 gap-5">
         {/* LOGS + Quick Controls */}
         <div className="card p-5 lg:col-span-1">
-          <h2 className="font-bold mb-2">Command Log</h2>
+          <h2 className="font-bold mb-2">{t('admin_log_title')}</h2>
           <div className="max-h-[320px] overflow-auto text-[10px] font-mono bg-black/70 p-3 rounded border border-zinc-800">
-            {logs.length === 0 && <div className="text-zinc-500">No actions yet. Use controls below.</div>}
+            {logs.length === 0 && <div className="text-zinc-500">{t('admin_log_empty')}</div>}
             {logs.map((log, i) => (
               <div key={i} className="mb-0.5">[{new Date(log.time).toLocaleTimeString()}] <span className="text-amber-400">[{log.type}]</span> {log.msg}</div>
             ))}
           </div>
           <div className="flex gap-2 mt-2">
-            <button onClick={loadAll} className="text-xs px-3 py-1 bg-zinc-800 rounded">Refresh All</button>
-            <button onClick={() => giveToAllOnlineSim(25000)} className="text-xs px-3 py-1 bg-emerald-800 rounded">Stimulus +25k (top 10)</button>
+            <button onClick={loadAll} className="text-xs px-3 py-1 bg-zinc-800 rounded">{t('admin_refresh_all')}</button>
+            <button onClick={() => giveToAllOnlineSim(25000)} className="text-xs px-3 py-1 bg-emerald-800 rounded">{t('admin_stimulus_button')}</button>
           </div>
         </div>
 
         {/* Economy + Tax + Pools */}
         <div className="card p-5 lg:col-span-2">
-          <h2 className="font-bold mb-2">Live Economy &amp; Control</h2>
+          <h2 className="font-bold mb-2">{t('admin_economy_title')}</h2>
           <div className="grid grid-cols-2 gap-x-6 text-sm">
             <div>
-              <div>Total Money Circ: <span className="font-mono text-emerald-400">${(economy?.total_money_circulation || 0).toLocaleString()}</span></div>
-              <div>Players: {economy?.people_registered || '?'} | Families: {economy?.total_families || '?'}</div>
-              <div>Online (15m): {economy?.online_people || '?'} | Week: {economy?.logged_in_this_week || '?'}</div>
+              <div>{t('admin_money_circ')} <span className="font-mono text-emerald-400">${(economy?.total_money_circulation || 0).toLocaleString()}</span></div>
+              <div>{t('admin_players_families', { players: economy?.people_registered || '?', families: economy?.total_families || '?' })}</div>
+              <div>{t('admin_online_week', { online: economy?.online_people || '?', week: economy?.logged_in_this_week || '?' })}</div>
             </div>
             <div>
-              {pools && <div>Casino Pools: BJ ${(pools.blackjack||0).toLocaleString()} | Rou ${(pools.roulette||0).toLocaleString()}</div>}
-              <div className="text-xs text-zinc-400 mt-1">All taxes → Gov. Casino losses → Pools (for lottery &amp; events).</div>
+              {pools && <div>{t('admin_pools_line', { bj: `$${(pools.blackjack||0).toLocaleString()}`, rou: `$${(pools.roulette||0).toLocaleString()}` })}</div>}
+              <div className="text-xs text-zinc-400 mt-1">{t('admin_tax_note')}</div>
             </div>
           </div>
 
           {/* Tax Controls - working */}
           <div className="mt-4 pt-3 border-t border-zinc-800">
-            <div className="font-semibold mb-1">Global Tax Rates (Admin Override)</div>
+            <div className="font-semibold mb-1">{t('admin_tax_title')}</div>
             <div className="flex gap-3 items-center text-sm">
-              <div>Property Purchase: <input id="propTax" type="number" defaultValue={10} className="w-14 bg-zinc-900 px-1 border" />%</div>
-              <div>Bank Tx: <input id="bankTax" type="number" step="0.1" defaultValue={0.5} className="w-14 bg-zinc-900 px-1 border" />%</div>
-              <button onClick={adjustTaxUI} className="px-3 py-0.5 bg-yellow-700 text-xs rounded">Apply &amp; Log</button>
+              <div>{t('admin_tax_property')} <input id="propTax" type="number" defaultValue={10} className="w-14 bg-zinc-900 px-1 border" />%</div>
+              <div>{t('admin_tax_bank')} <input id="bankTax" type="number" step="0.1" defaultValue={0.5} className="w-14 bg-zinc-900 px-1 border" />%</div>
+              <button onClick={adjustTaxUI} className="px-3 py-0.5 bg-yellow-700 text-xs rounded">{t('admin_tax_apply')}</button>
             </div>
-            <div className="text-[10px] text-zinc-500">Rates noted here affect future calculations (see bank/safehouse/real-estate). Extend with global_settings table if needed.</div>
+            <div className="text-[10px] text-zinc-500">{t('admin_tax_footer')}</div>
           </div>
 
           {/* Give Money - FULL WORKING */}
           <div className="mt-4 pt-3 border-t">
-            <div className="font-semibold mb-1">Give Cash (Direct DB)</div>
+            <div className="font-semibold mb-1">{t('admin_give_title')}</div>
             <div className="flex gap-2">
-              <input id="giveU" placeholder="Exact username" className="bg-zinc-900 px-2 py-1 text-sm border w-40" defaultValue="YGhosty" />
+              <input id="giveU" placeholder={t('admin_give_placeholder')} className="bg-zinc-900 px-2 py-1 text-sm border w-40" defaultValue="YGhosty" />
               <input id="giveA" type="number" defaultValue={250000} className="bg-zinc-900 px-2 py-1 text-sm border w-28" />
               <button onClick={() => {
                 const u = (document.getElementById('giveU') as HTMLInputElement).value;
                 const a = parseInt((document.getElementById('giveA') as HTMLInputElement).value);
                 giveCash(u, a);
-              }} className="px-4 bg-emerald-600 rounded text-sm">GIVE</button>
+              }} className="px-4 bg-emerald-600 rounded text-sm">{t('admin_give_button')}</button>
             </div>
           </div>
         </div>
@@ -181,25 +183,25 @@ export default function AdminPage() {
         {/* Player Management Table - FULL CONTROL */}
         <div className="lg:col-span-3 card p-5">
           <div className="flex justify-between items-center mb-3">
-            <h3 className="font-bold">Player Roster (Live Edit)</h3>
-            <input placeholder="Search username" className="bg-zinc-900 border px-2 py-1 text-xs" onChange={(e) => fetchPlayers(e.target.value)} />
-            <button onClick={() => fetchPlayers()} className="text-xs px-3 py-1 bg-zinc-800 rounded">Reload</button>
+            <h3 className="font-bold">{t('admin_roster_title')}</h3>
+            <input placeholder={t('admin_search_placeholder')} className="bg-zinc-900 border px-2 py-1 text-xs" onChange={(e) => fetchPlayers(e.target.value)} />
+            <button onClick={() => fetchPlayers()} className="text-xs px-3 py-1 bg-zinc-800 rounded">{t('admin_reload')}</button>
           </div>
 
           <div className="overflow-auto max-h-[380px]">
             <table className="w-full text-xs">
               <thead>
                 <tr className="text-left border-b border-zinc-700">
-                  <th className="py-1 pr-2">Username</th>
-                  <th>Cash</th>
-                  <th>Bank</th>
-                  <th>Lvl</th>
-                  <th>Power</th>
-                  <th>Rebirths</th>
-                  <th>Kill%</th>
-                  <th>Donator</th>
-                  <th>Status</th>
-                  <th className="w-80">Actions</th>
+                  <th className="py-1 pr-2">{t('admin_col_username')}</th>
+                  <th>{t('admin_col_cash')}</th>
+                  <th>{t('admin_col_bank')}</th>
+                  <th>{t('admin_col_level')}</th>
+                  <th>{t('admin_col_power')}</th>
+                  <th>{t('admin_col_rebirths')}</th>
+                  <th>{t('admin_col_kill')}</th>
+                  <th>{t('admin_col_donator')}</th>
+                  <th>{t('admin_col_status')}</th>
+                  <th className="w-80">{t('admin_col_actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -220,7 +222,7 @@ export default function AdminPage() {
                     <td>{((p.murder_skill || 0) * 5).toFixed(0)}%</td>
                     <td>
                       <button onClick={() => setDonator(p.username, !p.is_donator)} className={`px-1.5 rounded text-[10px] ${p.is_donator ? 'bg-amber-600' : 'bg-zinc-700'}`}>
-                        {p.is_donator ? 'VIP' : 'Set VIP'}
+                        {p.is_donator ? 'VIP' : t('admin_set_vip')}
                       </button>
                     </td>
                     <td className="text-[10px]">
@@ -229,21 +231,21 @@ export default function AdminPage() {
                     <td className="flex gap-1 flex-wrap py-0.5">
                       <button onClick={() => giveCash(p.username, 100000)} className="px-2 py-px bg-emerald-800 rounded text-[10px]">+100k</button>
                       <button onClick={() => giveCash(p.username, -50000)} className="px-2 py-px bg-orange-800 rounded text-[10px]">-50k</button>
-                      <button onClick={() => forceClearStatus(p.id, 'jail')} className="px-2 py-px bg-blue-800 rounded text-[10px]">Clear Jail</button>
-                      <button onClick={() => forceClearStatus(p.id, 'death')} className="px-2 py-px bg-blue-800 rounded text-[10px]">Revive</button>
-                      <button onClick={() => updateFieldDirect(p.id, 'is_donator', true)} className="px-2 py-px bg-amber-700 rounded text-[10px]">Make Donator</button>
+                      <button onClick={() => forceClearStatus(p.id, 'jail')} className="px-2 py-px bg-blue-800 rounded text-[10px]">{t('admin_clear_jail')}</button>
+                      <button onClick={() => forceClearStatus(p.id, 'death')} className="px-2 py-px bg-blue-800 rounded text-[10px]">{t('admin_revive')}</button>
+                      <button onClick={() => updateFieldDirect(p.id, 'is_donator', true)} className="px-2 py-px bg-amber-700 rounded text-[10px]">{t('admin_make_donator')}</button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <div className="text-[10px] text-zinc-500 mt-2">Edits persist via secure admin RPCs. Use responsibly.</div>
+          <div className="text-[10px] text-zinc-500 mt-2">{t('admin_edits_note')}</div>
         </div>
       </div>
 
       <div className="mt-4 text-xs">
-        <a href="/dashboard" className="text-red-400">← Dashboard</a> • Full power. Stocks, casino pools, rebirths, families all controllable here or via direct DB.
+        <a href="/dashboard" className="text-red-400">← {t('nav_dashboard')}</a> • {t('admin_footer')}
       </div>
     </div>
   );
