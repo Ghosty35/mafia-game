@@ -44,8 +44,12 @@ so a single error rolls the whole script back. As a result 31 RPCs,
 ### 🔧 Repair: run ONLY these, in this order
 
 ```
-016 → 018 → 020 → 021 → 025 → 035 → 036 → 037
+016 → 018 → 020 → 021 → 025 → 035 → 036 → 037 → 038
 ```
+
+The four FIX_ scripts are confirmed applied already — do NOT rerun them.
+`038_fix_casino_pools_volatile.sql` is new: the live get_casino_pools()
+is broken (STABLE function doing an INSERT) and 038 repairs it.
 
 | Script | Restores |
 |---|---|
