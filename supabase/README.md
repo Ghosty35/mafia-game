@@ -18,7 +18,7 @@ are hotfixes that belong at a specific point in the chain:
 | 034a | `FIX_034_typo.sql` | hotfix for 034 |
 | 034b | `FIX_034_stocks_table.sql` | hotfix for 034 |
 | 034c | `FIX_create_family.sql` | hotfix (family creation) |
-| 034d | `../FIX_bank_persistence.sql` | hotfix (lives one level up) |
+| 034d | `FIX_bank_persistence.sql` | hotfix (bank persistence) |
 | 035 | `035_admin_tools_and_persistence.sql` | SECURITY DEFINER RPC layer |
 | 036 | `036_idle_income_events_races_territory.sql` | |
 | 037 | `037_language_preference.sql` | **NEW — not yet applied. Run this one!** |
