@@ -4,8 +4,10 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import type { FamilyLeaderboardEntry } from '@/lib/types';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function FamiliesLeaderboardPage() {
+  const { t } = useLanguage();
   const [families, setFamilies] = useState<FamilyLeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -30,26 +32,26 @@ export default function FamiliesLeaderboardPage() {
     <div className="max-w-4xl mx-auto px-4 py-6">
       {/* Compact header - matching players leaderboard style */}
       <div className="mb-4">
-        <h1 className="text-2xl font-bold tracking-tight">Families Leaderboard</h1>
-        <p className="text-xs text-zinc-400">All families • Ranked by total respect + family power (hourly &amp; wars)</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t('famlb_title')}</h1>
+        <p className="text-xs text-zinc-400">{t('famlb_subtitle')}</p>
       </div>
 
       {/* Compact table - same tight style as players leaderboard */}
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden text-sm">
         <div className="grid grid-cols-12 bg-zinc-800 px-3 py-1.5 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
           <div className="col-span-1 text-center">#</div>
-          <div className="col-span-4">Family</div>
-          <div className="col-span-2 text-center">Tag</div>
-          <div className="col-span-2 text-right">Respect</div>
-          <div className="col-span-2 text-right">Power</div>
-          <div className="col-span-1 text-center">Members</div>
+          <div className="col-span-4">{t('famlb_family')}</div>
+          <div className="col-span-2 text-center">{t('famlb_tag')}</div>
+          <div className="col-span-2 text-right">{t('famlb_respect')}</div>
+          <div className="col-span-2 text-right">{t('famlb_power')}</div>
+          <div className="col-span-1 text-center">{t('famlb_members')}</div>
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-zinc-500 text-sm">Loading...</div>
+          <div className="p-8 text-center text-zinc-500 text-sm">{t('loading')}</div>
         ) : families.length === 0 ? (
           <div className="p-8 text-center text-zinc-500 text-sm">
-            No families yet. Be the first to start one.
+            {t('famlb_none')}
           </div>
         ) : (
           families.map((family, index) => (
@@ -88,12 +90,12 @@ export default function FamiliesLeaderboardPage() {
       </div>
 
       <div className="mt-4 text-center text-[10px] text-zinc-500">
-        Family power = built from donations (via leaders buying power). Drives hourly pay (60/40) and Fam Wars strength.
+        {t('famlb_footer')}
       </div>
 
       <div className="mt-4 text-center">
         <Link href="/leaderboard" className="text-xs text-red-400 hover:underline">
-          ← Back to Leaderboard (Players)
+          {t('famlb_back')}
         </Link>
       </div>
     </div>
