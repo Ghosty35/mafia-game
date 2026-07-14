@@ -1,58 +1,95 @@
 'use client';
 
 import Link from 'next/link';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
+import type { TranslationKey } from '@/lib/i18n/translations';
+
+type LabeledItem = { labelKey: TranslationKey; textKey: TranslationKey };
+
+const leftItems: LabeledItem[] = [
+  { labelKey: 'menus_left_1_label', textKey: 'menus_left_1_text' },
+  { labelKey: 'menus_left_2_label', textKey: 'menus_left_2_text' },
+  { labelKey: 'menus_left_3_label', textKey: 'menus_left_3_text' },
+  { labelKey: 'menus_left_4_label', textKey: 'menus_left_4_text' },
+];
+
+const topItems: LabeledItem[] = [
+  { labelKey: 'menus_top_1_label', textKey: 'menus_top_1_text' },
+  { labelKey: 'menus_top_2_label', textKey: 'menus_top_2_text' },
+  { labelKey: 'menus_top_3_label', textKey: 'menus_top_3_text' },
+];
+
+const rightItems: TranslationKey[] = [
+  'menus_right_1',
+  'menus_right_2',
+  'menus_right_3',
+  'menus_right_4',
+];
+
+const pageItems: LabeledItem[] = [
+  { labelKey: 'menus_pages_1_label', textKey: 'menus_pages_1_text' },
+  { labelKey: 'menus_pages_2_label', textKey: 'menus_pages_2_text' },
+  { labelKey: 'menus_pages_3_label', textKey: 'menus_pages_3_text' },
+  { labelKey: 'menus_pages_4_label', textKey: 'menus_pages_4_text' },
+  { labelKey: 'menus_pages_5_label', textKey: 'menus_pages_5_text' },
+];
 
 export default function MenusPage() {
+  const { t } = useLanguage();
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <Link href="/journey" className="text-sm text-red-400 hover:underline">← Back to Journey</Link>
+    <div className="max-w-4xl mx-auto p-4 sm:p-6">
+      <Link href="/journey" className="text-sm text-red-400 hover:underline">
+        {t('journey_back')}
+      </Link>
 
-      <h1 className="text-3xl font-bold mt-4 mb-2">🧭 How to Use the Menus</h1>
-      <p className="text-zinc-400 mb-6">Quick explanation of the main navigation and where everything lives.</p>
+      <h1 className="text-3xl font-bold mt-4 mb-2">🧭 {t('menus_title')}</h1>
+      <p className="text-zinc-400 mb-6">{t('menus_desc')}</p>
 
       <div className="space-y-8 text-sm">
         <div>
-          <h3 className="font-semibold mb-2">Sidebar (Left)</h3>
+          <h3 className="font-semibold mb-2">{t('menus_left_title')}</h3>
           <ul className="list-disc pl-5 space-y-1">
-            <li><strong>Street Operations</strong>: Crimes, Street Dealer, Weed Grow, Safehouse, Race, Admin Tools</li>
-            <li><strong>Family</strong>: My Family (with Bank, Profile, Jail)</li>
-            <li><strong>Support Services</strong>: Hospital, Metal Factory, Personal Bank</li>
-            <li><strong>Journey</strong>: Player Guide, In-Game Tips, How to Use Menus, Roadmap</li>
+            {leftItems.map((item) => (
+              <li key={item.labelKey}>
+                <strong>{t(item.labelKey)}</strong>: {t(item.textKey)}
+              </li>
+            ))}
           </ul>
         </div>
 
         <div>
-          <h3 className="font-semibold mb-2">Top Navigation</h3>
+          <h3 className="font-semibold mb-2">{t('menus_top_title')}</h3>
           <ul className="list-disc pl-5 space-y-1">
-            <li><strong>Home</strong>: Goes to the main dashboard / front page with round info and live clocks</li>
-            <li><strong>Online</strong>: Server Status page (live player counts, families, money circulation)</li>
-            <li><strong>About</strong>: Game story and lore</li>
+            {topItems.map((item) => (
+              <li key={item.labelKey}>
+                <strong>{t(item.labelKey)}</strong>: {t(item.textKey)}
+              </li>
+            ))}
           </ul>
         </div>
 
         <div>
-          <h3 className="font-semibold mb-2">Right Sidebar</h3>
+          <h3 className="font-semibold mb-2">{t('menus_right_title')}</h3>
           <ul className="list-disc pl-5 space-y-1">
-            <li>Family & Social (My Family, Messages, etc.)</li>
-            <li>Reputation (Leaderboards)</li>
-            <li>Murder & PvP</li>
-            <li>Information & Economy (Real Estate, Marketplace, Street Dealer)</li>
+            {rightItems.map((key) => (
+              <li key={key}>{t(key)}</li>
+            ))}
           </ul>
         </div>
 
         <div>
-          <h3 className="font-semibold mb-2">Important Pages</h3>
+          <h3 className="font-semibold mb-2">{t('menus_pages_title')}</h3>
           <ul className="list-disc pl-5 space-y-1">
-            <li><strong>Safehouse</strong>: Your properties, Piggybank (Mansion), Shed, Garage</li>
-            <li><strong>Bank</strong>: Personal Bank (Cash ↔ Bank)</li>
-            <li><strong>Families</strong>: Create/join family, banking, power, members</li>
-            <li><strong>Jail</strong>: Train breakout skills</li>
-            <li><strong>Journey</strong>: All help and guides (this section)</li>
+            {pageItems.map((item) => (
+              <li key={item.labelKey}>
+                <strong>{t(item.labelKey)}</strong>: {t(item.textKey)}
+              </li>
+            ))}
           </ul>
         </div>
       </div>
 
-      <p className="mt-8 text-xs text-zinc-500">Most pages have their own sub-tabs and live data. Use the Journey menu when you’re lost.</p>
+      <p className="mt-8 text-xs text-zinc-500">{t('menus_footer')}</p>
     </div>
   );
 }

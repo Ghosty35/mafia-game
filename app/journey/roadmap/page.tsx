@@ -1,51 +1,70 @@
 'use client';
 
 import Link from 'next/link';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
+import type { TranslationKey } from '@/lib/i18n/translations';
+
+const soonItems: { labelKey: TranslationKey; textKey: TranslationKey }[] = [
+  { labelKey: 'roadmap_soon_1_label', textKey: 'roadmap_soon_1_text' },
+  { labelKey: 'roadmap_soon_2_label', textKey: 'roadmap_soon_2_text' },
+  { labelKey: 'roadmap_soon_3_label', textKey: 'roadmap_soon_3_text' },
+  { labelKey: 'roadmap_soon_4_label', textKey: 'roadmap_soon_4_text' },
+];
+
+const longTermItems: TranslationKey[] = [
+  'roadmap_long_1',
+  'roadmap_long_2',
+  'roadmap_long_3',
+  'roadmap_long_4',
+  'roadmap_long_5',
+];
+
+const docsItems: TranslationKey[] = ['roadmap_docs_1', 'roadmap_docs_2', 'roadmap_docs_3'];
 
 export default function RoadmapPage() {
+  const { t } = useLanguage();
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <Link href="/journey" className="text-sm text-red-400 hover:underline">← Back to Journey</Link>
+    <div className="max-w-4xl mx-auto p-4 sm:p-6">
+      <Link href="/journey" className="text-sm text-red-400 hover:underline">
+        {t('journey_back')}
+      </Link>
 
-      <h1 className="text-3xl font-bold mt-4 mb-2">🚀 Roadmap & Future</h1>
-      <p className="text-zinc-400 mb-6">What’s coming next and what we’re building toward.</p>
+      <h1 className="text-3xl font-bold mt-4 mb-2">🚀 {t('roadmap_title')}</h1>
+      <p className="text-zinc-400 mb-6">{t('roadmap_desc')}</p>
 
       <div className="space-y-8">
         <section>
-          <h2 className="text-xl font-bold mb-3">Coming Soon</h2>
+          <h2 className="text-xl font-bold mb-3">{t('roadmap_soon_title')}</h2>
           <ul className="list-disc pl-5 space-y-1 text-sm">
-            <li><strong>Casino Games</strong>: Blackjack, Roulette, and more. All bank losses feed into a central Casino Bank (with sub-categories per game).</li>
-            <li><strong>Weekly Friday Lottery</strong>: Pull system with items and jackpots. Non-donators have higher win chance than donators.</li>
-            <li><strong>Vehicle Health & Tuning Overhaul</strong>: Full car list (low/mid/high/super), real images on steal, mod system.</li>
-            <li><strong>More Live Trackers</strong>: Central cooldown page + better widget across the game.</li>
+            {soonItems.map((item) => (
+              <li key={item.labelKey}>
+                <strong>{t(item.labelKey)}</strong>: {t(item.textKey)}
+              </li>
+            ))}
           </ul>
         </section>
 
         <section>
-          <h2 className="text-xl font-bold mb-3">Long Term Vision</h2>
+          <h2 className="text-xl font-bold mb-3">{t('roadmap_long_title')}</h2>
           <ul className="list-disc pl-5 space-y-1 text-sm">
-            <li>Professional UI with consistent backgrounds and images across all menus.</li>
-            <li>Full in-game help system pulled from these docs (tooltips everywhere).</li>
-            <li>Deeper economy (more realistic taxes, property earnings that actually accumulate over time).</li>
-            <li>Expanded family wars and territory.</li>
-            <li>More 2-player and group events.</li>
+            {longTermItems.map((key) => (
+              <li key={key}>{t(key)}</li>
+            ))}
           </ul>
         </section>
 
         <section>
-          <h2 className="text-xl font-bold mb-3">Documentation & Help (Current Focus)</h2>
-          <p className="text-sm">We’re building a complete set of living documents so that:</p>
+          <h2 className="text-xl font-bold mb-3">{t('roadmap_docs_title')}</h2>
+          <p className="text-sm">{t('roadmap_docs_intro')}</p>
           <ul className="list-disc pl-5 space-y-1 text-sm mt-2">
-            <li>Any AI can read the current state and help effectively.</li>
-            <li>Players get clear, helpful tips directly in the game.</li>
-            <li>Everything stays consistent as the game grows.</li>
+            {docsItems.map((key) => (
+              <li key={key}>{t(key)}</li>
+            ))}
           </ul>
         </section>
       </div>
 
-      <div className="mt-10 p-4 bg-zinc-900 rounded text-xs text-zinc-400">
-        This Roadmap page will be updated regularly. Check back often.
-      </div>
+      <div className="mt-10 p-4 bg-zinc-900 rounded text-xs text-zinc-400">{t('roadmap_footer')}</div>
     </div>
   );
 }
