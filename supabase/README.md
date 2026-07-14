@@ -44,12 +44,12 @@ so a single error rolls the whole script back. As a result 31 RPCs,
 ### 🔧 Repair: run ONLY these, in this order
 
 ```
-015 → 016 → 018 → 020 → 021 → 025 → 035 → 036 → 037
+016 → 018 → 020 → 021 → 025 → 035 → 036 → 037
 ```
 
 | Script | Restores |
 |---|---|
-| `015_pending_donations_and_bank.sql` | family donations / pending bank |
+| ~~`015_pending_donations_and_bank.sql`~~ | ✅ turned out to be applied already (the table is named `family_pending_donations`; rerunning it errors on an existing policy — skip it) |
 | `016_heat_jail_heists.sql` | heists table + jail breakout |
 | `018_health_protection_hospital.sql` | buy_protection |
 | `020_commit_heist.sql` | commit_heist |
