@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePlayer } from '../components/PlayerContext';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 interface Bid {
   propertyId: string;
@@ -14,6 +15,7 @@ interface Bid {
 
 export default function MarketplacePage() {
   const { player } = usePlayer();
+  const { t } = useLanguage();
   const [bids, setBids] = useState<Bid[]>([
     { propertyId: '1', name: 'New York Train Station', currentBid: 25000, bidder: 'PlayerX', timeLeft: 45 },
     { propertyId: '2', name: 'Chicago Metal Factory', currentBid: 42000, bidder: 'BossY', timeLeft: 120 },
@@ -29,7 +31,7 @@ export default function MarketplacePage() {
   // now it's a visual preview that never touches your money.
   const placeBid = (prop: Bid) => {
     if (!player || bidAmount <= prop.currentBid) {
-      setMessage('Bid must be higher than current!');
+      setMessage(t('market_bid_too_low'));
       return;
     }
     const newBids = bids.map(b =>
@@ -38,31 +40,31 @@ export default function MarketplacePage() {
         : b
     );
     setBids(newBids);
-    setMessage(`PREVIEW: Bid of $${bidAmount} registered (no cash taken). Real auctions with escrow are coming soon!`);
+    setMessage(t('market_bid_preview', { amount: `$${bidAmount}` }));
     setBidAmount(0);
   };
 
   const instantBuy = (prop: Bid) => {
     if (!player || !instantBuyPrice) {
-      setMessage('Enter an instant buy price first.');
+      setMessage(t('market_instant_first'));
       return;
     }
-    setMessage(`PREVIEW: Instant buy for ${prop.name} at $${instantBuyPrice} (no cash taken). Real marketplace is coming soon!`);
+    setMessage(t('market_instant_preview', { name: prop.name, price: `$${instantBuyPrice}` }));
   };
 
   return (
     <div className="max-w-5xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-4">🏛️ Marketplace <span className="text-xs align-middle px-2 py-0.5 bg-amber-900/50 text-amber-400 rounded">PREVIEW</span></h1>
-      <p className="text-sm text-zinc-400 mb-6">Bid on properties released by the dev. Highest bid wins when timer runs out. Real auctions with escrow are in development — this preview never touches your cash.</p>
+      <h1 className="text-3xl font-bold mb-4">🏛️ {t('market_title')} <span className="text-xs align-middle px-2 py-0.5 bg-amber-900/50 text-amber-400 rounded">{t('market_preview_badge')}</span></h1>
+      <p className="text-sm text-zinc-400 mb-6">{t('market_desc')}</p>
 
       <div className="mb-4 flex gap-3 items-end">
         <div>
-          <label className="text-xs block mb-1">Auction Duration</label>
+          <label className="text-xs block mb-1">{t('market_auction_duration')}</label>
           <select value={auctionTime} onChange={e => setAuctionTime(Number(e.target.value))} className="bg-zinc-900 border border-zinc-700 px-3 py-1 rounded text-sm">
-            <option value={1}>1 Hour</option>
-            <option value={2}>2 Hours</option>
-            <option value={3}>3 Hours</option>
-            <option value={5}>5 Hours</option>
+            <option value={1}>{t('market_1hour')}</option>
+            <option value={2}>{t('market_2hours')}</option>
+            <option value={3}>{t('market_3hours')}</option>
+            <option value={5}>{t('market_5hours')}</option>
           </select>
         </div>
       </div>
@@ -73,8 +75,8 @@ export default function MarketplacePage() {
             <div className="flex justify-between mb-3">
               <div>
                 <h3 className="font-bold">{bid.name}</h3>
-                <p className="text-xs">Current Bid: <span className="font-mono">${bid.currentBid}</span> by {bid.bidder}</p>
-                <p className="text-xs text-orange-400">Time left: {bid.timeLeft} min</p>
+                <p className="text-xs">{t('market_current_bid', { bid: `$${bid.currentBid}`, bidder: bid.bidder })}</p>
+                <p className="text-xs text-orange-400">{t('market_time_left', { minutes: bid.timeLeft })}</p>
               </div>
             </div>
 
@@ -85,10 +87,10 @@ export default function MarketplacePage() {
                   value={bidAmount} 
                   onChange={e => { setBidAmount(parseInt(e.target.value) || 0); setSelected(bid.propertyId); }}
                   className="w-full bg-zinc-900 border border-zinc-700 px-3 py-1 text-sm rounded"
-                  placeholder="Bid amount"
+                  placeholder={t('market_bid_placeholder')}
                 />
               </div>
-              <button onClick={() => placeBid(bid)} className="px-4 py-1 bg-red-700 rounded text-sm">Place Bid</button>
+              <button onClick={() => placeBid(bid)} className="px-4 py-1 bg-red-700 rounded text-sm">{t('market_place_bid')}</button>
             </div>
 
             <div className="mt-3 flex gap-2">
@@ -97,9 +99,9 @@ export default function MarketplacePage() {
                 value={instantBuyPrice} 
                 onChange={e => setInstantBuyPrice(parseInt(e.target.value) || 0)}
                 className="flex-1 bg-zinc-900 border border-zinc-700 px-3 py-1 text-sm rounded"
-                placeholder="Instant Buy Price"
+                placeholder={t('market_instant_placeholder')}
               />
-              <button onClick={() => instantBuy(bid)} className="px-4 py-1 bg-emerald-700 rounded text-sm">Instant Buy</button>
+              <button onClick={() => instantBuy(bid)} className="px-4 py-1 bg-emerald-700 rounded text-sm">{t('market_instant_buy')}</button>
             </div>
           </div>
         ))}
@@ -108,10 +110,10 @@ export default function MarketplacePage() {
       {message && <div className="mt-4 p-3 bg-zinc-900 border border-zinc-700 rounded">{message}</div>}
 
       <div className="mt-6 text-xs text-zinc-500">
-        Once won, visit the property in Real Estate to manage bank, set health prices (for hospitals), pay maintenance.
+        {t('market_footer')}
       </div>
 
-      <Link href="/dashboard" className="mt-4 inline-block text-sm text-red-400">← Back</Link>
+      <Link href="/dashboard" className="mt-4 inline-block text-sm text-red-400">← {t('common_back')}</Link>
     </div>
   );
 }

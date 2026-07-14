@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
 import { CITIES, City } from '@/lib/cities';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 const DRUGS = ['Coke', 'Weed', 'Meth', 'Pills'] as const;
 
@@ -19,6 +20,7 @@ const DRUG_CAPS: Record<typeof DRUGS[number], number> = {
 
 export default function StreetDealerPage() {
   const { player, refreshPlayer, canPerformAction, recordAction } = usePlayer();
+  const { t } = useLanguage();
   const [prices, setPrices] = useState<DrugPrices>({ Coke: 120, Weed: 80, Meth: 200, Pills: 50 });
   const [city, setCity] = useState<City>('New York');
   const [message, setMessage] = useState('');
@@ -84,7 +86,7 @@ export default function StreetDealerPage() {
         Pills: Math.floor(35 * mult.Pills + Math.random() * 25),
       };
       setPrices(newPrices);
-      setMessage(`Street prices updated in ${currentCity}. Look for profitable runs!`);
+      setMessage(t('dealer_prices_updated', { city: currentCity }));
     };
 
     updatePrices();
@@ -97,7 +99,7 @@ export default function StreetDealerPage() {
     const amount = qty || buyQty;
     if (!player || amount < 1) return;
     if (!canPerformAction()) {
-      setMessage('Please wait 2 seconds between actions/transactions.');
+      setMessage(t('dealer_wait'));
       return;
     }
     recordAction();
@@ -105,31 +107,31 @@ export default function StreetDealerPage() {
     const tax = Math.floor(cost * 0.015); // 1.5% tax to Community Tax Fund
     const total = cost + tax;
     if (player.cash < total) {
-      setMessage('Not enough cash (incl. 1.5% tax to Fund)!');
+      setMessage(t('dealer_no_cash_tax'));
       return;
     }
     const current = drugStorage[drug] || 0;
     if (current + amount > DRUG_CAPS[drug]) {
-      setMessage(`Carry cap reached for ${drug}! Max ${DRUG_CAPS[drug]} kg. (Weed higher due to growing.)`);
+      setMessage(t('dealer_cap_reached', { drug, cap: DRUG_CAPS[drug] }));
       return;
     }
     const newStorage = { ...drugStorage, [drug]: current + amount };
     const supabase = createClient();
     supabase.rpc('apply_action', { cash_delta: -total, patch: { drug_storage: newStorage } }).then(async ({ error }) => {
       if (error) {
-        setMessage(error.message.includes('NOT_ENOUGH_CASH') ? 'Not enough cash (incl. 1.5% tax to Fund)!' : (error.message || 'Purchase failed.'));
+        setMessage(error.message.includes('NOT_ENOUGH_CASH') ? t('dealer_no_cash_tax') : (error.message || t('dealer_purchase_failed')));
         return;
       }
       setDrugStorage(newStorage);
       if (refreshPlayer) await refreshPlayer();
-      setMessage(`Bought ${amount} ${drug} for $${total} (incl tax). Sell high in another city!`);
+      setMessage(t('dealer_bought', { amount, drug, total: `$${total}` }));
     });
   };
 
   const sellDrug = (drug: typeof DRUGS[number], qty: number) => {
     const current = drugStorage[drug] || 0;
     if (current < qty) {
-      setMessage('Not enough in shed!');
+      setMessage(t('dealer_not_enough_shed'));
       return;
     }
     const revenue = Math.floor(prices[drug] * qty);
@@ -137,26 +139,26 @@ export default function StreetDealerPage() {
     const supabase = createClient();
     supabase.rpc('apply_action', { cash_delta: revenue, patch: { drug_storage: newStorage } }).then(async ({ error }) => {
       if (error) {
-        setMessage(error.message || 'Sale failed.');
+        setMessage(error.message || t('dealer_sale_failed'));
         return;
       }
       setDrugStorage(newStorage);
       if (refreshPlayer) await refreshPlayer();
-      setMessage(`Sold ${qty} ${drug} for $${revenue}. Profit from the run!`);
+      setMessage(t('dealer_sold', { qty, drug, revenue: `$${revenue}` }));
     });
   };
 
-  if (!player) return <div>Loading...</div>;
+  if (!player) return <div>{t('loading')}</div>;
 
   return (
     <div className="max-w-5xl mx-auto p-6">
       <img src="https://picsum.photos/id/201/800/120" alt="Street Dealer" className="w-full h-24 object-cover rounded mb-4" />
-      <h1 className="text-3xl font-bold mb-2">💊 Street Dealer - {currentCity}</h1>
-      <p className="text-sm text-zinc-400 mb-4">Prices change every 4 hours per city. Buy low, sell high in other cities for big profits (hidden drug economy). Tax 1.5% to Community Fund.</p>
+      <h1 className="text-3xl font-bold mb-2">💊 {t('dealer_title', { city: currentCity })}</h1>
+      <p className="text-sm text-zinc-400 mb-4">{t('dealer_desc')}</p>
 
       {/* Live Drug Storage Tracker */}
       <div className="mb-4 p-3 bg-zinc-900 border border-zinc-700 rounded">
-        <div className="text-sm font-semibold mb-1">Your Shed Storage</div>
+        <div className="text-sm font-semibold mb-1">{t('dealer_storage_title')}</div>
         <div className="flex flex-wrap gap-4 text-xs">
           {DRUGS.map(d => (
             <span key={d}>{d}: <span className="font-mono text-emerald-400">{drugStorage[d] || 0} kg</span> / {DRUG_CAPS[d]}</span>
@@ -174,8 +176,8 @@ export default function StreetDealerPage() {
             <h3 className="font-bold">{drug}</h3>
             <div className="text-2xl font-mono text-emerald-400 my-2">${prices[drug]}</div>
             <div className="flex gap-2">
-              <button onClick={() => buyDrug(drug)} className="flex-1 py-1 bg-red-700 rounded text-xs">Buy {buyQty}</button>
-              <button onClick={() => sellDrug(drug, sellQty)} className="flex-1 py-1 bg-emerald-700 rounded text-xs">Sell {sellQty}</button>
+              <button onClick={() => buyDrug(drug)} className="flex-1 py-1 bg-red-700 rounded text-xs">{t('dealer_buy', { qty: buyQty })}</button>
+              <button onClick={() => sellDrug(drug, sellQty)} className="flex-1 py-1 bg-emerald-700 rounded text-xs">{t('dealer_sell', { qty: sellQty })}</button>
             </div>
           </div>
         ))}
@@ -183,7 +185,7 @@ export default function StreetDealerPage() {
 
       {message && <div className="mt-4 p-3 bg-zinc-900 border border-zinc-700 rounded text-sm">{message}</div>}
 
-      <Link href="/dashboard" className="mt-4 inline-block text-sm text-red-400">← Back</Link>
+      <Link href="/dashboard" className="mt-4 inline-block text-sm text-red-400">← {t('common_back')}</Link>
     </div>
   );
 }

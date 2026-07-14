@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function WeedGrowPage() {
   const { player, refreshPlayer } = usePlayer();
+  const { t } = useLanguage();
   const [weedProgress, setWeedProgress] = useState(0);
   const [harvestPercent, setHarvestPercent] = useState(100);
   const [message, setMessage] = useState('');
@@ -27,7 +29,7 @@ export default function WeedGrowPage() {
   const waterPlant = async () => {
     if (!player || !hasHouse || busy) return;
     if (weedProgress >= 5) {
-      setMessage('Already at max progress. Harvest first.');
+      setMessage(t('weed_max_progress'));
       return;
     }
     setBusy(true);
@@ -43,7 +45,7 @@ export default function WeedGrowPage() {
       patch: { weed_progress: newProgress, weed_plants: { quality: newPercent } },
     });
     if (error) {
-      setMessage(error.message || 'Watering failed to save.');
+      setMessage(error.message || t('weed_water_save_failed'));
       setBusy(false);
       return;
     }
@@ -53,8 +55,8 @@ export default function WeedGrowPage() {
     if (refreshPlayer) await refreshPlayer();
 
     setMessage(success
-      ? `Watered successfully! Gained +${change}% harvest quality. Current: ${newPercent}%`
-      : `Water failed! Lost ${Math.abs(change)}% harvest quality. Current: ${newPercent}%`);
+      ? t('weed_water_success', { change, percent: newPercent })
+      : t('weed_water_fail', { change: Math.abs(change), percent: newPercent }));
 
     setBusy(false);
   };
@@ -62,7 +64,7 @@ export default function WeedGrowPage() {
   const WEED_CAP = 1000;
   const harvest = async () => {
     if (!player || weedProgress < 4) {
-      setMessage('Need at least 4/5 progress to harvest.');
+      setMessage(t('weed_need_progress'));
       return;
     }
     const kgBase = hasMansion ? 250 : hasVilla ? 120 : 40;
@@ -71,7 +73,7 @@ export default function WeedGrowPage() {
 
     const current = player.drug_storage?.Weed || 0;
     if (current + kg > WEED_CAP) {
-      setMessage(`Shed cap reached! Max ${WEED_CAP}kg weed. Sell some first.`);
+      setMessage(t('weed_cap_reached', { cap: WEED_CAP }));
       return;
     }
 
@@ -86,8 +88,8 @@ export default function WeedGrowPage() {
           failed_harvest_kg: (player.failed_harvest_kg || 0) + kgBase,
         },
       });
-      if (error) { setMessage(error.message || 'Failed to save.'); return; }
-      setMessage('Harvest destroyed due to negative quality! All progress lost.');
+      if (error) { setMessage(error.message || t('weed_save_failed')); return; }
+      setMessage(t('weed_destroyed'));
       setWeedProgress(0);
       setHarvestPercent(100);
       if (refreshPlayer) await refreshPlayer();
@@ -106,50 +108,50 @@ export default function WeedGrowPage() {
         successful_harvest_kg: (player.successful_harvest_kg || 0) + kg,
       },
     });
-    if (error) { setMessage(error.message || 'Failed to save harvest.'); return; }
+    if (error) { setMessage(error.message || t('weed_harvest_save_failed')); return; }
 
     setWeedProgress(0);
     setHarvestPercent(100);
     if (refreshPlayer) await refreshPlayer();
 
-    setMessage(`Harvested ${kg}kg Weed at ${harvestPercent}% quality! Added to storage.`);
+    setMessage(t('weed_harvested', { kg, percent: harvestPercent }));
   };
 
-  if (!player) return <div className="p-8">Loading...</div>;
+  if (!player) return <div className="p-8">{t('loading')}</div>;
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-4">🌱 Weed Grow</h1>
-      <p className="text-sm text-zinc-400 mb-6">Grow your own in safehouse. Water for quality % (can fail and go negative = destroyed).</p>
+      <h1 className="text-3xl font-bold mb-4">🌱 {t('weed_title')}</h1>
+      <p className="text-sm text-zinc-400 mb-6">{t('weed_desc')}</p>
 
-      {!hasHouse && <p className="text-amber-400">Buy a House/Villa/Mansion in Real Estate to grow.</p>}
+      {!hasHouse && <p className="text-amber-400">{t('weed_locked')}</p>}
 
       {hasHouse && (
         <div className="card p-6">
           <div className="mb-4">
-            <div>Progress: {weedProgress}/5</div>
+            <div>{t('weed_progress', { progress: weedProgress })}</div>
             <div className="w-full bg-zinc-800 h-3 rounded mt-1">
               <div className="bg-emerald-600 h-3 rounded" style={{width: `${(weedProgress/5)*100}%`}} />
             </div>
-            <div className="mt-2 text-lg">Current Harvest Quality: <span className={harvestPercent < 0 ? 'text-red-500' : 'text-emerald-400'}>{harvestPercent}%</span></div>
+            <div className="mt-2 text-lg">{t('weed_quality')} <span className={harvestPercent < 0 ? 'text-red-500' : 'text-emerald-400'}>{harvestPercent}%</span></div>
           </div>
 
           <div className="flex gap-3 mb-4">
             <button onClick={waterPlant} disabled={busy || weedProgress >=5} className="px-4 py-2 bg-emerald-700 rounded disabled:opacity-50">
-              Water Plants
+              {t('weed_water_button')}
             </button>
             <button onClick={harvest} disabled={weedProgress < 4} className="px-4 py-2 bg-emerald-700 rounded disabled:opacity-50">
-              Harvest (min 4/5)
+              {t('weed_harvest_button')}
             </button>
           </div>
 
-          <p className="text-xs text-zinc-500">Water 4-5 times. Each water: ~70% +15% quality, 30% -10%. Final % determines yield. Negative = destroyed.</p>
+          <p className="text-xs text-zinc-500">{t('weed_water_note')}</p>
         </div>
       )}
 
       {message && <div className="mt-4 p-3 bg-zinc-900 rounded">{message}</div>}
 
-      <Link href="/street-dealer" className="mt-6 inline-block text-sm text-red-400">← Back to Street Dealer</Link>
+      <Link href="/street-dealer" className="mt-6 inline-block text-sm text-red-400">{t('weed_back')}</Link>
     </div>
   );
 }
