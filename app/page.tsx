@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import LanguageSwitcher from './components/LanguageSwitcher';
 
 export default function Home() {
   const { t } = useLanguage();
@@ -13,10 +14,14 @@ export default function Home() {
       <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-zinc-950/90 to-black/80" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(185,28,28,0.08)_0%,transparent_50%)]" />
 
+      <div className="fixed top-4 right-4 z-50">
+        <LanguageSwitcher />
+      </div>
+
       <div className="relative z-10 max-w-3xl text-center px-4">
         <div className="mb-6">
-          <div className="inline text-7xl sm:text-8xl font-black tracking-[-4px]">
-            <span className="text-red-600">MAFIA</span> <span className="text-white">GAME</span>
+          <div className="inline text-5xl sm:text-8xl font-black tracking-[-4px]">
+            <span className="text-red-600">HUSTLER&apos;S</span> <span className="text-white">WAY</span>
           </div>
           <div className="text-red-500/70 text-xs tracking-[6px] mt-1">2026</div>
         </div>

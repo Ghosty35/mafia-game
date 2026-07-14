@@ -77,6 +77,8 @@ export type Player = {
   // Bills / taxes aggregated on player
   maintenance_due?: number;
   earnings_week?: number;
+  // Language preference (037) — 'en' | 'nl'
+  language?: string;
 };
 
 // Matches the public.crimes table in Supabase

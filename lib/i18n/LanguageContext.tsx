@@ -7,16 +7,24 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import {
   translations,
+  interpolate,
   type Language,
   type TranslationKey,
+  type TranslationParams,
 } from './translations';
+
+type SetLanguageOptions = {
+  /** Skip writing to DB/localStorage (used when applying the saved DB preference). */
+  persist?: boolean;
+};
 
 type LanguageContextType = {
   language: Language;
-  setLanguage: (lang: Language) => void;
-  t: (key: TranslationKey) => string;
+  setLanguage: (lang: Language, options?: SetLanguageOptions) => void;
+  t: (key: TranslationKey, params?: TranslationParams) => string;
 };
 
 const LanguageContext = createContext<LanguageContextType | null>(null);
@@ -32,13 +40,21 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const setLanguage = (lang: Language) => {
+  const setLanguage = (lang: Language, options?: SetLanguageOptions) => {
     setLanguageState(lang);
+    if (options?.persist === false) return;
     localStorage.setItem('game-language', lang);
+    // Persist per player so the choice follows them across devices.
+    // Fire-and-forget: on logged-out pages (landing/login) this simply fails silently.
+    const supabase = createClient();
+    supabase.rpc('set_my_language', { p_language: lang }).then(
+      () => {},
+      () => {},
+    );
   };
 
-  const t = (key: TranslationKey) =>
-    translations[language][key] ?? translations.en[key];
+  const t = (key: TranslationKey, params?: TranslationParams) =>
+    interpolate(translations[language][key] ?? translations.en[key], params);
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>

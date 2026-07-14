@@ -1,8 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "@/lib/i18n/LanguageContext";
-import LanguageSwitcher from "./components/LanguageSwitcher";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,8 +14,23 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mafia Game",
-  description: "A modern mafia browser game",
+  title: "A Hustler's Way",
+  description:
+    "A modern mafia browser game. Rise through the ranks, rule the city.",
+  applicationName: "A Hustler's Way",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "A Hustler's Way",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#09090b",
 };
 
 export default function RootLayout({
@@ -29,13 +43,8 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        <LanguageProvider>
-          <div className="fixed top-4 right-4 z-50">
-            <LanguageSwitcher />
-          </div>
-          {children}
-        </LanguageProvider>
+      <body className="min-h-full flex flex-col bg-zinc-950">
+        <LanguageProvider>{children}</LanguageProvider>
       </body>
     </html>
   );

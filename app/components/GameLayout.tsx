@@ -8,6 +8,7 @@ import Sidebar from './Sidebar';
 import RightSidebar from './RightSidebar';
 import PlayerInfoCard from './PlayerInfoCard';
 import LiveTracker from './LiveTracker';
+import LanguageSync from './LanguageSync';
 import { PlayerProvider, usePlayer } from './PlayerContext';
 
 function LayoutContent({ children }: { children: ReactNode }) {
@@ -27,6 +28,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
+      <LanguageSync />
       <GameNav />
       <div className="flex max-w-7xl mx-auto">
         {/* Left Sidebar - Crime Related */}
@@ -34,7 +36,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
           <Sidebar />
         </Suspense>
 
-        <main className="flex-1 p-6 min-w-0">
+        <main className="flex-1 p-4 sm:p-6 min-w-0">
           <div className="max-w-5xl mx-auto">
             <PlayerInfoCard />
             <LiveTracker />

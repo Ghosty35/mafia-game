@@ -1,0 +1,181 @@
+'use client';
+
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { usePlayer } from './PlayerContext';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
+import LanguageSwitcher from './LanguageSwitcher';
+import {
+  leftMenuCategories,
+  rightMenuCategories,
+  adminCategory,
+  isMenuItemActive,
+  type MenuCategory,
+} from './menuData';
+
+// Mobile drawer navigation (hamburger). The desktop sidebars are hidden below
+// lg/xl, so on phones this drawer is the ONLY way to reach the game menus.
+// Designed touch-first so the same layout carries over to the future app.
+export default function MobileNav() {
+  const [open, setOpen] = useState(false);
+  const [tab, setTab] = useState<'game' | 'social'>('game');
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { player } = usePlayer();
+  const { t } = useLanguage();
+
+  const search = searchParams.toString();
+
+  // Close the drawer on every navigation
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname, search]);
+
+  // Lock body scroll while the drawer is open
+  useEffect(() => {
+    document.body.style.overflow = open ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [open]);
+
+  const isAdmin = player?.username === 'YGhosty';
+  const gameCategories: MenuCategory[] = isAdmin
+    ? [...leftMenuCategories, adminCategory]
+    : leftMenuCategories;
+  const categories = tab === 'game' ? gameCategories : rightMenuCategories;
+
+  // Top-level pages that live in the (md+) top bar; on mobile they are only
+  // reachable through this drawer.
+  const topItems =
+    tab === 'game'
+      ? ([
+          { labelKey: 'nav_home', href: '/dashboard', icon: '🏠' },
+          { labelKey: 'nav_rankings', href: '/dashboard/rankings', icon: '📊' },
+          { labelKey: 'nav_about', href: '/about', icon: 'ℹ️' },
+        ] as const)
+      : ([] as const);
+
+  return (
+    <div className="lg:hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label={t('nav_menu')}
+        className="flex items-center justify-center w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-200 active:bg-zinc-800"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <line x1="4" y1="6" x2="20" y2="6" />
+          <line x1="4" y1="12" x2="20" y2="12" />
+          <line x1="4" y1="18" x2="20" y2="18" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="fixed inset-0 z-[60]">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            onClick={() => setOpen(false)}
+          />
+
+          {/* Drawer */}
+          <div className="absolute inset-y-0 left-0 w-[85vw] max-w-sm bg-zinc-950 border-r border-zinc-800 flex flex-col">
+            <div className="flex items-center justify-between px-4 h-14 border-b border-zinc-800 shrink-0">
+              <span className="font-black tracking-[-1px]">
+                <span className="text-red-600">MAFIA</span>
+                <span className="text-white/90">GAME</span>
+              </span>
+              <div className="flex items-center gap-2">
+                <LanguageSwitcher />
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  aria-label={t('common_close')}
+                  className="flex items-center justify-center w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-300"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Game / Social tabs */}
+            <div className="flex gap-1 p-2 border-b border-zinc-800 shrink-0">
+              {(
+                [
+                  { id: 'game', label: t('nav_menu') },
+                  { id: 'social', label: t('nav_social') },
+                ] as const
+              ).map(({ id, label }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setTab(id)}
+                  className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                    tab === id
+                      ? 'bg-red-950 text-red-400 border border-red-900/60'
+                      : 'text-zinc-400 hover:text-white bg-zinc-900 border border-zinc-800'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-4">
+              {topItems.length > 0 && (
+                <div className="mb-6 space-y-0.5">
+                  {topItems.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
+                        pathname === item.href
+                          ? 'bg-red-950 text-red-400 border border-red-900/50 font-medium'
+                          : 'text-zinc-300 hover:bg-zinc-900 hover:text-white'
+                      }`}
+                    >
+                      <span className="text-base w-5">{item.icon}</span>
+                      <span>{t(item.labelKey)}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+              {categories.map((category) => (
+                <div key={category.titleKey} className="mb-6">
+                  <div className="px-3 mb-2 text-xs font-bold uppercase tracking-widest text-red-500/70">
+                    {t(category.titleKey)}
+                  </div>
+                  <div className="space-y-0.5">
+                    {category.items.map((item) => {
+                      const active = isMenuItemActive(item, pathname, search);
+                      return (
+                        <Link
+                          key={item.href + item.labelKey}
+                          href={item.href}
+                          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all ${
+                            active
+                              ? 'bg-red-950 text-red-400 border border-red-900/50 font-medium'
+                              : 'text-zinc-300 hover:bg-zinc-900 hover:text-white'
+                          }`}
+                        >
+                          <span className="text-base w-5">{item.icon}</span>
+                          <span>{t(item.labelKey)}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+
+              <div className="mt-4 pt-4 border-t border-zinc-800 px-3">
+                <div className="text-[10px] text-zinc-600">{t('side_footer_left')}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
