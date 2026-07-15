@@ -16,8 +16,6 @@ export default function WeedGrowPage() {
 
   const owned = player?.owned_properties || [];
   const hasHouse = owned.some((p: any) => p.name && (p.name.toLowerCase().includes('house') || p.name.toLowerCase().includes('villa') || p.name.toLowerCase().includes('mansion')));
-  const hasVilla = owned.some((p: any) => p.name && p.name.toLowerCase().includes('villa'));
-  const hasMansion = owned.some((p: any) => p.name && p.name.toLowerCase().includes('mansion'));
 
   useEffect(() => {
     if (player?.weed_progress !== undefined) setWeedProgress(player.weed_progress);
@@ -91,54 +89,31 @@ export default function WeedGrowPage() {
       showToast(t('weed_need_progress'), 'error');
       return;
     }
-    const kgBase = hasMansion ? 250 : hasVilla ? 120 : 40;
-    const qualityMult = Math.max(0.1, harvestPercent / 100);
-    const kg = Math.floor(kgBase * qualityMult);
 
-    const current = player.drug_storage?.Weed || 0;
-    if (current + kg > WEED_CAP) {
-      showToast(t('weed_cap_reached', { cap: WEED_CAP }), 'error');
-      return;
-    }
-
+    // Server computes kg from property type + quality and enforces the cap.
     const supabase = createClient();
-
-    if (harvestPercent < 0) {
-      const { error } = await supabase.rpc('apply_action', {
-        cash_delta: 0,
-        patch: {
-          weed_progress: 0,
-          weed_plants: { quality: 100 },
-          failed_harvest_kg: (player.failed_harvest_kg || 0) + kgBase,
-        },
-      });
-      if (error) { showToast(error.message || t('weed_save_failed'), 'error'); return; }
-      showToast(t('weed_destroyed'), 'fail');
-      setWeedProgress(0);
-      setHarvestPercent(100);
-      if (refreshPlayer) await refreshPlayer();
+    const { data, error } = await supabase.rpc('harvest_weed');
+    if (error) {
+      const msg = error.message || '';
+      showToast(
+        msg.includes('CAP_REACHED') ? t('weed_cap_reached', { cap: WEED_CAP })
+          : msg.includes('NEED_PROGRESS') ? t('weed_need_progress')
+          : (msg || t('weed_harvest_save_failed')),
+        'error',
+      );
       return;
     }
 
-    const storage = player.drug_storage || {};
-    const newStorage = { ...storage, Weed: (storage.Weed || 0) + kg };
-
-    const { error } = await supabase.rpc('apply_action', {
-      cash_delta: 0,
-      patch: {
-        weed_progress: 0,
-        drug_storage: newStorage,
-        weed_plants: { quality: 100 },
-        successful_harvest_kg: (player.successful_harvest_kg || 0) + kg,
-      },
-    });
-    if (error) { showToast(error.message || t('weed_harvest_save_failed'), 'error'); return; }
-
+    const res = data as { destroyed?: boolean; kg?: number; quality?: number };
     setWeedProgress(0);
     setHarvestPercent(100);
     if (refreshPlayer) await refreshPlayer();
 
-    showToast(t('weed_harvested', { kg, percent: harvestPercent }), 'success');
+    if (res?.destroyed) {
+      showToast(t('weed_destroyed'), 'fail');
+    } else {
+      showToast(t('weed_harvested', { kg: res?.kg ?? 0, percent: res?.quality ?? harvestPercent }), 'success');
+    }
   };
 
   if (!player) return <div className="p-8">{t('loading')}</div>;
