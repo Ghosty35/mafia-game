@@ -55,7 +55,7 @@ $$;
 CREATE OR REPLACE FUNCTION public._drug_price(p_city text, p_drug text)
 RETURNS int
 LANGUAGE plpgsql
-IMMUTABLE
+STABLE
 SET search_path = ''
 AS $$
 DECLARE
