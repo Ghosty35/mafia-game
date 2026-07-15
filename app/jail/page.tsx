@@ -30,17 +30,9 @@ export default function JailPage() {
 
   const trainBreakout = async () => {
     if (!player) return;
-    const cost = 500;
-    if (player.cash < cost) {
-      setMessage(t('jail_train_no_cash'));
-      return;
-    }
-    const newSkill = Math.min(100, breakoutSkill + 5);
+    // Cost + skill increment are enforced server-side by train_breakout().
     const supabase = createClient();
-    const { error } = await supabase.rpc('apply_action', {
-      cash_delta: -cost,
-      patch: { breakout_skill: newSkill },
-    });
+    const { data, error } = await supabase.rpc('train_breakout');
     if (error) {
       setMessage(
         error.message.includes('NOT_ENOUGH_CASH')
@@ -49,6 +41,7 @@ export default function JailPage() {
       );
       return;
     }
+    const newSkill = data?.breakout_skill ?? breakoutSkill;
     setBreakoutSkill(newSkill);
     if (refreshPlayer) await refreshPlayer();
     router.refresh();
