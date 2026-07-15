@@ -72,10 +72,17 @@ export default function MurderPage() {
       });
 
       if (error) {
-        setResult({ success: false, message: error.message });
+        let text = error.message;
+        if (error.message.includes('ON_MURDER_COOLDOWN')) text = t('murder_on_cooldown');
+        else if (error.message.includes('MURDER_LOCKED')) text = t('murder_locked_alert');
+        else if (error.message.includes('TARGET_NOT_FOUND')) text = t('murder_invalid_input');
+        setResult({ success: false, message: text });
       } else {
         updatePlayer(data.player);
-        setResult(data);
+        const message = data.success
+          ? `Hit successful! Stole $${(data.stolen || 0).toLocaleString()} and gained ${data.skill_gained} KillSkill.`
+          : `The hit failed — target got away. Heat increased.`;
+        setResult({ ...data, message });
       }
     } catch (e: any) {
       setResult({ success: false, message: e.message || t('common_error') });
@@ -87,6 +94,11 @@ export default function MurderPage() {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-4">🔫 {t('murder_title')}</h1>
+      {result && (
+        <div className={`mb-4 card p-4 ${result.success ? 'border-green-700' : 'border-red-700'}`}>
+          {result.message}
+        </div>
+      )}
       {!isUnlocked && (
         <div className="mb-4 p-3 bg-red-950 border border-red-800 rounded text-sm">
           {t('murder_locked_banner', { level: player.level, skill: murderSkillPercent })}
@@ -159,12 +171,6 @@ export default function MurderPage() {
           {busy ? t('murder_attempting') : cooldown > 0 ? t('murder_on_cooldown') : !isUnlocked ? t('murder_locked_button') : t('murder_attempt_button', { weapon: t(currentWeapon.labelKey), bullets: bulletsUsed })}
         </button>
       </div>
-
-      {result && (
-        <div className={`card p-4 ${result.success ? 'border-green-700' : 'border-red-700'}`}>
-          {result.message}
-        </div>
-      )}
 
       <Link href="/dashboard" className="mt-6 inline-block text-sm text-red-400">← {t('common_back')}</Link>
     </div>

@@ -49,6 +49,8 @@ export default function TravelPage() {
         {t('travel_current_location')} <strong>{currentCity}</strong>
       </p>
 
+      {message && <div className="mb-4 p-3 bg-zinc-900 border border-zinc-700 rounded">{message}</div>}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {CITIES.map((city) => (
           <div key={city} className="card p-5">
@@ -64,8 +66,6 @@ export default function TravelPage() {
           </div>
         ))}
       </div>
-
-      {message && <div className="mt-4 p-3 bg-zinc-900 border border-zinc-700 rounded">{message}</div>}
 
       <Link href="/dashboard" className="mt-6 inline-block text-sm text-red-400">
         ← {t('common_back')}

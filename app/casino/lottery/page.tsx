@@ -55,6 +55,12 @@ export default function LotteryPage() {
       <h1 className="text-3xl font-bold mb-2">🎟️ {t('lottery_title')}</h1>
       <p className="text-sm text-zinc-400 mb-4">{t('lottery_desc')}</p>
 
+      {message && (
+        <div className="mb-4 p-4 bg-zinc-900 border border-yellow-700 rounded">
+          {message}
+        </div>
+      )}
+
       <div className="card p-6 mb-6">
         <h3 className="font-bold mb-3">{t('lottery_tickets_title')}</h3>
         <div className="text-2xl font-mono">{t('lottery_tickets', { count: tickets })}</div>
@@ -71,12 +77,6 @@ export default function LotteryPage() {
       >
         {t('lottery_enter')}
       </button>
-
-      {message && (
-        <div className="mt-4 p-4 bg-zinc-900 border border-yellow-700 rounded">
-          {message}
-        </div>
-      )}
 
       <div className="mt-8 text-xs text-zinc-500">
         {t('lottery_footer')} {timeToFriday}

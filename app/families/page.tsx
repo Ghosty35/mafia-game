@@ -242,7 +242,9 @@ function FamiliesContent() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
   const [donationAmount, setDonationAmount] = useState(100);
-  const [activeTab, setActiveTab] = useState<'members' | 'donations'>(tabParam === 'banking' ? 'donations' : 'members');
+  const [activeTab, setActiveTab] = useState<'members' | 'donations'>(
+    tabParam === 'banking' || tabParam === 'donations' ? 'donations' : 'members',
+  );
 
   const donate = async () => {
     if (!donationAmount || donationAmount <= 0) return;
@@ -778,11 +780,11 @@ function FamilyPowerHourlySection({
     if (error) {
       setMsg(error.message.includes('NOT_AUTHORIZED') ? 'Only Boss/Underboss/Accountant can buy power.' : (error.message || 'Failed to buy power'));
     } else {
-      setMsg(`+${data?.power_gained || '?'} Family Power purchased! Bank spent: $${spendAmount.toLocaleString()}`);
       await loadPower();
       await onRefresh();
       if (refreshPlayer) await refreshPlayer();
       router.refresh();
+      setMsg(`+${data?.power_gained || '?'} Family Power purchased! Bank spent: $${spendAmount.toLocaleString()}`);
     }
   };
 
@@ -797,11 +799,11 @@ function FamilyPowerHourlySection({
     if (error) {
       setMsg('Failed to claim hourly pay. Are you in a family?');
     } else if (data?.success) {
-      setMsg(`Claimed for ${data.hours}h: $${data.total_pay} total • $${data.bank_deposit} → Bank (60%) • $${data.cash_deposit} → Cash (40%). Power: ${data.family_power}`);
       await loadPower();
       await onRefresh();
       if (refreshPlayer) await refreshPlayer();
       router.refresh();
+      setMsg(`Claimed for ${data.hours}h: $${data.total_pay} total • $${data.bank_deposit} → Bank (60%) • $${data.cash_deposit} → Cash (40%). Power: ${data.family_power}`);
     } else {
       setMsg(data?.reason === 'NO_PAY_DUE' ? `No pay due yet (${data.hours || 0}h elapsed).` : 'Nothing to claim.');
     }

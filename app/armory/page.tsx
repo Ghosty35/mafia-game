@@ -47,6 +47,10 @@ export default function ArmoryPage() {
         <p className="text-sm text-zinc-400">{t('armory_desc')}</p>
       </div>
 
+      {message && (
+        <div className="mb-4 p-3 bg-zinc-900 border border-zinc-700 rounded text-sm">{message}</div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {powerPacks.map((pack, i) => (
           <div key={i} className="card p-5">
@@ -68,10 +72,6 @@ export default function ArmoryPage() {
           </div>
         ))}
       </div>
-
-      {message && (
-        <div className="mt-4 p-3 bg-zinc-900 border border-zinc-700 rounded text-sm">{message}</div>
-      )}
 
       <div className="mt-6 text-xs text-zinc-500">{t('armory_footer')}</div>
 

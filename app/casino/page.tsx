@@ -165,6 +165,25 @@ export default function CasinoPage() {
         </Link>
       </div>
 
+      {lastResult && (
+        <div
+          className={`mb-5 p-4 rounded-xl border ${
+            lastResult.won ? 'border-green-700 bg-green-950/40' : 'border-red-800 bg-red-950/30'
+          }`}
+        >
+          <div className="font-semibold">{lastResult.won ? t('casino_winner') : t('casino_house_wins')}</div>
+          <div className="text-sm mt-1">
+            {lastResult.game} • {t('casino_result_bet', { bet: `$${lastResult.bet?.toLocaleString()}` })}
+            {lastResult.payout
+              ? ` • ${t('casino_result_paid', { payout: `$${lastResult.payout.toLocaleString()}` })}`
+              : ''}
+            {lastResult.spin !== undefined && ` • ${t('casino_result_landed', { spin: lastResult.spin })}`}
+          </div>
+        </div>
+      )}
+
+      {message && <div className="mb-5 p-3 bg-zinc-900 border border-zinc-700 rounded text-sm">{message}</div>}
+
       {/* Live Pools - attracts gamblers */}
       <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-3">
         {poolCards.map((p, i) => (
@@ -270,25 +289,6 @@ export default function CasinoPage() {
           <p className="text-[10px] text-zinc-500 mt-2">{t('casino_roulette_note')}</p>
         </div>
       </div>
-
-      {lastResult && (
-        <div
-          className={`mt-5 p-4 rounded-xl border ${
-            lastResult.won ? 'border-green-700 bg-green-950/40' : 'border-red-800 bg-red-950/30'
-          }`}
-        >
-          <div className="font-semibold">{lastResult.won ? t('casino_winner') : t('casino_house_wins')}</div>
-          <div className="text-sm mt-1">
-            {lastResult.game} • {t('casino_result_bet', { bet: `$${lastResult.bet?.toLocaleString()}` })}
-            {lastResult.payout
-              ? ` • ${t('casino_result_paid', { payout: `$${lastResult.payout.toLocaleString()}` })}`
-              : ''}
-            {lastResult.spin !== undefined && ` • ${t('casino_result_landed', { spin: lastResult.spin })}`}
-          </div>
-        </div>
-      )}
-
-      {message && <div className="mt-4 p-3 bg-zinc-900 border border-zinc-700 rounded text-sm">{message}</div>}
 
       <div className="mt-8 text-xs text-zinc-500 max-w-prose">{t('casino_footer')}</div>
 

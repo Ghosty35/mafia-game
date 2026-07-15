@@ -80,6 +80,10 @@ export default function ShopPage() {
         <p className="text-sm text-zinc-500">Spend your diamonds on powerful boosts and cosmetics.</p>
       </div>
 
+      {message && (
+        <div className="mb-6 p-3 bg-zinc-900 border border-zinc-700 rounded text-sm">{message}</div>
+      )}
+
       <div className="mb-8">
         <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">💎 Boosts &amp; Perks <span className="text-[10px] px-2 py-0.5 bg-zinc-800 rounded text-zinc-500">COMING SOON</span></h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -151,12 +155,6 @@ export default function ShopPage() {
           </button>
         </div>
       </div>
-
-      {message && (
-        <div className="mt-6 p-3 rounded bg-zinc-900 border border-zinc-700 text-sm">
-          {message}
-        </div>
-      )}
 
       {/* VIP FAMILY BUFFS — LOCKED TO DONATORS FOR FULL EXCLUSIVE VALUE */}
       <div className="mt-10">

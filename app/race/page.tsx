@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
@@ -8,57 +8,54 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 interface PostedRace {
   id: string;
-  poster: string;
-  car: string;
+  poster_id: string;
+  poster_name: string;
+  car_name: string;
   bet: number;
-  expireAt: number;
-  joinedBy?: string;
-  status: 'open' | 'ready' | 'expired';
-}
-
-interface RaceHistoryEntry {
-  winner: string | null;
-  loser: string | null;
-  amount: number;
-  time: string;
+  entry_fee: number;
+  status: 'open' | 'ready' | 'finished' | 'cancelled';
+  joined_by: string | null;
+  joined_name: string | null;
+  winner_name: string | null;
+  expire_at: string | null;
+  created_at: string;
 }
 
 type RaceCar = {
   id: string;
   name: string;
-  health?: number;
+  condition?: number;
 };
 
 export default function RacePage() {
   const { player, refreshPlayer } = usePlayer();
   const { t } = useLanguage();
-  const [postedRaces, setPostedRaces] = useState<PostedRace[]>([]);
-  const [history, setHistory] = useState<RaceHistoryEntry[]>([]);
+  const [openRaces, setOpenRaces] = useState<PostedRace[]>([]);
+  const [history, setHistory] = useState<PostedRace[]>([]);
   const [bet, setBet] = useState(500);
   const [expireMinutes, setExpireMinutes] = useState(60);
   const [selectedCarId, setSelectedCarId] = useState('');
   const [message, setMessage] = useState('');
-  const [cooldown, setCooldown] = useState(0);
+  const [busy, setBusy] = useState(false);
 
   const cars: RaceCar[] = player?.cars || [];
-  const validCars = cars.filter((c) => (c.health || 100) >= 75);
+  const validCars = cars.filter((c) => (c.condition || 100) >= 75);
 
-  // Live countdown for posted races
+  const supabase = createClient();
+
+  const loadRaces = useCallback(async () => {
+    const { data: open } = await supabase.rpc('get_open_races');
+    setOpenRaces((open as PostedRace[]) || []);
+    const { data: hist } = await supabase.rpc('get_race_history');
+    setHistory((hist as PostedRace[]) || []);
+  }, []);
+
   useEffect(() => {
-    const iv = setInterval(() => {
-      const now = Date.now();
-      setPostedRaces((prev) =>
-        prev.map((r) => {
-          if (r.status === 'open' && now > r.expireAt) {
-            return { ...r, status: 'expired' };
-          }
-          return r;
-        }),
-      );
-      if (cooldown > 0) setCooldown((c) => Math.max(0, c - 1));
-    }, 1000);
+    if (!player) return;
+    loadRaces();
+    const iv = setInterval(loadRaces, 10000); // keep the open-race board live
     return () => clearInterval(iv);
-  }, [cooldown]);
+  }, [player?.id, loadRaces]);
 
   const postRace = async () => {
     if (!player || !selectedCarId || validCars.length === 0) {
@@ -66,13 +63,17 @@ export default function RacePage() {
       return;
     }
     const car = cars.find((c) => c.id === selectedCarId);
-    if (!car || (car.health || 100) < 75) {
+    if (!car || (car.condition || 100) < 75) {
       setMessage(t('race_health_req'));
       return;
     }
-    const entryFee = Math.max(100, Math.floor(bet * 0.1)); // 10% entry fee balanced
-    const supabase = createClient();
-    const { error } = await supabase.rpc('apply_action', { cash_delta: -entryFee, patch: {} });
+    setBusy(true);
+    const { data, error } = await supabase.rpc('post_race', {
+      car_name: car.name,
+      bet,
+      expire_minutes: expireMinutes,
+    });
+    setBusy(false);
     if (error) {
       setMessage(
         error.message.includes('NOT_ENOUGH_CASH')
@@ -81,25 +82,16 @@ export default function RacePage() {
       );
       return;
     }
-    const expireAt = Date.now() + expireMinutes * 60 * 1000;
-    const newRace: PostedRace = {
-      id: Date.now().toString(),
-      poster: player.username || 'You',
-      car: car.name,
-      bet,
-      expireAt,
-      status: 'open',
-    };
-    setPostedRaces((prev) => [...prev, newRace]);
     if (refreshPlayer) await refreshPlayer();
-    setMessage(t('race_posted', { fee: `$${entryFee}`, minutes: expireMinutes }));
+    await loadRaces();
+    setMessage(t('race_posted', { fee: `$${data?.entry_fee ?? 0}`, minutes: expireMinutes }));
   };
 
   const joinRace = async (race: PostedRace) => {
     if (!player) return;
-    const entryFee = Math.max(100, Math.floor(race.bet * 0.1));
-    const supabase = createClient();
-    const { error } = await supabase.rpc('apply_action', { cash_delta: -entryFee, patch: {} });
+    setBusy(true);
+    const { error } = await supabase.rpc('join_race', { race_id: race.id });
+    setBusy(false);
     if (error) {
       setMessage(
         error.message.includes('NOT_ENOUGH_CASH')
@@ -108,55 +100,48 @@ export default function RacePage() {
       );
       return;
     }
-    setPostedRaces((prev) =>
-      prev.map((r) =>
-        r.id === race.id ? { ...r, joinedBy: player.username || 'Opponent', status: 'ready' } : r,
-      ),
-    );
     if (refreshPlayer) await refreshPlayer();
-    setMessage(t('race_joined', { poster: race.poster }));
+    await loadRaces();
+    setMessage(t('race_joined', { poster: race.poster_name }));
   };
 
   const startRace = async (race: PostedRace) => {
-    if (!player || !race.joinedBy) {
-      setMessage(t('race_no_opponent'));
-      return;
-    }
-    if (cooldown > 0) {
-      setMessage(t('race_cooldown_left', { seconds: cooldown }));
-      return;
-    }
-    const win = Math.random() > 0.5;
-    const pot = race.bet * 2;
-    const winner = win ? player.username : race.joinedBy;
-    const loser = win ? race.joinedBy : player.username;
-    const delta = win ? pot : -Math.min(race.bet, player.cash);
-    const supabase = createClient();
-    const { error } = await supabase.rpc('apply_action', { cash_delta: delta, patch: {} });
+    if (!player) return;
+    setBusy(true);
+    const { data, error } = await supabase.rpc('run_race', { race_id: race.id });
+    setBusy(false);
     if (error) {
       setMessage(error.message || t('race_settle_failed'));
       return;
     }
     if (refreshPlayer) await refreshPlayer();
-    setHistory((prev) => [...prev, { winner, loser, amount: pot, time: new Date().toISOString() }]);
+    await loadRaces();
     setMessage(
-      win
-        ? t('race_won', { opponent: race.joinedBy, pot: `$${pot}` })
-        : t('race_lost', { opponent: race.joinedBy, bet: `$${race.bet}` }),
+      data?.you_won
+        ? t('race_won', { opponent: data?.winner === race.poster_name ? race.joined_name : race.poster_name, pot: `$${data?.pot ?? 0}` })
+        : t('race_lost', { opponent: data?.winner, bet: `$${race.bet}` }),
     );
-    setCooldown(600); // 10 min
-    setPostedRaces((prev) => prev.filter((r) => r.id !== race.id));
   };
 
-  const cancelRace = (id: string) => {
-    setPostedRaces((prev) => prev.filter((r) => r.id !== id));
-    setMessage(t('race_canceled'));
+  const cancelRace = async (race: PostedRace) => {
+    setBusy(true);
+    const { data, error } = await supabase.rpc('cancel_race', { race_id: race.id });
+    setBusy(false);
+    if (error) {
+      setMessage(error.message || t('race_settle_failed'));
+      return;
+    }
+    if (refreshPlayer) await refreshPlayer();
+    await loadRaces();
+    setMessage(t('race_canceled') + (data?.refunded ? ` (+$${data.refunded} refunded)` : ''));
   };
 
   return (
     <div className="max-w-5xl mx-auto p-4 sm:p-6">
       <h1 className="text-3xl font-bold mb-4">🏁 {t('race_title')}</h1>
       <p className="text-sm text-zinc-400 mb-6">{t('race_desc')}</p>
+
+      {message && <div className="mb-4 p-3 bg-zinc-900 border border-zinc-700 rounded">{message}</div>}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Post Race */}
@@ -170,7 +155,7 @@ export default function RacePage() {
             <option value="">{t('race_select_car')}</option>
             {validCars.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name} ({c.health || 100}%)
+                {c.name} ({c.condition || 100}%)
               </option>
             ))}
           </select>
@@ -193,7 +178,7 @@ export default function RacePage() {
             <option value={60}>{t('race_1hour')}</option>
             <option value={120}>{t('race_2hours')}</option>
           </select>
-          <button onClick={postRace} className="w-full py-2 bg-red-700 rounded">
+          <button onClick={postRace} disabled={busy} className="w-full py-2 bg-red-700 rounded disabled:opacity-50">
             {t('race_post_button')}
           </button>
         </div>
@@ -201,39 +186,46 @@ export default function RacePage() {
         {/* Open Races */}
         <div className="card p-5">
           <h3 className="font-bold mb-2">{t('race_open_title')}</h3>
-          {postedRaces.length === 0 && <p className="text-xs">{t('race_none_open')}</p>}
-          {postedRaces.map((race) => {
-            const timeLeft = Math.max(0, Math.floor((race.expireAt - Date.now()) / 1000 / 60));
+          {openRaces.length === 0 && <p className="text-xs">{t('race_none_open')}</p>}
+          {openRaces.map((race) => {
+            const timeLeft = race.expire_at
+              ? Math.max(0, Math.floor((new Date(race.expire_at).getTime() - Date.now()) / 1000 / 60))
+              : 0;
             return (
               <div key={race.id} className="mb-2 p-2 bg-zinc-950 rounded text-sm">
                 {t('race_line', {
-                  poster: race.poster,
+                  poster: race.poster_name,
                   bet: `$${race.bet}`,
-                  car: race.car,
+                  car: race.car_name,
                   time: timeLeft,
                 })}
-                {race.status === 'open' && race.poster !== (player?.username || '') && (
+                {race.status === 'open' && race.poster_id !== player?.id && (
                   <button
                     onClick={() => joinRace(race)}
-                    className="ml-2 px-2 py-0.5 bg-emerald-700 text-xs rounded"
+                    disabled={busy}
+                    className="ml-2 px-2 py-0.5 bg-emerald-700 text-xs rounded disabled:opacity-50"
                   >
                     {t('race_join')}
                   </button>
                 )}
-                {race.status === 'ready' && (
+                {race.status === 'ready' && (race.poster_id === player?.id || race.joined_by === player?.id) && (
                   <button
                     onClick={() => startRace(race)}
-                    className="ml-2 px-2 py-0.5 bg-red-700 text-xs rounded"
+                    disabled={busy}
+                    className="ml-2 px-2 py-0.5 bg-red-700 text-xs rounded disabled:opacity-50"
                   >
                     {t('race_start')}
                   </button>
                 )}
-                <button
-                  onClick={() => cancelRace(race.id)}
-                  className="ml-2 px-2 py-0.5 bg-zinc-700 text-xs rounded"
-                >
-                  {t('common_cancel')}
-                </button>
+                {race.status === 'open' && race.poster_id === player?.id && (
+                  <button
+                    onClick={() => cancelRace(race)}
+                    disabled={busy}
+                    className="ml-2 px-2 py-0.5 bg-zinc-700 text-xs rounded disabled:opacity-50"
+                  >
+                    {t('common_cancel')}
+                  </button>
+                )}
               </div>
             );
           })}
@@ -244,22 +236,16 @@ export default function RacePage() {
       <div className="mt-6 card p-5">
         <h3 className="font-bold mb-2">{t('race_history_title')}</h3>
         {history.length === 0 && <p className="text-xs">{t('race_none_history')}</p>}
-        {history.map((h, i) => (
-          <div key={i} className="text-xs mb-1">
+        {history.map((h) => (
+          <div key={h.id} className="text-xs mb-1">
             {t('race_history_line', {
-              winner: h.winner || '?',
-              loser: h.loser || '?',
-              amount: `$${h.amount}`,
-              time: new Date(h.time).toLocaleTimeString(),
+              winner: h.winner_name || '?',
+              loser: h.winner_name === h.poster_name ? h.joined_name || '?' : h.poster_name,
+              amount: `$${h.bet * 2}`,
+              time: new Date(h.created_at).toLocaleTimeString(),
             })}
           </div>
         ))}
-      </div>
-
-      {message && <div className="mt-4 p-3 bg-zinc-900 border border-zinc-700">{message}</div>}
-
-      <div className="mt-4 text-xs text-zinc-500">
-        {t('race_cooldown_note', { seconds: cooldown })}
       </div>
 
       <Link href="/dashboard" className="mt-4 inline-block text-sm text-red-400">

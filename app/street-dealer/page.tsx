@@ -156,6 +156,8 @@ export default function StreetDealerPage() {
       <h1 className="text-3xl font-bold mb-2">💊 {t('dealer_title', { city: currentCity })}</h1>
       <p className="text-sm text-zinc-400 mb-4">{t('dealer_desc')}</p>
 
+      {message && <div className="mb-4 p-3 bg-zinc-900 border border-zinc-700 rounded text-sm">{message}</div>}
+
       {/* Live Drug Storage Tracker */}
       <div className="mb-4 p-3 bg-zinc-900 border border-zinc-700 rounded">
         <div className="text-sm font-semibold mb-1">{t('dealer_storage_title')}</div>
@@ -182,8 +184,6 @@ export default function StreetDealerPage() {
           </div>
         ))}
       </div>
-
-      {message && <div className="mt-4 p-3 bg-zinc-900 border border-zinc-700 rounded text-sm">{message}</div>}
 
       <Link href="/dashboard" className="mt-4 inline-block text-sm text-red-400">← {t('common_back')}</Link>
     </div>

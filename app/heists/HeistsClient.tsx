@@ -17,7 +17,8 @@ type Heist = {
   cooldown_seconds: number;
 };
 
-const SAMPLE_HEISTS: Heist[] = [
+// Fallback shown only until the real list loads from the `heists` table.
+const DEFAULT_HEISTS: Heist[] = [
   {
     key: 'convenience_store_raid',
     min_level: 5,
@@ -51,6 +52,7 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
   const { t } = useLanguage();
   const { player: contextPlayer, updatePlayer } = usePlayer();
   const [player, setPlayer] = useState<Player | null>(initialPlayer || contextPlayer);
+  const [heists, setHeists] = useState<Heist[]>(DEFAULT_HEISTS);
   const [cooldowns, setCooldowns] = useState<Record<string, number>>({});
   const [crew, setCrew] = useState(2);
   const [bulletsUsed, setBulletsUsed] = useState(100);
@@ -81,6 +83,14 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
       // Load potential PvP targets via RPC (RLS blocks reading other players directly)
       const { data: targetData } = await supabase.rpc('list_pvp_targets');
       setTargets((targetData as any[]) || []);
+
+      // Load the real heist list (was hardcoded before — admin-added/DB heists like
+      // casino_vault never showed up because this component ignored the heists table).
+      const { data: heistData } = await supabase
+        .from('heists')
+        .select('key, min_level, min_crew, min_reward, max_reward, base_success, cooldown_seconds')
+        .order('sort_order');
+      if (heistData && heistData.length > 0) setHeists(heistData as Heist[]);
     };
 
     loadData();
@@ -189,6 +199,31 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
         <div className="mt-2 text-xs text-amber-400">Your Heat: {currentHeat} • In Jail: {inJail ? 'YES' : 'No'}</div>
       </div>
 
+      {result && (
+        <div className={`card p-5 border ${result.error ? 'border-red-700' : result.success ? 'border-green-700' : 'border-red-700'}`}>
+          {result.error ? (
+            <p className="text-red-400">{result.error}</p>
+          ) : result.message ? (
+            <>
+              <div className="text-lg font-bold mb-1">{result.success ? '✅ Hit Successful' : '❌ Hit Failed'}</div>
+              <p className="text-sm">{result.message}</p>
+            </>
+          ) : (
+            <>
+              <div className="text-lg font-bold mb-2">
+                {result.success ? '✅ Heist Successful' : '❌ Heist Failed'}
+              </div>
+              <div className="text-sm">
+                {result.success ? `You got $${result.reward.toLocaleString()}` : 'The crew got caught.'}<br />
+                Used {result.crew} crew members + {result.gearBonus}% gear.<br />
+                Estimated chance was ~{result.successChance}%.
+              </div>
+            </>
+          )}
+          <button onClick={() => setResult(null)} className="mt-3 text-xs underline">Close</button>
+        </div>
+      )}
+
       {/* Gear / Armory (Fase 5.2) */}
       <section className="card p-5">
         <h2 className="font-bold mb-3">🛡️ Heist Armory (Buy for this run)</h2>
@@ -203,7 +238,7 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
 
       {/* Heist List with real cooldowns */}
       <div className="grid md:grid-cols-2 gap-4">
-        {SAMPLE_HEISTS.map((h) => {
+        {heists.map((h) => {
           const status = getHeistStatus(h);
           const canDo = player.level >= h.min_level && !inJail && status.ready;
           const weaponBonus = selectedWeapon === 'Rifle' ? 30 : selectedWeapon === 'SMG' ? 15 : 5;
@@ -268,21 +303,6 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
         })}
       </div>
 
-      {/* Result */}
-      {result && (
-        <div className={`card p-5 border ${result.success ? 'border-green-700' : 'border-red-700'}`}>
-          <div className="text-lg font-bold mb-2">
-            {result.success ? '✅ Heist Successful' : '❌ Heist Failed'}
-          </div>
-          <div className="text-sm">
-            {result.success ? `You got $${result.reward.toLocaleString()}` : 'The crew got caught.'}<br />
-            Used {result.crew} crew members + {result.gearBonus}% gear.<br />
-            Estimated chance was ~{result.successChance}%.
-          </div>
-          <button onClick={() => setResult(null)} className="mt-3 text-xs underline">Close</button>
-        </div>
-      )}
-
       <div className="text-xs text-zinc-500">
         Police (Heat) will hit harder on big heists. High heat = higher chance of jail. Use Breakout from jail or wait it out.
       </div>
@@ -313,16 +333,6 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
           ))}
         </div>
       </div>
-
-      {result && (
-        <div className={`card p-4 ${result.success ? 'border-green-700' : result.error ? 'border-red-700' : ''}`}>
-          {result.error && <p className="text-red-400">{result.error}</p>}
-          {result.message && <p>{result.message}</p>}
-          {result.success !== undefined && !result.message && (
-            <p>{result.success ? '✅ Hit successful!' : '❌ Hit failed!'} Reward: ${result.reward || 0}</p>
-          )}
-        </div>
-      )}
 
       <Link href="/dashboard" className="text-sm text-red-400">← Back to Dashboard</Link>
     </div>

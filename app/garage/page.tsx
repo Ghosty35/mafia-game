@@ -200,6 +200,8 @@ export default function GaragePage() {
       <h1 className="text-3xl font-bold mb-4">🚗 {t('garage_title')}</h1>
       <p className="text-sm text-zinc-400 mb-6">{t('garage_desc', { max: maxCars })}</p>
 
+      {message && <div className="mb-4 text-sm p-3 bg-zinc-900 border border-zinc-700 rounded">{message}</div>}
+
       {!hasHouse && !hasVilla && !hasMansion && (
         <div className="text-red-400 mb-4">{t('garage_locked')}</div>
       )}
@@ -347,7 +349,6 @@ export default function GaragePage() {
         <button onClick={startRace} className="ml-2 px-3 py-1 bg-red-700 rounded">
           {t('garage_race_button')}
         </button>
-        {message && <div className="mt-2 text-sm">{message}</div>}
       </div>
 
       <Link href="/dashboard" className="mt-4 inline-block text-sm text-red-400">

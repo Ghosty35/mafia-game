@@ -44,6 +44,8 @@ export default function MetalFactoryPage() {
       <h1 className="text-3xl font-bold mb-4">🏭 {t('factory_title')}</h1>
       <p className="text-sm text-zinc-400 mb-6">{t('factory_desc')}</p>
 
+      {message && <div className="mb-4 p-3 bg-zinc-900 border border-zinc-700 rounded">{message}</div>}
+
       <div className="card p-6">
         <div className="mb-4">
           <label className="block text-sm mb-1">{t('factory_amount_label')}</label>
@@ -68,8 +70,6 @@ export default function MetalFactoryPage() {
           {busy ? t('factory_buying') : t('factory_buy')}
         </button>
       </div>
-
-      {message && <div className="mt-4 p-3 bg-zinc-900 border border-zinc-700 rounded">{message}</div>}
 
       <div className="mt-6 text-xs text-zinc-500">
         {t('factory_current', { bullets: player.bullets || 0 })}

@@ -75,6 +75,12 @@ export default function HospitalPage() {
         <p className="text-sm text-zinc-400">{t('hospital_desc')}</p>
       </div>
 
+      {message && (
+        <div className="mb-4 p-3 rounded bg-zinc-900 border border-zinc-700 text-sm text-center">
+          {message}
+        </div>
+      )}
+
       {/* Current Health */}
       <div className="card p-5 mb-6">
         <div className="flex items-center justify-between mb-2">
@@ -150,12 +156,6 @@ export default function HospitalPage() {
             ? t('hospital_buying')
             : t('hospital_buy_button', { amount, cost: `$${totalCost}` })}
         </button>
-
-        {message && (
-          <div className="mt-4 p-3 rounded bg-zinc-900 border border-zinc-700 text-sm text-center">
-            {message}
-          </div>
-        )}
       </div>
 
       <div className="mt-6 text-xs text-zinc-500">{t('hospital_price_note')}</div>

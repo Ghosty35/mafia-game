@@ -47,6 +47,8 @@ export default function DetectivePage() {
       <h1 className="text-3xl font-bold mb-4">🕵️ {t('detective_title')}</h1>
       <p className="text-sm text-zinc-400 mb-6">{t('detective_desc')}</p>
 
+      {message && <div className="mb-4 p-3 bg-zinc-900 border border-zinc-700 rounded">{message}</div>}
+
       <div className="card p-6">
         <input
           type="text"
@@ -64,8 +66,6 @@ export default function DetectivePage() {
           {busy ? t('detective_searching') : t('detective_request')}
         </button>
       </div>
-
-      {message && <div className="mt-4 p-3 bg-zinc-900 border border-zinc-700 rounded">{message}</div>}
 
       <div className="mt-6 text-xs text-zinc-500">
         {t('detective_footer')}

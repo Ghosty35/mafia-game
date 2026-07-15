@@ -248,6 +248,8 @@ export default function RealEstatePage() {
       <h1 className="text-3xl font-bold mb-4">🏠 {t('re_title')}</h1>
       <p className="text-sm text-zinc-400 mb-2">{t('re_desc')}</p>
 
+      {message && <div className="mb-4 p-3 bg-zinc-900 border border-zinc-700 rounded">{message}</div>}
+
       {/* City notice - key rule per user spec */}
       <div className="mb-6 p-4 rounded-xl bg-zinc-900 border border-red-900/40 text-sm">
         <span className="font-semibold text-red-400">{t('re_current_city')}</span>{' '}
@@ -455,8 +457,6 @@ export default function RealEstatePage() {
           );
         })}
       </div>
-
-      {message && <div className="mt-4 p-3 bg-zinc-900 border border-zinc-700 rounded">{message}</div>}
 
       <Link href="/dashboard" className="mt-6 inline-block text-sm text-red-400">
         ← {t('common_back')}

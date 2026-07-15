@@ -176,6 +176,8 @@ export default function SingleCrimeView({ crimeKey }: { crimeKey: string }) {
           Your stats: {crimeStats.tries} tries ({crimeStats.wins} wins / {crimeStats.tries - crimeStats.wins} losses, {winRate}% ) • Earned: {formatCash(crimeStats.earnings, language)}
         </div>
 
+        {result && <p className={`mb-3 text-sm p-3 rounded border ${bannerStyles[result.kind]}`}>{result.text}</p>}
+
         {!locked && (
           <button
             onClick={doCrime}
@@ -188,9 +190,7 @@ export default function SingleCrimeView({ crimeKey }: { crimeKey: string }) {
 
         {coolingDown && <div className="mt-2 text-xs text-zinc-500">Cooldown: {formatSeconds(secondsLeft)} left ({cooldownPercent}%)</div>}
 
-        {result && <p className={`mt-3 text-sm p-3 rounded border ${bannerStyles[result.kind]}`}>{result.text}</p>}
-
-        {inJail && <p className="mt-2 text-sm text-orange-300">🚔 In jail: {formatSeconds(Math.max(0, Math.ceil((new Date(player.jailed_until!).getTime() - now) / 1000)))}</p>}
+        {inJail &&<p className="mt-2 text-sm text-orange-300">🚔 In jail: {formatSeconds(Math.max(0, Math.ceil((new Date(player.jailed_until!).getTime() - now) / 1000)))}</p>}
       </div>
     </div>
   );

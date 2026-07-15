@@ -57,6 +57,8 @@ export default function MarketplacePage() {
       <h1 className="text-3xl font-bold mb-4">🏛️ {t('market_title')} <span className="text-xs align-middle px-2 py-0.5 bg-amber-900/50 text-amber-400 rounded">{t('market_preview_badge')}</span></h1>
       <p className="text-sm text-zinc-400 mb-6">{t('market_desc')}</p>
 
+      {message && <div className="mb-4 p-3 bg-zinc-900 border border-zinc-700 rounded">{message}</div>}
+
       <div className="mb-4 flex gap-3 items-end">
         <div>
           <label className="text-xs block mb-1">{t('market_auction_duration')}</label>
@@ -106,8 +108,6 @@ export default function MarketplacePage() {
           </div>
         ))}
       </div>
-
-      {message && <div className="mt-4 p-3 bg-zinc-900 border border-zinc-700 rounded">{message}</div>}
 
       <div className="mt-6 text-xs text-zinc-500">
         {t('market_footer')}

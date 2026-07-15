@@ -125,6 +125,12 @@ export default function SingleCrimeClient({
         </div>
         <p className="text-sm text-zinc-500 mb-3">{t(`crime_${crime.key}_desc` as any)}</p>
 
+        {result && (
+          <p className={`mb-3 text-sm font-medium p-3 rounded border ${bannerStyles[result.kind]}`}>
+            {result.text}
+          </p>
+        )}
+
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-zinc-400 mb-4">
           <span>
             Reward: <span className="text-green-400">{formatCash(crime.min_reward, language)}–{formatCash(crime.max_reward, language)}</span>
@@ -158,12 +164,6 @@ export default function SingleCrimeClient({
           <div className="mt-2 text-xs text-zinc-500">
             Your cooldown for this crime: {formatSeconds(secondsLeft)} remaining ({cooldownPercent}% of total)
           </div>
-        )}
-
-        {result && (
-          <p className={`mt-3 text-sm font-medium p-3 rounded border ${bannerStyles[result.kind]}`}>
-            {result.text}
-          </p>
         )}
 
         {inJail && (

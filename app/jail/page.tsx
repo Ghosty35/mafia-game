@@ -50,9 +50,9 @@ export default function JailPage() {
       return;
     }
     setBreakoutSkill(newSkill);
-    setMessage(t('jail_train_success', { skill: newSkill }));
     if (refreshPlayer) await refreshPlayer();
     router.refresh();
+    setMessage(t('jail_train_success', { skill: newSkill }));
   };
 
   const attemptBreakout = async () => {
@@ -71,19 +71,21 @@ export default function JailPage() {
       );
       return;
     }
+    if (refreshPlayer) await refreshPlayer();
+    router.refresh();
     setMessage(
       data?.success
         ? t('jail_breakout_success')
         : t('jail_breakout_failed', { minutes: data?.added_minutes || 5 }),
     );
-    if (refreshPlayer) await refreshPlayer();
-    router.refresh();
   };
 
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6">
       <h1 className="text-3xl font-bold mb-4">🔒 {t('jail_title')}</h1>
       <p className="text-sm text-zinc-400 mb-6">{t('jail_desc')}</p>
+
+      {message && <div className="mb-4 p-3 bg-zinc-900 rounded">{message}</div>}
 
       <div className="card p-5 mb-6">
         <h3 className="font-bold mb-2">{t('jail_inmates')}</h3>
@@ -108,8 +110,6 @@ export default function JailPage() {
           </button>
         )}
       </div>
-
-      {message && <div className="p-3 bg-zinc-900 rounded">{message}</div>}
 
       <Link href="/dashboard" className="mt-4 inline-block text-sm text-red-400">
         ← {t('common_back')}

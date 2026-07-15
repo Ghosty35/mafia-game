@@ -124,6 +124,8 @@ export default function WeedGrowPage() {
       <h1 className="text-3xl font-bold mb-4">🌱 {t('weed_title')}</h1>
       <p className="text-sm text-zinc-400 mb-6">{t('weed_desc')}</p>
 
+      {message && <div className="mb-4 p-3 bg-zinc-900 rounded">{message}</div>}
+
       {!hasHouse && <p className="text-amber-400">{t('weed_locked')}</p>}
 
       {hasHouse && (
@@ -148,8 +150,6 @@ export default function WeedGrowPage() {
           <p className="text-xs text-zinc-500">{t('weed_water_note')}</p>
         </div>
       )}
-
-      {message && <div className="mt-4 p-3 bg-zinc-900 rounded">{message}</div>}
 
       <Link href="/street-dealer" className="mt-6 inline-block text-sm text-red-400">{t('weed_back')}</Link>
     </div>

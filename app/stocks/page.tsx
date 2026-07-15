@@ -146,6 +146,8 @@ export default function StocksPage() {
       <h1 className="text-3xl font-bold mb-1">📈 {t('stocks_title')}</h1>
       <p className="text-sm text-zinc-400 mb-4">{t('stocks_desc')}</p>
 
+      {msg && <div className="mb-4 p-3 bg-zinc-900 border rounded text-sm">{msg}</div>}
+
       <div className="mb-4 card p-4">
         <div className="text-xs">
           {t('stocks_portfolio_value')}{' '}
@@ -214,8 +216,6 @@ export default function StocksPage() {
           );
         })}
       </div>
-
-      {msg && <div className="mt-4 p-3 bg-zinc-900 border rounded text-sm">{msg}</div>}
 
       <div className="mt-6 text-xs text-zinc-500">
         {t('stocks_footer_1')}
