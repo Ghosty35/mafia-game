@@ -67,97 +67,37 @@ export default function RealEstatePage() {
   const agencyProperties = cityProperties.filter((p) => p.type === 'agency');
 
   const buyProperty = async (prop: Property) => {
-    if (!player || player.cash < prop.price) {
-      showToast(t('common_not_enough_cash'));
-      return;
-    }
+    if (!player) return;
 
-    const owned = player.owned_properties || [];
-    const mansions = owned.filter((o) => o.name.toLowerCase().includes('mansion')).length;
-    const villas = owned.filter((o) => o.name.toLowerCase().includes('villa')).length;
-    const houses = owned.filter((o) => o.name.toLowerCase().includes('house')).length;
-
-    const isMansion = prop.name.toLowerCase().includes('mansion');
-    const isVilla = prop.name.toLowerCase().includes('villa');
-    const isHouse = prop.name.toLowerCase().includes('house');
-
-    if (isMansion && mansions >= 1) {
-      showToast(t('re_max_mansion'));
+    // Quick client-side cash check for instant feedback; the server is the
+    // source of truth (price/tax/limits enforced in purchase_property).
+    const tax = Math.floor(prop.price * 0.1);
+    if (player.cash < prop.price + tax) {
+      showToast(t('re_no_cash_tax'));
       return;
-    }
-    if (isVilla && villas >= 2) {
-      showToast(t('re_max_villas'));
-      return;
-    }
-    if (
-      isVilla &&
-      villas > 0 &&
-      owned.some((o) => o.name.toLowerCase().includes('villa') && o.city === prop.city)
-    ) {
-      showToast(t('re_villa_diff_city'));
-      return;
-    }
-    if (isHouse) {
-      const housesInCity = owned.filter(
-        (o) => o.name.toLowerCase().includes('house') && o.city === prop.city,
-      ).length;
-      if (housesInCity >= 1) {
-        showToast(t('re_house_in_city'));
-        return;
-      }
-      if (houses >= 4) {
-        showToast(t('re_max_houses'));
-        return;
-      }
-    }
-    if (owned.length >= 4) {
-      showToast(t('re_total_limit'));
-      return;
-    }
-
-    // Warning for multiple properties - generated message
-    const houseCount = isHouse ? houses + 1 : houses;
-    if (houseCount > 1) {
-      const warnings = [t('re_warning_1'), t('re_warning_2'), t('re_warning_3')];
-      showToast(warnings[Math.floor(Math.random() * warnings.length)]);
     }
 
     setBusy(true);
 
-    // Prompt for custom name
+    // Custom name is display-only; the server derives price/type/income from
+    // the property_catalog by id — the client can no longer forge them.
     const customName = prompt(t('re_prompt_name'), prop.name) || prop.name;
 
-    // Tax on purchase (calibrated 10% for properties)
-    const tax = Math.floor(prop.price * 0.1);
-    const totalCost = prop.price + tax;
-
-    if (player.cash < totalCost) {
-      showToast(t('re_no_cash_tax'));
-      setBusy(false);
-      return;
-    }
-
-    // Server-side purchase: deducts cash + tax atomically and appends the property
-    const newProp = {
-      id: prop.id,
-      name: customName,
-      type: prop.type,
-      city: prop.city,
-      purchase_date: new Date().toISOString(),
-      bank_balance: 0,
-      maintenance_due: Math.floor(prop.income * 0.12),
-      autopay: false,
-      shed_level: 1,
-      earnings_week: 0,
-      last_earned: new Date().toISOString(),
-    };
-
     const supabase = createClient();
-    const { error } = await supabase.rpc('purchase_property', { prop: newProp, price: prop.price });
+    const { data, error } = await supabase.rpc('purchase_property', {
+      p_catalog_id: prop.id,
+      p_custom_name: customName,
+    });
     if (error) {
-      if (error.message.includes('NOT_ENOUGH_CASH')) showToast(t('re_no_cash_tax'));
-      else if (error.message.includes('PROPERTY_LIMIT_REACHED')) showToast(t('re_total_limit'));
-      else showToast(error.message || t('re_purchase_failed'));
+      const m = error.message || '';
+      if (m.includes('NOT_ENOUGH_CASH')) showToast(t('re_no_cash_tax'));
+      else if (m.includes('PROPERTY_LIMIT_REACHED')) showToast(t('re_total_limit'));
+      else if (m.includes('ALREADY_OWNED')) showToast(t('re_house_in_city'));
+      else if (m.includes('MAX_MANSION')) showToast(t('re_max_mansion'));
+      else if (m.includes('MAX_VILLAS')) showToast(t('re_max_villas'));
+      else if (m.includes('MAX_HOUSES')) showToast(t('re_max_houses'));
+      else if (m.includes('WRONG_CITY')) showToast(t('re_city_only', { city: prop.city }));
+      else showToast(m || t('re_purchase_failed'));
       setBusy(false);
       return;
     }
@@ -169,7 +109,7 @@ export default function RealEstatePage() {
         name: customName,
         city: prop.city,
         price: `$${prop.price}`,
-        tax: `$${tax}`,
+        tax: `$${data?.tax ?? tax}`,
       }),
     );
     setBusy(false);

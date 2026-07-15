@@ -72,35 +72,20 @@ export default function SafehousePage() {
     alert(t('safehouse_shed_upgraded', { level: data?.new_level }));
   };
 
-  const simulateEarnings = async (propId: string) => {
+  // Income is accrued + collected server-side (collect_property_income):
+  // the RPC computes earnings from the catalog income * elapsed time (cap
+  // 24h) and moves it to cash. The client can no longer write owned_properties.
+  const collectEarnings = async (propId: string) => {
     if (!player) return;
-    const props = player.owned_properties || [];
-    const idx = props.findIndex((p) => p.id === propId);
-    if (idx === -1) return;
-    const prop = { ...props[idx] };
-    const income = prop.income || 50;
-    const taxRate = 0.2; // 20% realistic business tax
-    const earned = Math.floor(income * 24); // 24h earnings
-    const tax = Math.floor(earned * taxRate);
-    const net = earned - tax;
-    prop.bank_balance = (prop.bank_balance || 0) + net;
-    prop.earnings_week = (prop.earnings_week || 0) + earned;
-    prop.last_earned = new Date().toISOString();
-    // Add tax to debt or bill
-    prop.maintenance_due = (prop.maintenance_due || 0) + tax;
-    const newOwned = [...props];
-    newOwned[idx] = prop;
     const supabase = createClient();
-    const { error } = await supabase.rpc('update_my_state', {
-      patch: { owned_properties: newOwned },
-    });
+    const { data, error } = await supabase.rpc('collect_property_income', { prop_id: propId });
     if (error) {
       alert(error.message || t('safehouse_earnings_save_failed'));
       return;
     }
     if (refreshPlayer) await refreshPlayer();
     router.refresh();
-    alert(t('safehouse_earnings_result', { net: `$${net}`, tax: `$${tax}` }));
+    alert(t('safehouse_earnings_result', { net: `$${data?.collected ?? 0}`, tax: '$0' }));
   };
 
   return (
@@ -307,7 +292,7 @@ export default function SafehousePage() {
                 {t('safehouse_upgrade_shed', { cost: `$${50000 * (prop.shed_level || 1)}` })}
               </button>
               <button
-                onClick={() => simulateEarnings(prop.id)}
+                onClick={() => collectEarnings(prop.id)}
                 className="mt-2 ml-2 px-3 py-1 bg-emerald-700 rounded text-sm"
               >
                 {t('safehouse_simulate_earnings')}
