@@ -63,6 +63,12 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
 
   const supabase = createClient();
 
+  // Reflect the persistent, server-authoritative gear bonus.
+  useEffect(() => {
+    const b = (player?.heist_gear as { bonus?: number } | null)?.bonus;
+    if (b != null) setGearBonus(Number(b));
+  }, [player?.heist_gear]);
+
   // Load cooldowns and targets
   useEffect(() => {
     if (!player) return;
@@ -124,18 +130,23 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
 
     const { data, error } = await supabase.rpc('commit_heist', {
       heist_key: heist.key,
-      crew_size: crew
+      crew_size: crew,
+      bullets_used: bulletsUsed,
     });
 
     if (error) {
-      showToast(error.message, 'error');
+      showToast(
+        error.message.includes('NOT_ENOUGH_BULLETS')
+          ? 'Not enough bullets for this heist. Buy some at the Metal Factory.'
+          : error.message,
+        'error',
+      );
     } else {
+      // Bullets are validated + consumed server-side; use the authoritative row.
       const updated = data.player as Player;
-      // Consume bullets for heist
-      const finalBullets = Math.max(0, (player.bullets || 0) - bulletsUsed);
-      const withBullets = { ...updated, bullets: finalBullets };
-      setPlayer(withBullets);
-      updatePlayer(withBullets);
+      setPlayer(updated);
+      updatePlayer(updated);
+      setGearBonus(Number((updated.heist_gear as { bonus?: number } | null)?.bonus || 0));
       // Refresh cooldowns
       const { data: cdData } = await supabase
         .from('heist_cooldowns')
@@ -154,11 +165,22 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
     setBusy(false);
   };
 
-  const buyGear = (bonus: number, cost: number) => {
-    if (!player || player.cash < cost) return;
-    const newPlayer = { ...player, cash: player.cash - cost };
-    setPlayer(newPlayer as Player);
-    setGearBonus(gearBonus + bonus);
+  // Gear is now persistent + server-authoritative (buy_heist_gear sets a
+  // catalog tier on the player; commit_heist reads heist_gear.bonus).
+  const buyGear = async (tier: string) => {
+    if (!player) return;
+    const { data, error } = await supabase.rpc('buy_heist_gear', { tier });
+    if (error) {
+      showToast(
+        error.message.includes('NOT_ENOUGH_CASH') ? 'Not enough cash for this gear.' : error.message,
+        'error',
+      );
+      return;
+    }
+    const updated = { ...player, cash: data.new_cash, heist_gear: { tier, bonus: data.bonus } } as Player;
+    setPlayer(updated);
+    updatePlayer(updated);
+    setGearBonus(Number(data.bonus || 0));
   };
 
   const attemptHit = async (targetId: string, targetName: string) => {
@@ -194,12 +216,12 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
       <section className="card p-5">
         <h2 className="font-bold mb-3">🛡️ Heist Armory (Buy for this run)</h2>
         <div className="flex flex-wrap gap-3">
-          <button onClick={() => buyGear(8, 450)} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm">Street Pistol (+8%) — $450</button>
-          <button onClick={() => buyGear(12, 720)} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm">Kevlar + Tools (+12%) — $720</button>
-          <button onClick={() => buyGear(18, 1100)} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm">Full Kit (+18%) — $1,100</button>
+          <button onClick={() => buyGear('pistol')} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm">Street Pistol (+8%) — $450</button>
+          <button onClick={() => buyGear('kevlar')} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm">Kevlar + Tools (+12%) — $720</button>
+          <button onClick={() => buyGear('fullkit')} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm">Full Kit (+18%) — $1,100</button>
           <div className="text-xs self-center text-emerald-400">Current gear bonus: +{gearBonus}%</div>
         </div>
-        <p className="text-[10px] text-zinc-500 mt-2">Gear is temporary for this heist run (MVP). Permanent version coming.</p>
+        <p className="text-[10px] text-zinc-500 mt-2">Gear is permanent and applies to your future heists (server-side).</p>
       </section>
 
       {/* Heist List with real cooldowns */}
@@ -207,8 +229,15 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
         {heists.map((h) => {
           const status = getHeistStatus(h);
           const canDo = player.level >= h.min_level && !inJail && status.ready;
-          const weaponBonus = selectedWeapon === 'Rifle' ? 30 : selectedWeapon === 'SMG' ? 15 : 5;
-          const successEst = Math.min(92, Math.round((h.base_success + gearBonus / 100 + (crew - 1) * 10 + (bulletsUsed / 20) + weaponBonus) * 100));
+          // Mirror the server formula (commit_heist): base + gear + crew +
+          // bullets (min(15, used/10) pp) - heat penalty, capped at 90%.
+          const bulletPct = Math.min(15, bulletsUsed / 10);
+          const successEst = Math.round(
+            Math.min(
+              0.9,
+              h.base_success + gearBonus / 100 + ((crew - 1) * 10) / 100 + bulletPct / 100 - (player.heat || 0) / 250,
+            ) * 100,
+          );
 
           return (
             <div key={h.key} className="card p-5">

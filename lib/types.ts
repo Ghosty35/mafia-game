@@ -46,6 +46,7 @@ export type Player = {
   weed_progress?: number;      // 0-5 for watering
   murder_cooldown?: string;    // ISO for cooldown
   owned_properties?: OwnedProperty[];
+  heist_gear?: { tier?: string; label?: string; bonus?: number } | null; // server-set via buy_heist_gear
   money_rank?: string;
   total_wealth?: number;
   last_active?: string;            // for online / server status
