@@ -263,12 +263,21 @@ function FamilyBuffsShop({ busy, setMessage, isDonator }: { busy: boolean; setMe
     setLocalBusy(true);
     try {
       if (payWith === 'cash') {
-        // Reuse the existing secure bank -> power path (leaders spend family bank)
-        // For cash VIP we give a nice direct boost by calling buy + extra flavor
-        const spend = Math.floor(buff.cash / 4); // convert to family bank spend equivalent
-        const { error } = await supabase.rpc('buy_family_power', { spend_amount: Math.max(50000, spend) });
-        if (error) throw error;
-        setMessage(`Bought ${buff.label} for family (via bank conversion). Stronger crew!`);
+        // Atomic server-side: checks + deducts the player's own cash + adds family power
+        const powerGain = Math.max(5, Math.floor(buff.cash / 8000));
+        const { error } = await supabase.rpc('buy_family_buff_cash', {
+          cost_cash: buff.cash,
+          power_gain: powerGain,
+        });
+        if (error) {
+          if (error.message.includes('NOT_ENOUGH_CASH')) setMessage('Not enough cash.');
+          else if (error.message.includes('NOT_IN_FAMILY')) setMessage('You must be in a family to buy VIP buffs.');
+          else setMessage(error.message || 'Purchase failed.');
+          setLocalBusy(false);
+          return;
+        }
+        await refreshPlayer();
+        setMessage(`Bought ${buff.label} for the family. +${powerGain} power.`);
       } else {
         // Diamond path — atomic server-side: checks + deducts diamonds + adds family power
         const costD = useBundle ? buff.diamondsBundle : buff.diamonds;
