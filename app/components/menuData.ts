@@ -25,7 +25,7 @@ export const leftMenuCategories: MenuCategory[] = [
       { labelKey: 'menu_pickpocket', href: '/crimes/pickpocket', icon: '👛' },
       { labelKey: 'menu_rob_store', href: '/crimes/rob_store', icon: '🏪' },
       { labelKey: 'menu_steal_car', href: '/crimes/steal_car', icon: '🚗' },
-      { labelKey: 'menu_warehouse_heist', href: '/crimes/bank_heist', icon: '🏦' },
+      { labelKey: 'menu_warehouse_heist', href: '/crimes/warehouse_heist', icon: '🏦' },
       { labelKey: 'menu_heists', href: '/heists', icon: '💣' },
       { labelKey: 'menu_murder', href: '/murder', icon: '🔫' },
       { labelKey: 'menu_street_dealer', href: '/street-dealer', icon: '💊' },

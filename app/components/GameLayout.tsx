@@ -9,6 +9,7 @@ import RightSidebar from './RightSidebar';
 import PlayerInfoCard from './PlayerInfoCard';
 import LiveTracker from './LiveTracker';
 import LanguageSync from './LanguageSync';
+import Toast from './Toast';
 import { PlayerProvider, usePlayer } from './PlayerContext';
 
 function LayoutContent({ children }: { children: ReactNode }) {
@@ -29,6 +30,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       <LanguageSync />
+      <Toast />
       <GameNav />
       <div className="flex max-w-7xl mx-auto">
         {/* Left Sidebar - Crime Related */}

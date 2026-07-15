@@ -1,14 +1,5 @@
-import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
-import SingleCrimeView from '../SingleCrimeView';
+import { renderSingleCrime } from '../renderSingleCrime';
 
 export default async function RobStorePage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect('/login');
-  }
-
-  return <SingleCrimeView crimeKey="rob_store" />;
+  return renderSingleCrime('rob_store');
 }

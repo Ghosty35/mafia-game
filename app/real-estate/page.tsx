@@ -25,11 +25,10 @@ interface Property {
 }
 
 export default function RealEstatePage() {
-  const { player, refreshPlayer } = usePlayer();
+  const { player, refreshPlayer, showToast } = usePlayer();
   const { t } = useLanguage();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState('');
   const [billAmount, setBillAmount] = useState(0);
   const [autopay, setAutopay] = useState(false);
 
@@ -69,7 +68,7 @@ export default function RealEstatePage() {
 
   const buyProperty = async (prop: Property) => {
     if (!player || player.cash < prop.price) {
-      setMessage(t('common_not_enough_cash'));
+      showToast(t('common_not_enough_cash'));
       return;
     }
 
@@ -83,11 +82,11 @@ export default function RealEstatePage() {
     const isHouse = prop.name.toLowerCase().includes('house');
 
     if (isMansion && mansions >= 1) {
-      setMessage(t('re_max_mansion'));
+      showToast(t('re_max_mansion'));
       return;
     }
     if (isVilla && villas >= 2) {
-      setMessage(t('re_max_villas'));
+      showToast(t('re_max_villas'));
       return;
     }
     if (
@@ -95,7 +94,7 @@ export default function RealEstatePage() {
       villas > 0 &&
       owned.some((o) => o.name.toLowerCase().includes('villa') && o.city === prop.city)
     ) {
-      setMessage(t('re_villa_diff_city'));
+      showToast(t('re_villa_diff_city'));
       return;
     }
     if (isHouse) {
@@ -103,16 +102,16 @@ export default function RealEstatePage() {
         (o) => o.name.toLowerCase().includes('house') && o.city === prop.city,
       ).length;
       if (housesInCity >= 1) {
-        setMessage(t('re_house_in_city'));
+        showToast(t('re_house_in_city'));
         return;
       }
       if (houses >= 4) {
-        setMessage(t('re_max_houses'));
+        showToast(t('re_max_houses'));
         return;
       }
     }
     if (owned.length >= 4) {
-      setMessage(t('re_total_limit'));
+      showToast(t('re_total_limit'));
       return;
     }
 
@@ -120,7 +119,7 @@ export default function RealEstatePage() {
     const houseCount = isHouse ? houses + 1 : houses;
     if (houseCount > 1) {
       const warnings = [t('re_warning_1'), t('re_warning_2'), t('re_warning_3')];
-      setMessage(warnings[Math.floor(Math.random() * warnings.length)]);
+      showToast(warnings[Math.floor(Math.random() * warnings.length)]);
     }
 
     setBusy(true);
@@ -133,7 +132,7 @@ export default function RealEstatePage() {
     const totalCost = prop.price + tax;
 
     if (player.cash < totalCost) {
-      setMessage(t('re_no_cash_tax'));
+      showToast(t('re_no_cash_tax'));
       setBusy(false);
       return;
     }
@@ -156,16 +155,16 @@ export default function RealEstatePage() {
     const supabase = createClient();
     const { error } = await supabase.rpc('purchase_property', { prop: newProp, price: prop.price });
     if (error) {
-      if (error.message.includes('NOT_ENOUGH_CASH')) setMessage(t('re_no_cash_tax'));
-      else if (error.message.includes('PROPERTY_LIMIT_REACHED')) setMessage(t('re_total_limit'));
-      else setMessage(error.message || t('re_purchase_failed'));
+      if (error.message.includes('NOT_ENOUGH_CASH')) showToast(t('re_no_cash_tax'));
+      else if (error.message.includes('PROPERTY_LIMIT_REACHED')) showToast(t('re_total_limit'));
+      else showToast(error.message || t('re_purchase_failed'));
       setBusy(false);
       return;
     }
 
     if (refreshPlayer) await refreshPlayer();
     router.refresh();
-    setMessage(
+    showToast(
       t('re_bought', {
         name: customName,
         city: prop.city,
@@ -204,16 +203,16 @@ export default function RealEstatePage() {
       method,
     });
     if (error) {
-      if (error.message.includes('NOT_ENOUGH_CASH')) setMessage(t('common_not_enough_cash'));
-      else if (error.message.includes('NOT_ENOUGH_IN_BANK')) setMessage(t('re_no_bank'));
-      else setMessage(error.message || t('re_payment_failed'));
+      if (error.message.includes('NOT_ENOUGH_CASH')) showToast(t('common_not_enough_cash'));
+      else if (error.message.includes('NOT_ENOUGH_IN_BANK')) showToast(t('re_no_bank'));
+      else showToast(error.message || t('re_payment_failed'));
       return;
     }
 
     const newDebt = totalDebt - pay;
     if (refreshPlayer) await refreshPlayer();
     router.refresh();
-    setMessage(
+    showToast(
       `${t('re_paid', { amount: `$${pay}`, method, debt: `$${newDebt}` })} ${
         newDebt > 0 ? t('re_pay_more') : t('re_all_clear')
       }`,
@@ -228,12 +227,12 @@ export default function RealEstatePage() {
     const supabase = createClient();
     const { error } = await supabase.rpc('set_property_autopay', { prop_id: propId, enable });
     if (error) {
-      setMessage(error.message || t('re_autopay_failed'));
+      showToast(error.message || t('re_autopay_failed'));
       return;
     }
     if (refreshPlayer) await refreshPlayer();
     router.refresh();
-    setMessage(enable ? t('re_autopay_on_msg') : t('re_autopay_off_msg'));
+    showToast(enable ? t('re_autopay_on_msg') : t('re_autopay_off_msg'));
   };
 
   // Calculate maintenance suitable prices (avg ~12-15% of income, adjusted for risk)
@@ -247,8 +246,6 @@ export default function RealEstatePage() {
     <div className="max-w-6xl mx-auto p-4 sm:p-6">
       <h1 className="text-3xl font-bold mb-4">🏠 {t('re_title')}</h1>
       <p className="text-sm text-zinc-400 mb-2">{t('re_desc')}</p>
-
-      {message && <div className="mb-4 p-3 bg-zinc-900 border border-zinc-700 rounded">{message}</div>}
 
       {/* City notice - key rule per user spec */}
       <div className="mb-6 p-4 rounded-xl bg-zinc-900 border border-red-900/40 text-sm">

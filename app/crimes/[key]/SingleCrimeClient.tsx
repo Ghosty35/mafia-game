@@ -8,11 +8,6 @@ import { formatCash, formatSeconds } from '@/lib/format';
 import { usePlayer } from '../../components/PlayerContext';
 import type { Crime, Player, CrimeResult } from '@/lib/types';
 
-type ResultBanner = {
-  kind: 'success' | 'fail' | 'levelup' | 'error';
-  text: string;
-};
-
 export default function SingleCrimeClient({
   initialPlayer,
   crime,
@@ -25,7 +20,7 @@ export default function SingleCrimeClient({
   familyStatus?: any;
 }) {
   const { t, language } = useLanguage();
-  const { updatePlayer } = usePlayer();
+  const { updatePlayer, showToast } = usePlayer();
   const [player, setPlayer] = useState<Player | null>(initialPlayer);
   const [cooldowns, setCooldowns] = useState<Record<string, number>>(() =>
     Object.fromEntries(
@@ -34,7 +29,6 @@ export default function SingleCrimeClient({
   );
   const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<ResultBanner | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
@@ -57,7 +51,6 @@ export default function SingleCrimeClient({
 
   const doSingleCrime = async () => {
     setBusy(true);
-    setResult(null);
 
     const supabase = createClient();
     const { data, error } = await supabase.rpc('commit_crime', {
@@ -70,7 +63,7 @@ export default function SingleCrimeClient({
       if (error.message.includes('ON_COOLDOWN')) text = t('error_on_cooldown');
       else if (error.message.includes('IN_JAIL')) text = t('error_in_jail');
       else if (error.message.includes('LEVEL_TOO_LOW')) text = t('error_level_too_low');
-      setResult({ kind: 'error', text });
+      showToast(text, 'error');
       return;
     }
 
@@ -95,17 +88,10 @@ export default function SingleCrimeClient({
     }
 
     if (res.leveled_up) {
-      setResult({ kind: 'levelup', text: baseText + ' ' + t('crime_level_up').replace('{level}', String(res.player.level)) });
+      showToast(baseText + ' ' + t('crime_level_up').replace('{level}', String(res.player.level)), 'levelup');
     } else {
-      setResult({ kind: res.success ? 'success' : 'fail', text: baseText });
+      showToast(baseText, res.success ? 'success' : 'fail');
     }
-  };
-
-  const bannerStyles: Record<ResultBanner['kind'], string> = {
-    success: 'bg-green-950/60 border-green-800 text-green-300',
-    fail: 'bg-red-950/60 border-red-800 text-red-300',
-    levelup: 'bg-yellow-950/70 border-yellow-600 text-yellow-300 animate-pulse',
-    error: 'bg-zinc-800 border-zinc-700 text-zinc-300',
   };
 
   // Player's "achieved" % for this crime: show the crime's success chance as the base, and cooldown status
@@ -124,12 +110,6 @@ export default function SingleCrimeClient({
           <span className="text-sm text-zinc-400 whitespace-nowrap">⏱ {formatSeconds(effectiveCooldown)}</span>
         </div>
         <p className="text-sm text-zinc-500 mb-3">{t(`crime_${crime.key}_desc` as any)}</p>
-
-        {result && (
-          <p className={`mb-3 text-sm font-medium p-3 rounded border ${bannerStyles[result.kind]}`}>
-            {result.text}
-          </p>
-        )}
 
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-zinc-400 mb-4">
           <span>

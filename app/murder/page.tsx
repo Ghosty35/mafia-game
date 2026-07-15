@@ -14,13 +14,12 @@ const WEAPONS: { name: string; labelKey: TranslationKey; descKey: TranslationKey
 ];
 
 export default function MurderPage() {
-  const { player, updatePlayer } = usePlayer();
+  const { player, updatePlayer, showToast } = usePlayer();
   const { t } = useLanguage();
   const [targetName, setTargetName] = useState('');
   const [selectedWeapon, setSelectedWeapon] = useState(WEAPONS[0].name);
   const [bulletsUsed, setBulletsUsed] = useState(50);
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<any>(null);
   const [cooldown, setCooldown] = useState(0); // seconds left
 
   // Cooldown timer - MUST be declared before any early returns (Rules of Hooks)
@@ -60,7 +59,6 @@ export default function MurderPage() {
     }
 
     setBusy(true);
-    setResult(null);
 
     try {
       const supabase = createClient();
@@ -76,16 +74,16 @@ export default function MurderPage() {
         if (error.message.includes('ON_MURDER_COOLDOWN')) text = t('murder_on_cooldown');
         else if (error.message.includes('MURDER_LOCKED')) text = t('murder_locked_alert');
         else if (error.message.includes('TARGET_NOT_FOUND')) text = t('murder_invalid_input');
-        setResult({ success: false, message: text });
+        showToast(text, 'error');
       } else {
         updatePlayer(data.player);
         const message = data.success
           ? `Hit successful! Stole $${(data.stolen || 0).toLocaleString()} and gained ${data.skill_gained} KillSkill.`
           : `The hit failed — target got away. Heat increased.`;
-        setResult({ ...data, message });
+        showToast(message, data.success ? 'success' : 'fail');
       }
     } catch (e: any) {
-      setResult({ success: false, message: e.message || t('common_error') });
+      showToast(e.message || t('common_error'), 'error');
     }
 
     setBusy(false);
@@ -94,11 +92,6 @@ export default function MurderPage() {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-4">🔫 {t('murder_title')}</h1>
-      {result && (
-        <div className={`mb-4 card p-4 ${result.success ? 'border-green-700' : 'border-red-700'}`}>
-          {result.message}
-        </div>
-      )}
       {!isUnlocked && (
         <div className="mb-4 p-3 bg-red-950 border border-red-800 rounded text-sm">
           {t('murder_locked_banner', { level: player.level, skill: murderSkillPercent })}

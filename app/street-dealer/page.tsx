@@ -19,11 +19,10 @@ const DRUG_CAPS: Record<typeof DRUGS[number], number> = {
 };
 
 export default function StreetDealerPage() {
-  const { player, refreshPlayer, canPerformAction, recordAction } = usePlayer();
+  const { player, refreshPlayer, canPerformAction, recordAction, showToast } = usePlayer();
   const { t } = useLanguage();
   const [prices, setPrices] = useState<DrugPrices>({ Coke: 120, Weed: 80, Meth: 200, Pills: 50 });
   const [city, setCity] = useState<City>('New York');
-  const [message, setMessage] = useState('');
   const [drugStorage, setDrugStorage] = useState<Record<string, number>>({});
   const [cooldowns, setCooldowns] = useState<Record<string, number>>({}); // for timers like murder, grow
   const [buyQty, setBuyQty] = useState(1);
@@ -86,7 +85,6 @@ export default function StreetDealerPage() {
         Pills: Math.floor(35 * mult.Pills + Math.random() * 25),
       };
       setPrices(newPrices);
-      setMessage(t('dealer_prices_updated', { city: currentCity }));
     };
 
     updatePrices();
@@ -99,7 +97,7 @@ export default function StreetDealerPage() {
     const amount = qty || buyQty;
     if (!player || amount < 1) return;
     if (!canPerformAction()) {
-      setMessage(t('dealer_wait'));
+      showToast(t('dealer_wait'), 'error');
       return;
     }
     recordAction();
@@ -107,31 +105,31 @@ export default function StreetDealerPage() {
     const tax = Math.floor(cost * 0.015); // 1.5% tax to Community Tax Fund
     const total = cost + tax;
     if (player.cash < total) {
-      setMessage(t('dealer_no_cash_tax'));
+      showToast(t('dealer_no_cash_tax'), 'error');
       return;
     }
     const current = drugStorage[drug] || 0;
     if (current + amount > DRUG_CAPS[drug]) {
-      setMessage(t('dealer_cap_reached', { drug, cap: DRUG_CAPS[drug] }));
+      showToast(t('dealer_cap_reached', { drug, cap: DRUG_CAPS[drug] }), 'error');
       return;
     }
     const newStorage = { ...drugStorage, [drug]: current + amount };
     const supabase = createClient();
     supabase.rpc('apply_action', { cash_delta: -total, patch: { drug_storage: newStorage } }).then(async ({ error }) => {
       if (error) {
-        setMessage(error.message.includes('NOT_ENOUGH_CASH') ? t('dealer_no_cash_tax') : (error.message || t('dealer_purchase_failed')));
+        showToast(error.message.includes('NOT_ENOUGH_CASH') ? t('dealer_no_cash_tax') : (error.message || t('dealer_purchase_failed')), 'error');
         return;
       }
       setDrugStorage(newStorage);
       if (refreshPlayer) await refreshPlayer();
-      setMessage(t('dealer_bought', { amount, drug, total: `$${total}` }));
+      showToast(t('dealer_bought', { amount, drug, total: `$${total}` }), 'success');
     });
   };
 
   const sellDrug = (drug: typeof DRUGS[number], qty: number) => {
     const current = drugStorage[drug] || 0;
     if (current < qty) {
-      setMessage(t('dealer_not_enough_shed'));
+      showToast(t('dealer_not_enough_shed'), 'error');
       return;
     }
     const revenue = Math.floor(prices[drug] * qty);
@@ -139,12 +137,12 @@ export default function StreetDealerPage() {
     const supabase = createClient();
     supabase.rpc('apply_action', { cash_delta: revenue, patch: { drug_storage: newStorage } }).then(async ({ error }) => {
       if (error) {
-        setMessage(error.message || t('dealer_sale_failed'));
+        showToast(error.message || t('dealer_sale_failed'), 'error');
         return;
       }
       setDrugStorage(newStorage);
       if (refreshPlayer) await refreshPlayer();
-      setMessage(t('dealer_sold', { qty, drug, revenue: `$${revenue}` }));
+      showToast(t('dealer_sold', { qty, drug, revenue: `$${revenue}` }), 'success');
     });
   };
 
@@ -155,8 +153,6 @@ export default function StreetDealerPage() {
       <img src="https://picsum.photos/id/201/800/120" alt="Street Dealer" className="w-full h-24 object-cover rounded mb-4" />
       <h1 className="text-3xl font-bold mb-2">💊 {t('dealer_title', { city: currentCity })}</h1>
       <p className="text-sm text-zinc-400 mb-4">{t('dealer_desc')}</p>
-
-      {message && <div className="mb-4 p-3 bg-zinc-900 border border-zinc-700 rounded text-sm">{message}</div>}
 
       {/* Live Drug Storage Tracker */}
       <div className="mb-4 p-3 bg-zinc-900 border border-zinc-700 rounded">

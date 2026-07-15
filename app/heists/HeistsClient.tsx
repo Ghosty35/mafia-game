@@ -50,7 +50,7 @@ const DEFAULT_HEISTS: Heist[] = [
 
 export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) {
   const { t } = useLanguage();
-  const { player: contextPlayer, updatePlayer } = usePlayer();
+  const { player: contextPlayer, updatePlayer, showToast } = usePlayer();
   const [player, setPlayer] = useState<Player | null>(initialPlayer || contextPlayer);
   const [heists, setHeists] = useState<Heist[]>(DEFAULT_HEISTS);
   const [cooldowns, setCooldowns] = useState<Record<string, number>>({});
@@ -59,7 +59,6 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
   const [selectedWeapon, setSelectedWeapon] = useState('Pistol');
   const [gearBonus, setGearBonus] = useState(0);
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<any>(null);
   const [targets, setTargets] = useState<any[]>([]);
 
   const supabase = createClient();
@@ -117,12 +116,11 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
 
     const status = getHeistStatus(heist);
     if (!status.ready) {
-      setResult({ error: `On cooldown for ${status.timeLeft}` });
+      showToast(`On cooldown for ${status.timeLeft}`, 'error');
       return;
     }
 
     setBusy(true);
-    setResult(null);
 
     const { data, error } = await supabase.rpc('commit_heist', {
       heist_key: heist.key,
@@ -130,7 +128,7 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
     });
 
     if (error) {
-      setResult({ error: error.message });
+      showToast(error.message, 'error');
     } else {
       const updated = data.player as Player;
       // Consume bullets for heist
@@ -147,14 +145,10 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
       cdData?.forEach((cd: any) => { cdMap[cd.heist_key] = Date.parse(cd.available_at); });
       setCooldowns(cdMap);
 
-      setResult({
-        success: data.success,
-        reward: data.reward,
-        crew: data.crew_used,
-        gearBonus,
-        successChance: data.success_chance,
-        bulletsUsed,
-      });
+      const text = data.success
+        ? `✅ Heist Successful! You got $${data.reward.toLocaleString()}. Used ${data.crew_used} crew + ${gearBonus}% gear. Estimated chance was ~${data.success_chance}%.`
+        : `❌ Heist Failed — the crew got caught. Used ${data.crew_used} crew + ${gearBonus}% gear. Estimated chance was ~${data.success_chance}%.`;
+      showToast(text, data.success ? 'success' : 'fail');
     }
 
     setBusy(false);
@@ -169,24 +163,21 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
 
   const attemptHit = async (targetId: string, targetName: string) => {
     setBusy(true);
-    setResult(null);
 
     const { data, error } = await supabase.rpc('attempt_hit', {
       target_player_id: targetId
     });
 
     if (error) {
-      setResult({ error: error.message });
+      showToast(error.message, 'error');
     } else {
       const updated = data.player as Player;
       setPlayer(updated);
       updatePlayer(updated);
-      setResult({
-        success: data.success,
-        message: data.success 
-          ? `Hit on ${targetName} successful! +$${data.stolen} +${data.skill_gained} KillSkill`
-          : `Hit failed on ${targetName}. Jailed for 5 min.`,
-      });
+      const text = data.success
+        ? `Hit on ${targetName} successful! +$${data.stolen} +${data.skill_gained} KillSkill`
+        : `Hit failed on ${targetName}. Jailed for 5 min.`;
+      showToast(text, data.success ? 'success' : 'fail');
     }
     setBusy(false);
   };
@@ -198,31 +189,6 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
         <p className="text-sm text-zinc-400">Big scores require preparation and crew. Minimum 2 members.</p>
         <div className="mt-2 text-xs text-amber-400">Your Heat: {currentHeat} • In Jail: {inJail ? 'YES' : 'No'}</div>
       </div>
-
-      {result && (
-        <div className={`card p-5 border ${result.error ? 'border-red-700' : result.success ? 'border-green-700' : 'border-red-700'}`}>
-          {result.error ? (
-            <p className="text-red-400">{result.error}</p>
-          ) : result.message ? (
-            <>
-              <div className="text-lg font-bold mb-1">{result.success ? '✅ Hit Successful' : '❌ Hit Failed'}</div>
-              <p className="text-sm">{result.message}</p>
-            </>
-          ) : (
-            <>
-              <div className="text-lg font-bold mb-2">
-                {result.success ? '✅ Heist Successful' : '❌ Heist Failed'}
-              </div>
-              <div className="text-sm">
-                {result.success ? `You got $${result.reward.toLocaleString()}` : 'The crew got caught.'}<br />
-                Used {result.crew} crew members + {result.gearBonus}% gear.<br />
-                Estimated chance was ~{result.successChance}%.
-              </div>
-            </>
-          )}
-          <button onClick={() => setResult(null)} className="mt-3 text-xs underline">Close</button>
-        </div>
-      )}
 
       {/* Gear / Armory (Fase 5.2) */}
       <section className="card p-5">
