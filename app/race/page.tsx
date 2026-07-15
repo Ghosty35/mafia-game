@@ -118,8 +118,8 @@ export default function RacePage() {
     await loadRaces();
     setMessage(
       data?.you_won
-        ? t('race_won', { opponent: data?.winner === race.poster_name ? race.joined_name : race.poster_name, pot: `$${data?.pot ?? 0}` })
-        : t('race_lost', { opponent: data?.winner, bet: `$${race.bet}` }),
+        ? t('race_won', { opponent: (data?.winner === race.poster_name ? race.joined_name : race.poster_name) ?? '', pot: `$${data?.pot ?? 0}` })
+        : t('race_lost', { opponent: data?.winner ?? '', bet: `$${race.bet}` }),
     );
   };
 
