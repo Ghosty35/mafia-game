@@ -892,7 +892,9 @@
   "tracker_bullets": "🔫 Kogels:",
   "tracker_ready": "Klaar ✅",
   "tracker_no_plants": "Geen planten",
-  "tracker_footer": "Live updates elke seconde. Meer timers (misdaden, kweek, etc.) kunnen hier worden toegevoegd.",
+  "tracker_footer": "Al je actieve wachttijden, live. Klik op de pijl voor het volledige overzicht.",
+  "tracker_all_ready": "Alles klaar — geen actieve wachttijden.",
+  "tracker_all_link": "Alle wachttijden",
 
   "logs_title": "📜 Live Game Logs (Widget)",
   "logs_server_started": "Server gestart. Welkom in 2026.",

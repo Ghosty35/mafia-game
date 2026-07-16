@@ -892,7 +892,9 @@
   "tracker_bullets": "🔫 Bullets:",
   "tracker_ready": "Ready ✅",
   "tracker_no_plants": "No plants",
-  "tracker_footer": "Live updates every second. More timers (crimes, grow, etc.) can be added here.",
+  "tracker_footer": "All your active cooldowns, live. Click the arrow for the full overview.",
+  "tracker_all_ready": "Everything ready — no active cooldowns.",
+  "tracker_all_link": "All cooldowns",
 
   "logs_title": "📜 Live Game Logs (Widget)",
   "logs_server_started": "Server started. Welcome to 2026.",
