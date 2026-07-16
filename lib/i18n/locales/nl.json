@@ -604,7 +604,7 @@
 
   "dealer_title": "Straatdealer - {city}",
   "dealer_desc": "Prijzen veranderen elke 4 uur per stad. Koop laag, verkoop hoog in andere steden voor grote winsten (verborgen drugseconomie). 1,5% belasting naar het Community Fund.",
-  "dealer_storage_title": "Jouw Schuuropslag",
+  "dealer_storage_title": "Jouw Voorraad (draaglimiet)",
   "dealer_prices_updated": "Straatprijzen bijgewerkt in {city}. Zoek winstgevende runs!",
   "dealer_wait": "Wacht 2 seconden tussen acties/transacties.",
   "dealer_no_cash_tax": "Niet genoeg geld (incl. 1,5% belasting naar het Fund)!",

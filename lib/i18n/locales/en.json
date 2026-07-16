@@ -604,7 +604,7 @@
 
   "dealer_title": "Street Dealer - {city}",
   "dealer_desc": "Prices change every 4 hours per city. Buy low, sell high in other cities for big profits (hidden drug economy). Tax 1.5% to Community Fund.",
-  "dealer_storage_title": "Your Shed Storage",
+  "dealer_storage_title": "Your Stash (carry limit)",
   "dealer_prices_updated": "Street prices updated in {city}. Look for profitable runs!",
   "dealer_wait": "Please wait 2 seconds between actions/transactions.",
   "dealer_no_cash_tax": "Not enough cash (incl. 1.5% tax to Fund)!",
