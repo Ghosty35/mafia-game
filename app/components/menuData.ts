@@ -59,6 +59,7 @@ export const leftMenuCategories: MenuCategory[] = [
       { labelKey: 'menu_safehouse', href: '/safehouse', icon: '🏠' },
       { labelKey: 'menu_hospital', href: '/hospital', icon: '🏥' },
       { labelKey: 'menu_jail', href: '/jail', icon: '🔒' },
+      { labelKey: 'menu_wait_times', href: '/wachttijden', icon: '⏱️' },
     ],
   },
   {

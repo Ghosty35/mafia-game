@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { formatCash } from '@/lib/format';
 import { getRank } from '@/lib/ranks';
+import RipButton from '../components/RipButton';
 import type { LeaderboardData, LeaderboardEntry } from '@/lib/types';
 
 // Overall Power calculation (Bulletstar style - heavy on rebirths + level + activity)
@@ -107,8 +108,13 @@ export default function LeaderboardPage() {
                   {displayRank}
                 </div>
 
-                <div className="col-span-2 text-[10px] text-red-400 font-mono truncate">
-                  {hasFamily ? `${player.family_tag} — ${player.family_name}` : '—'}
+                <div className="col-span-2 flex items-center justify-between gap-1 min-w-0">
+                  <span className="text-[10px] text-red-400 font-mono truncate">
+                    {hasFamily ? `${player.family_tag} — ${player.family_name}` : '—'}
+                  </span>
+                  <span className="shrink-0">
+                    <RipButton targetUsername={player.username} />
+                  </span>
                 </div>
               </div>
             );

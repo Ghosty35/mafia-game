@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { formatCash } from '@/lib/format';
+import RipButton from './RipButton';
+import type { TranslationKey } from '@/lib/i18n/translations';
 
 type WantedEntry = {
   pos: number;
@@ -17,16 +19,16 @@ type WantedEntry = {
   family_tag: string | null;
 };
 
-function heatBadge(heat: number) {
-  if (heat >= 75) return { label: 'MOST WANTED', cls: 'bg-red-600 text-white' };
-  if (heat >= 40) return { label: 'Wanted', cls: 'bg-orange-600/80 text-white' };
-  if (heat >= 20) return { label: 'Watched', cls: 'bg-yellow-600/70 text-black' };
-  if (heat > 0) return { label: 'Cooling', cls: 'bg-zinc-700 text-zinc-200' };
-  return { label: 'Clean', cls: 'bg-zinc-800 text-zinc-400' };
+function heatBadge(heat: number): { labelKey: TranslationKey; cls: string } {
+  if (heat >= 75) return { labelKey: 'pi_most_wanted', cls: 'bg-red-600 text-white' };
+  if (heat >= 40) return { labelKey: 'mw_st_wanted', cls: 'bg-orange-600/80 text-white' };
+  if (heat >= 20) return { labelKey: 'mw_st_watched', cls: 'bg-yellow-600/70 text-black' };
+  if (heat > 0) return { labelKey: 'mw_st_cooling', cls: 'bg-zinc-700 text-zinc-200' };
+  return { labelKey: 'mw_st_clean', cls: 'bg-zinc-800 text-zinc-400' };
 }
 
 export default function MostWantedBoard({ limit = 25, compact = false }: { limit?: number; compact?: boolean }) {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const [rows, setRows] = useState<WantedEntry[]>([]);
   const [me, setMe] = useState<{ pos: number; heat: number } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,23 +54,23 @@ export default function MostWantedBoard({ limit = 25, compact = false }: { limit
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden text-sm">
       <div className="bg-gradient-to-r from-red-950 to-zinc-900 px-4 py-2 flex items-center justify-between">
-        <h2 className="font-bold tracking-tight flex items-center gap-2">🚨 Most Wanted</h2>
-        <span className="text-[10px] text-zinc-400 uppercase tracking-wider">Ranked by heat</span>
+        <h2 className="font-bold tracking-tight flex items-center gap-2">🚨 {t('menu_most_wanted')}</h2>
+        <span className="text-[10px] text-zinc-400 uppercase tracking-wider">{t('mw_ranked_by_heat')}</span>
       </div>
 
       {/* header */}
       <div className="grid grid-cols-12 bg-zinc-800 px-3 py-1.5 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
         <div className="col-span-1 text-center">#</div>
-        <div className="col-span-4">Criminal</div>
-        <div className="col-span-3">Status</div>
-        <div className="col-span-2 text-right">Heat</div>
-        {!compact && <div className="col-span-2 text-right">Cash</div>}
+        <div className="col-span-4">{t('mw_col_criminal')}</div>
+        <div className="col-span-3">{t('mw_col_status')}</div>
+        <div className="col-span-2 text-right">{t('mw_col_heat')}</div>
+        {!compact && <div className="col-span-2 text-right">{t('mw_col_cash')}</div>}
       </div>
 
       {loading ? (
-        <div className="p-8 text-center text-zinc-500 text-sm">Loading…</div>
+        <div className="p-8 text-center text-zinc-500 text-sm">{t('mw_loading')}</div>
       ) : rows.length === 0 ? (
-        <div className="p-8 text-center text-zinc-500 text-sm">No criminals on the radar.</div>
+        <div className="p-8 text-center text-zinc-500 text-sm">{t('mw_empty')}</div>
       ) : (
         rows.map((r) => {
           const badge = heatBadge(r.heat);
@@ -81,15 +83,16 @@ export default function MostWantedBoard({ limit = 25, compact = false }: { limit
               }`}
             >
               <div className="col-span-1 text-center font-mono text-red-500 font-semibold text-xs">#{r.pos}</div>
-              <div className="col-span-4 font-medium truncate pr-2">
-                <Link href={`/profile?user=${r.username}`} className="hover:underline text-red-400">
+              <div className="col-span-4 font-medium truncate pr-2 flex items-center gap-1 min-w-0">
+                <Link href={`/profile?user=${r.username}`} className="hover:underline text-red-400 truncate">
                   {r.username}
                 </Link>
-                {r.is_donator && <span className="ml-1 text-[8px] px-1 py-0.5 bg-amber-500 text-black rounded font-bold align-middle">D</span>}
-                {r.family_tag && <span className="ml-1 text-[9px] text-zinc-500 font-mono">[{r.family_tag}]</span>}
+                {r.is_donator && <span className="text-[8px] px-1 py-0.5 bg-amber-500 text-black rounded font-bold align-middle shrink-0">D</span>}
+                {r.family_tag && <span className="text-[9px] text-zinc-500 font-mono shrink-0">[{r.family_tag}]</span>}
+                {!isMe && <span className="shrink-0"><RipButton targetUsername={r.username} /></span>}
               </div>
               <div className="col-span-3">
-                <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold tracking-wide ${badge.cls}`}>{badge.label}</span>
+                <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold tracking-wide ${badge.cls}`}>{t(badge.labelKey)}</span>
               </div>
               <div className="col-span-2 text-right font-mono font-semibold text-orange-400 tabular-nums">
                 🔥 {r.heat}
@@ -106,7 +109,7 @@ export default function MostWantedBoard({ limit = 25, compact = false }: { limit
 
       {me && (
         <p className="px-3 py-2 text-center text-[10px] text-zinc-400 border-t border-zinc-800">
-          Your spot: <span className="text-red-400 font-semibold">#{me.pos}</span> · heat{' '}
+          {t('mw_your_spot')}: <span className="text-red-400 font-semibold">#{me.pos}</span> · {t('mw_heat_word')}{' '}
           <span className="text-orange-400 font-semibold">{me.heat}</span>
         </p>
       )}

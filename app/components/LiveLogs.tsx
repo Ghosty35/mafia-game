@@ -62,11 +62,11 @@ export default function LiveLogs() {
           📡 {t('logs_title')}
           <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
         </h3>
-        <span className="text-[10px] text-zinc-500">live</span>
+        <span className="text-[10px] text-zinc-500">{t('feed_live')}</span>
       </div>
       <div className="max-h-56 overflow-auto pr-1 space-y-1">
         {events.length === 0 ? (
-          <div className="text-xs text-zinc-500 py-4 text-center">Nothing happening yet… go make some noise.</div>
+          <div className="text-xs text-zinc-500 py-4 text-center">{t('feed_empty')}</div>
         ) : (
           events.map((e) => (
             <div

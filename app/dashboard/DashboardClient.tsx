@@ -144,7 +144,7 @@ export default function DashboardClient({
           <MostWantedBoard limit={8} compact />
           <div className="mt-2 text-right">
             <Link href="/most-wanted" className="text-xs text-red-400 hover:underline">
-              Full Most Wanted board →
+              {t('mw_full_board')}
             </Link>
           </div>
         </div>
