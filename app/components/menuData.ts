@@ -27,6 +27,7 @@ export const leftMenuCategories: MenuCategory[] = [
       { labelKey: 'menu_tips', href: '/journey/tips', icon: '💡' },
       { labelKey: 'menu_menus', href: '/journey/menus', icon: '🧭' },
       { labelKey: 'menu_roadmap', href: '/journey/roadmap', icon: '🚀' },
+      { labelKey: 'menu_rebirth', href: '/rebirth', icon: '👑' },
     ],
   },
   {
