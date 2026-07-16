@@ -36,6 +36,7 @@ export default function PlayerInfoCard({ player: propPlayer, familyStatus: propF
   const player = propPlayer || context.player;
   const [familyStatus, setFamilyStatus] = useState(propFamily || null);
   const [serverTime, setServerTime] = useState(''); // client-only, avoids SSR hydration mismatch
+  const [unread, setUnread] = useState(0);
 
   // Live server clock (Europe/Amsterdam), set only on the client.
   useEffect(() => {
@@ -68,6 +69,24 @@ export default function PlayerInfoCard({ player: propPlayer, familyStatus: propF
     };
     fetchFamily();
   }, [player?.id, propFamily]);
+
+  // Unread DM badge for the messages row (RLS: own inbox only).
+  useEffect(() => {
+    if (!player?.id) return;
+    const fetchUnread = async () => {
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      const { count } = await supabase
+        .from('messages')
+        .select('id', { count: 'exact', head: true })
+        .eq('to_player_id', player.id)
+        .eq('read', false);
+      setUnread(count ?? 0);
+    };
+    fetchUnread();
+    const iv = setInterval(fetchUnread, 30000);
+    return () => clearInterval(iv);
+  }, [player?.id]);
 
   if (!player) {
     return <div className="card p-3 mb-4 animate-pulse h-24 bg-zinc-900 border border-zinc-800" />;
@@ -174,7 +193,13 @@ export default function PlayerInfoCard({ player: propPlayer, familyStatus: propF
             </Link>
             <Link href="/messages" className="flex items-center justify-between gap-2 hover:text-red-300">
               <span className="text-[11px] text-zinc-500">✉️ {t('pi_messages')}</span>
-              <span className="font-mono text-red-400">→</span>
+              {unread > 0 ? (
+                <span className="min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center">
+                  {unread}
+                </span>
+              ) : (
+                <span className="font-mono text-red-400">→</span>
+              )}
             </Link>
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] text-zinc-500">🕐 {t('pi_server_time')}</span>
