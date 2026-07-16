@@ -64,6 +64,7 @@ function FamiliesContent() {
   const [loading, setLoading] = useState(true);
   const [myFamily, setMyFamily] = useState<MyFamilyData | null>(null);
   const [availableFamilies, setAvailableFamilies] = useState<FamilySummary[]>([]);
+  const [myRequest, setMyRequest] = useState<{ request_id: string; family_id: string; family_name: string } | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,9 +82,10 @@ function FamiliesContent() {
     setError(null);
 
     try {
-      const [myFamRes, listRes] = await Promise.all([
+      const [myFamRes, listRes, reqRes] = await Promise.all([
         supabase.rpc('get_my_family'),
         supabase.rpc('list_families'),
+        supabase.rpc('get_my_join_request'),
       ]);
 
       if (myFamRes.error) {
@@ -94,6 +96,7 @@ function FamiliesContent() {
       }
 
       setMyFamily(myFamRes.data || { family: null, my_role: null, members: [] });
+      setMyRequest(reqRes.data && reqRes.data.request_id ? reqRes.data : null);
 
       // list_families returns jsonb array or null
       const families = listRes.data ? (Array.isArray(listRes.data) ? listRes.data : []) : [];
@@ -164,18 +167,37 @@ function FamiliesContent() {
     router.refresh();
   };
 
+  // Joining is request-based since 068: leadership (boss/underboss) accepts
+  // or rejects. An abandoned family (0 members) is joined instantly as boss.
   const joinFamily = async (familyId: string) => {
     setBusy(true);
     setError(null);
 
-    const { error } = await supabase.rpc('join_family', { p_family_id: familyId });
+    const { error } = await supabase.rpc('request_join_family', { p_family_id: familyId });
 
     setBusy(false);
 
     if (error) {
-      let msg = 'Could not join this Family.';
+      let msg = 'Could not send a join request to this Family.';
       if (error.message.includes('ALREADY_IN_FAMILY')) msg = 'You are already in a Family.';
+      if (error.message.includes('REQUEST_ALREADY_PENDING')) msg = 'You already have a pending join request.';
       setError(msg);
+      return;
+    }
+
+    await loadData();
+  };
+
+  const cancelJoinRequest = async () => {
+    setBusy(true);
+    setError(null);
+
+    const { error } = await supabase.rpc('cancel_join_request');
+
+    setBusy(false);
+
+    if (error) {
+      setError('Failed to cancel the join request.');
       return;
     }
 
@@ -711,13 +733,24 @@ function FamiliesContent() {
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => joinFamily(fam.id)}
-                      disabled={busy}
-                      className="mt-auto w-full bg-zinc-800 hover:bg-red-600 hover:text-white transition-colors py-2.5 rounded-xl font-semibold disabled:opacity-50"
-                    >
-                      Join Family
-                    </button>
+                    {myRequest?.family_id === fam.id ? (
+                      <button
+                        onClick={cancelJoinRequest}
+                        disabled={busy}
+                        className="mt-auto w-full bg-amber-900/60 border border-amber-700 hover:bg-amber-800 transition-colors py-2.5 rounded-xl font-semibold disabled:opacity-50"
+                      >
+                        ⏳ Request pending — click to cancel
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => joinFamily(fam.id)}
+                        disabled={busy || myRequest != null}
+                        title={myRequest != null ? 'You already have a pending join request.' : undefined}
+                        className="mt-auto w-full bg-zinc-800 hover:bg-red-600 hover:text-white transition-colors py-2.5 rounded-xl font-semibold disabled:opacity-50"
+                      >
+                        {fam.member_count === 0 ? 'Revive Family (become boss)' : 'Request to Join'}
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
