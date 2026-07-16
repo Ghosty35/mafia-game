@@ -1230,5 +1230,9 @@
   "ev_tip": "🤫 An informant tipped you off — the cops looked the other way (-10 heat).",
   "ev_shakedown": "🚔 Police shakedown! They squeezed {amount} out of you (+10 heat).",
   "ev_mugging": "🔪 You got mugged in an alley and lost {amount}.",
-  "travel_dead": "You can't travel while dead."
+  "travel_dead": "You can't travel while dead.",
+  "pi_tt_heat": "Heat: police attention from crimes. Cools down over time. At 75+ you are Most Wanted — more police busts and laundering risk.",
+  "pi_tt_dirty": "Dirty cash: criminal income. You can't spend or bank it — launder it first (click to open).",
+  "pi_tt_stamina": "Stamina: physical energy for crimes, heists, PvP and the gym. Regenerates while you rest.",
+  "pi_tt_stats": "Strength wins fights you start, Defense resists rips and hits. Train both at the gym (click to open)."
 }

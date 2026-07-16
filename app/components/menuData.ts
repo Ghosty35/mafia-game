@@ -18,6 +18,17 @@ export interface MenuCategory {
 // Left sidebar: everything you DO in the city.
 // Social structures (Family, leaderboards, messages) live in the right sidebar.
 export const leftMenuCategories: MenuCategory[] = [
+  // Journey (guide/tips/roadmap) deliberately sits ABOVE the crime menus —
+  // new players should see "how do I play" before the list of jobs.
+  {
+    titleKey: 'side_journey',
+    items: [
+      { labelKey: 'menu_guide', href: '/journey/guide', icon: '📖' },
+      { labelKey: 'menu_tips', href: '/journey/tips', icon: '💡' },
+      { labelKey: 'menu_menus', href: '/journey/menus', icon: '🧭' },
+      { labelKey: 'menu_roadmap', href: '/journey/roadmap', icon: '🚀' },
+    ],
+  },
   {
     titleKey: 'side_street_ops',
     items: [
@@ -69,15 +80,6 @@ export const leftMenuCategories: MenuCategory[] = [
     items: [
       { labelKey: 'menu_casino_floor', href: '/casino', icon: '🎰' },
       { labelKey: 'menu_lottery', href: '/casino/lottery', icon: '🎟️' },
-    ],
-  },
-  {
-    titleKey: 'side_journey',
-    items: [
-      { labelKey: 'menu_guide', href: '/journey/guide', icon: '📖' },
-      { labelKey: 'menu_tips', href: '/journey/tips', icon: '💡' },
-      { labelKey: 'menu_menus', href: '/journey/menus', icon: '🧭' },
-      { labelKey: 'menu_roadmap', href: '/journey/roadmap', icon: '🚀' },
     ],
   },
 ];

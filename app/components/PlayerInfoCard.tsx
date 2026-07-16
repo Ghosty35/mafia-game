@@ -16,9 +16,9 @@ interface PlayerInfoCardProps {
 }
 
 // A labelled progress bar (left column of the stats header).
-function StatBar({ label, pct, valueText, color }: { label: string; pct: number; valueText: string; color: string }) {
+function StatBar({ label, pct, valueText, color, tooltip }: { label: string; pct: number; valueText: string; color: string; tooltip?: string }) {
   return (
-    <div>
+    <div title={tooltip}>
       <div className="flex items-center justify-between text-[11px] mb-0.5">
         <span className="text-zinc-300">{label}</span>
         <span className="font-mono text-zinc-400">{valueText}</span>
@@ -121,11 +121,11 @@ export default function PlayerInfoCard({ player: propPlayer, familyStatus: propF
           <div className="flex items-center gap-2 shrink-0">
             {protection > 0 && <span className="text-xs text-blue-400">🛡️+{protection}</span>}
             {mostWanted ? (
-              <span className="text-[9px] px-1.5 py-0.5 bg-red-600 text-white rounded font-bold tracking-wide animate-pulse">
+              <span title={t('pi_tt_heat')} className="text-[9px] px-1.5 py-0.5 bg-red-600 text-white rounded font-bold tracking-wide animate-pulse">
                 🚨 {t('pi_most_wanted')} {heat}
               </span>
             ) : (
-              <span className={`text-[10px] font-mono ${heat >= 40 ? 'text-orange-400' : 'text-zinc-500'}`}>🔥 {heat}/100</span>
+              <span title={t('pi_tt_heat')} className={`text-[10px] font-mono ${heat >= 40 ? 'text-orange-400' : 'text-zinc-500'}`}>🔥 {heat}/100</span>
             )}
           </div>
         </div>
@@ -143,7 +143,7 @@ export default function PlayerInfoCard({ player: propPlayer, familyStatus: propF
             <StatBar label={t('pi_life')} pct={health} valueText={`${health}%`}
               color={health > 60 ? 'bg-emerald-500' : health > 30 ? 'bg-yellow-500' : 'bg-red-500'} />
             <StatBar label={t('pi_murder_xp')} pct={murderProgress} valueText={`${murderSkill.toFixed(2)}`} color="bg-purple-500" />
-            <StatBar label={t('pi_stamina')} pct={stamina} valueText={`${stamina}/100`} color="bg-cyan-500" />
+            <StatBar label={t('pi_stamina')} pct={stamina} valueText={`${stamina}/100`} color="bg-cyan-500" tooltip={t('pi_tt_stamina')} />
           </div>
 
           {/* Right: resources */}
@@ -152,7 +152,7 @@ export default function PlayerInfoCard({ player: propPlayer, familyStatus: propF
               <span className="text-[11px] text-zinc-500">💵 {t('pi_cash')}</span>
               <span className="font-mono text-emerald-400">${formatNum(cash)}</span>
             </Link>
-            <Link href="/laundering" className="flex items-center justify-between gap-2 hover:text-red-300">
+            <Link href="/laundering" title={t('pi_tt_dirty')} className="flex items-center justify-between gap-2 hover:text-red-300">
               <span className="text-[11px] text-zinc-500">🩸 {t('pi_dirty')}</span>
               <span className="font-mono text-red-400">${formatNum(player.dirty_cash ?? 0)}</span>
             </Link>
@@ -168,7 +168,7 @@ export default function PlayerInfoCard({ player: propPlayer, familyStatus: propF
               <span className="text-[11px] text-zinc-500">⚡ {t('pi_power')}</span>
               <span className="font-mono text-white font-semibold">{formatNum(power)}</span>
             </div>
-            <Link href="/gym" className="flex items-center justify-between gap-2 hover:text-amber-300">
+            <Link href="/gym" title={t('pi_tt_stats')} className="flex items-center justify-between gap-2 hover:text-amber-300">
               <span className="text-[11px] text-zinc-500">🏋️ {t('pi_stats')}</span>
               <span className="font-mono text-amber-400">💪{strength} 🛡{defense}</span>
             </Link>

@@ -1230,5 +1230,9 @@
   "ev_tip": "🤫 Een informant tipte je — de politie keek de andere kant op (-10 heat).",
   "ev_shakedown": "🚔 Politie-shakedown! Ze persten {amount} uit je (+10 heat).",
   "ev_mugging": "🔪 Je bent beroofd in een steegje en verloor {amount}.",
-  "travel_dead": "Je kunt niet reizen terwijl je dood bent."
+  "travel_dead": "Je kunt niet reizen terwijl je dood bent.",
+  "pi_tt_heat": "Heat: politie-aandacht door misdaden. Koelt vanzelf af. Vanaf 75 ben je Most Wanted — meer politie-invallen en witwasrisico.",
+  "pi_tt_dirty": "Zwart geld: crimineel inkomen. Je kunt het niet uitgeven of bankieren — was het eerst wit (klik om te openen).",
+  "pi_tt_stamina": "Stamina: fysieke energie voor misdaden, heists, PvP en de sportschool. Herstelt terwijl je rust.",
+  "pi_tt_stats": "Kracht wint gevechten die jij begint, Verdediging weert rips en hits af. Train beide in de sportschool (klik om te openen)."
 }
