@@ -34,21 +34,21 @@ CREATE OR REPLACE FUNCTION public._spend_stamina(p_player_id uuid, p_cost int)
 RETURNS int LANGUAGE plpgsql SET search_path = ''
 AS $$
 DECLARE
-  row record;
+  pr record;
   rate numeric;
   elapsed_h numeric;
   pts int;
   cur int;
   anchor timestamptz;
 BEGIN
-  SELECT stamina, stamina_updated_at, is_donator INTO row
+  SELECT stamina, stamina_updated_at, is_donator INTO pr
   FROM public.players WHERE id = p_player_id;
 
-  cur := COALESCE(row.stamina, 100);
-  anchor := COALESCE(row.stamina_updated_at, now());
+  cur := COALESCE(pr.stamina, 100);
+  anchor := COALESCE(pr.stamina_updated_at, now());
 
   IF cur < 100 THEN
-    rate := public._stamina_regen_rate(COALESCE(row.is_donator, false));
+    rate := public._stamina_regen_rate(COALESCE(pr.is_donator, false));
     elapsed_h := EXTRACT(EPOCH FROM (now() - anchor)) / 3600.0;
     pts := floor(elapsed_h * rate)::int;
     IF pts > 0 THEN
