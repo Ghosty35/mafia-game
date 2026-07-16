@@ -50,7 +50,7 @@ const DEFAULT_HEISTS: Heist[] = [
 ];
 
 export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) {
-  const { t, language } = useLanguage();
+  const { t, language, fm } = useLanguage();
   const { player: contextPlayer, updatePlayer, showToast } = usePlayer();
   const [player, setPlayer] = useState<Player | null>(initialPlayer || contextPlayer);
   const [heists, setHeists] = useState<Heist[]>(DEFAULT_HEISTS);
@@ -217,7 +217,7 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
       setCooldowns(cdMap);
 
       let text = data.success
-        ? `✅ Heist Successful! You got $${data.reward.toLocaleString()}. Used ${data.crew_used} crew + ${gearBonus}% gear. Estimated chance was ~${data.success_chance}%.`
+        ? `✅ Heist Successful! You got ${fm(data.reward)}. Used ${data.crew_used} crew + ${gearBonus}% gear. Estimated chance was ~${data.success_chance}%.`
         : `❌ Heist Failed — the crew got caught. Used ${data.crew_used} crew + ${gearBonus}% gear. Estimated chance was ~${data.success_chance}%.`;
       // Random street event (071)
       const evText = streetEventText(data.event, t, language);
@@ -260,7 +260,7 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
       setPlayer(updated);
       updatePlayer(updated);
       const text = data.success
-        ? `Hit on ${targetName} successful! +$${data.stolen} +${data.skill_gained} KillSkill`
+        ? `Hit on ${targetName} successful! +${fm(data.stolen)} +${data.skill_gained} KillSkill`
         : `Hit failed on ${targetName}. Jailed for 5 min.`;
       showToast(text, data.success ? 'success' : 'fail');
     }
@@ -279,9 +279,9 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
       <section className="card p-5">
         <h2 className="font-bold mb-3">🛡️ Heist Armory (Buy for this run)</h2>
         <div className="flex flex-wrap gap-3">
-          <button onClick={() => buyGear('pistol')} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm">Street Pistol (+8%) — $450</button>
-          <button onClick={() => buyGear('kevlar')} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm">Kevlar + Tools (+12%) — $720</button>
-          <button onClick={() => buyGear('fullkit')} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm">Full Kit (+18%) — $1,100</button>
+          <button onClick={() => buyGear('pistol')} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm">Street Pistol (+8%) — {fm(450)}</button>
+          <button onClick={() => buyGear('kevlar')} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm">Kevlar + Tools (+12%) — {fm(720)}</button>
+          <button onClick={() => buyGear('fullkit')} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm">Full Kit (+18%) — {fm(1100)}</button>
           <div className="text-xs self-center text-emerald-400">Current gear bonus: +{gearBonus}%</div>
         </div>
         <p className="text-[10px] text-zinc-500 mt-2">Gear is permanent and applies to your future heists (server-side).</p>
@@ -307,7 +307,7 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
                     onClick={() => buyWeapon(w.id)}
                     className="px-4 py-2 bg-emerald-800 hover:bg-emerald-700 rounded text-sm"
                   >
-                    Buy {w.label} (+{w.bonus}%) — ${w.price.toLocaleString()}
+                    Buy {w.label} (+{w.bonus}%) — {fm(w.price)}
                   </button>
                 )}
               </div>
@@ -367,7 +367,7 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
               </div>
 
               <div className="mt-2 text-sm space-y-1">
-                <div>Reward: <span className="text-emerald-400">${h.min_reward.toLocaleString()} – ${h.max_reward.toLocaleString()}</span></div>
+                <div>Reward: <span className="text-emerald-400">{fm(h.min_reward)} – {fm(h.max_reward)}</span></div>
                 <div>Est. Success: <span className="font-mono text-amber-400">{successEst}%</span></div>
                 {!status.ready && (
                   <div className="text-orange-400 text-xs">⏱ Cooldown: {status.timeLeft}</div>

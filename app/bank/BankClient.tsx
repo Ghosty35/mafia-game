@@ -10,7 +10,7 @@ import { useRouter } from 'next/navigation';
 import type { Player } from '@/lib/types';
 
 export default function BankClient({ initialPlayer, email }: { initialPlayer: Player | null; email: string }) {
-  const { t } = useLanguage();
+  const { t, language, fm } = useLanguage();
   const { player: contextPlayer, updatePlayer, refreshPlayer } = usePlayer();
   const router = useRouter();
   const [amount, setAmount] = useState(100);
@@ -55,7 +55,7 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
       return;
     }
 
-    if (!confirm(`Confirm deposit of $${amount} from Cash to Bank? This will transfer the funds.`)) {
+    if (!confirm(`Confirm deposit of ${fm(amount)} from Cash to Bank? This will transfer the funds.`)) {
       return;
     }
 
@@ -73,7 +73,7 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
       updatePlayer(updated);
       setAmount(100);
       await refreshPlayer();
-      alert(`Deposit successful! Funds transferred to personal bank. ($${tax} to Gov Tax)`);
+      alert(`Deposit successful! Funds transferred to personal bank. (${fm(tax)} to Gov Tax)`);
     }
     setLoading(false);
   };
@@ -84,7 +84,7 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
       return;
     }
 
-    if (!confirm(`Confirm withdraw of $${amount} from Bank to Cash? This will transfer the funds.`)) {
+    if (!confirm(`Confirm withdraw of ${fm(amount)} from Bank to Cash? This will transfer the funds.`)) {
       return;
     }
 
@@ -102,7 +102,7 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
       updatePlayer(updated);
       setAmount(100);
       await refreshPlayer();
-      alert(`Withdraw successful! Funds transferred to cash. ($${tax} to Gov Tax)`);
+      alert(`Withdraw successful! Funds transferred to cash. (${fm(tax)} to Gov Tax)`);
     }
     setLoading(false);
   };
@@ -112,7 +112,7 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
       alert('Invalid amount or not enough cash!');
       return;
     }
-    if (!confirm(`Confirm deposit of $${amount} to Gov Tax Fund? This contributes to government taxes.`)) {
+    if (!confirm(`Confirm deposit of ${fm(amount)} to Gov Tax Fund? This contributes to government taxes.`)) {
       return;
     }
     setLoading(true);
@@ -142,7 +142,7 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
             <div className="font-mono text-emerald-400 text-lg">Money Rank: {moneyRank}</div>
           </div>
         </div>
-        <div className="mt-2 text-xs text-zinc-500">Total Wealth: ${formatCash(totalWealth, 'en')} (Cash + Bank + Assets)</div>
+        <div className="mt-2 text-xs text-zinc-500">Total Wealth: {formatCash(totalWealth, language)} (Cash + Bank + Assets)</div>
         <div className="mt-1 text-[10px] text-emerald-300/70">Tip: Personal Bank is safer. Small tax applies on moves. Use Confirm buttons for big transfers. All losses feed the Dev's central Casino Bank.</div>
       </div>
 
@@ -163,7 +163,7 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
         <div className="card p-6 mb-4">
           <div className="text-sm text-zinc-500 mb-1">CASH ON HAND</div>
           <div className="text-5xl font-bold tabular-nums text-emerald-400 mb-2">
-            ${formatCash(player.cash, 'en')}
+            {formatCash(player.cash, language)}
           </div>
           <div className="text-xs text-zinc-500">Ready for crimes, heists & street deals. Taxed on big spends (1-2% to Community Fund).</div>
         </div>
@@ -173,7 +173,7 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
         <div className="card p-6 mb-4 border border-emerald-800">
           <div className="text-sm text-emerald-400 mb-1">PERSONAL BANK (Protected Vault)</div>
           <div className="text-5xl font-bold tabular-nums text-emerald-400 mb-2">
-            ${formatCash(currentBank, 'en')}
+            {formatCash(currentBank, language)}
           </div>
           <div className="text-xs text-zinc-500 mb-4">Safe from street risks. Earn interest soon. Use for bills & big moves.</div>
         </div>
@@ -182,7 +182,7 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
       {activeTab === 'assets' && (
         <div className="card p-6 mb-4">
           <div className="text-sm text-yellow-400 mb-1">OTHER ASSETS</div>
-          <div className="text-sm">Stocks + Property + Lottery: <span className="font-mono">${formatCash(player.total_wealth || 0, 'en')}</span></div>
+          <div className="text-sm">Stocks + Property + Lottery: <span className="font-mono">{formatCash(player.total_wealth || 0, language)}</span></div>
           <div className="mt-2">
             <Link href="/stocks" className="text-emerald-400 hover:underline text-sm">→ Open Advanced Stock Market (full working)</Link>
           </div>
@@ -194,7 +194,7 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
         <div className="card p-6 mb-4">
           <div className="text-sm text-purple-400 mb-1">GOV TAX FUND (Dev Managed)</div>
           <div className="text-5xl font-bold tabular-nums text-purple-400 mb-2">
-            ${formatCash(govTax, 'en')}
+            {formatCash(govTax, language)}
           </div>
           <div className="text-xs text-zinc-500 mb-4">All tax related banking, buys, sells (except Piggy deposits) feed here. Used for government fund.</div>
           <div className="text-xs">Personal, Family, and other bank losses contribute to Gov Tax. Piggy withdraws too (0.8%).</div>
@@ -233,7 +233,7 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
               disabled={loading || amount <= 0 || amount > (player.cash || 0)}
               className="w-full bg-emerald-700 hover:bg-emerald-600 disabled:bg-zinc-800 disabled:text-zinc-500 py-3 rounded-2xl font-bold text-lg flex items-center justify-center gap-2"
             >
-              {loading ? 'Processing...' : `CONFIRM DEPOSIT $${amount.toLocaleString()}`}
+              {loading ? 'Processing...' : `CONFIRM DEPOSIT ${fm(amount)}`}
             </button>
             <div className="text-[10px] text-zinc-500 mt-1 text-center">+0.5% to Gov Tax Fund. Requires confirmation.</div>
           </div>
@@ -264,7 +264,7 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
               disabled={loading || amount <= 0 || amount > currentBank}
               className="w-full bg-amber-700 hover:bg-amber-600 disabled:bg-zinc-800 disabled:text-zinc-500 py-3 rounded-2xl font-bold text-lg flex items-center justify-center gap-2"
             >
-              {loading ? 'Processing...' : `CONFIRM WITHDRAW $${amount.toLocaleString()}`}
+              {loading ? 'Processing...' : `CONFIRM WITHDRAW ${fm(amount)}`}
             </button>
             <div className="text-[10px] text-zinc-500 mt-1 text-center">+0.5% to Gov Tax Fund. Requires confirmation.</div>
           </div>
@@ -278,7 +278,7 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
               disabled={loading || amount <= 0 || amount > (player.cash || 0)}
               className="w-full bg-purple-700 hover:bg-purple-600 py-3 rounded-2xl font-bold"
             >
-              {loading ? '...' : `CONFIRM CONTRIBUTE $${amount.toLocaleString()} TO GOV TAX FUND`}
+              {loading ? '...' : `CONFIRM CONTRIBUTE ${fm(amount)} TO GOV TAX FUND`}
             </button>
           </div>
         )}
@@ -294,13 +294,13 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
         <div className="text-xs space-y-1 max-h-40 overflow-auto bg-zinc-950 p-2 rounded">
           {(player.transaction_log || []).slice(0,10).map((log: any, i: number) => (
             <div key={i} className="flex justify-between border-b border-zinc-800 pb-1">
-              <span>{log.icon} {log.desc} {log.tax ? `(Tax: $${log.tax})` : ''}</span>
+              <span>{log.icon} {log.desc} {log.tax ? `(Tax: ${fm(log.tax)})` : ''}</span>
               <span className="font-mono">{log.amount > 0 ? '+' : ''}${log.amount}</span>
             </div>
           ))}
           {(!player.transaction_log || player.transaction_log.length === 0) && <div className="text-zinc-500">No transactions yet. Start banking!</div>}
         </div>
-        <div className="text-xs mt-2">Total taxes paid: ${(player.total_taxes || 0).toLocaleString()}</div>
+        <div className="text-xs mt-2">Total taxes paid: {fm(player.total_taxes || 0)}</div>
       </div>
 
       <div className="text-center text-sm text-zinc-500 mt-4">

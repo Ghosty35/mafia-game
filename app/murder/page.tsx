@@ -15,7 +15,7 @@ const WEAPONS: { name: string; labelKey: TranslationKey; descKey: TranslationKey
 
 export default function MurderPage() {
   const { player, updatePlayer, showToast } = usePlayer();
-  const { t } = useLanguage();
+  const { t, fm } = useLanguage();
   const [targetName, setTargetName] = useState('');
   const [selectedWeapon, setSelectedWeapon] = useState(WEAPONS[0].name);
   const [bulletsUsed, setBulletsUsed] = useState(50);
@@ -81,7 +81,7 @@ export default function MurderPage() {
         const message = data.blocked
           ? t('murder_blocked')
           : data.success
-            ? `Hit successful! Stole $${(data.stolen || 0).toLocaleString()} and gained ${data.skill_gained} KillSkill.`
+            ? `Hit successful! Stole ${fm(data.stolen || 0)} and gained ${data.skill_gained} KillSkill.`
             : `The hit failed — target got away. Heat increased.`;
         showToast(message, data.success ? 'success' : 'fail');
       }
@@ -134,7 +134,7 @@ export default function MurderPage() {
                 className={`flex-1 p-3 rounded text-sm ${selectedWeapon === w.name ? 'bg-red-700' : 'bg-zinc-800'}`}
               >
                 {t(w.labelKey)} (+{w.bonus}%)<br />
-                <span className="text-xs">${w.price}</span>
+                <span className="text-xs">{fm(w.price)}</span>
               </button>
             ))}
           </div>

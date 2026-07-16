@@ -33,7 +33,7 @@ type LastResult = {
 
 export default function CasinoPage() {
   const { player, updatePlayer, refreshPlayer } = usePlayer();
-  const { t, language } = useLanguage();
+  const { t, language, fm } = useLanguage();
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [bet, setBet] = useState(5000);
@@ -91,10 +91,10 @@ export default function CasinoPage() {
         won
           ? t('casino_win_msg', {
               game: game.toUpperCase(),
-              net: `$${(res.payout - bet).toLocaleString()}`,
-              payout: `$${res.payout.toLocaleString()}`,
+              net: fm(res.payout - bet),
+              payout: fm(res.payout),
             })
-          : t('casino_lose_msg', { bet: `$${bet.toLocaleString()}`, game }),
+          : t('casino_lose_msg', { bet: fm(bet), game }),
       );
 
       // Refresh pools
@@ -134,7 +134,7 @@ export default function CasinoPage() {
       setMessage(
         won
           ? t('casino_roulette_win', { spin })
-          : t('casino_roulette_lose', { spin, bet: `$${bet.toLocaleString()}` }),
+          : t('casino_roulette_lose', { spin, bet: fm(bet) }),
       );
 
       await fetchPools();
@@ -173,9 +173,9 @@ export default function CasinoPage() {
         >
           <div className="font-semibold">{lastResult.won ? t('casino_winner') : t('casino_house_wins')}</div>
           <div className="text-sm mt-1">
-            {lastResult.game} • {t('casino_result_bet', { bet: `$${lastResult.bet?.toLocaleString()}` })}
+            {lastResult.game} • {t('casino_result_bet', { bet: fm(lastResult.bet ?? 0) })}
             {lastResult.payout
-              ? ` • ${t('casino_result_paid', { payout: `$${lastResult.payout.toLocaleString()}` })}`
+              ? ` • ${t('casino_result_paid', { payout: fm(lastResult.payout) })}`
               : ''}
             {lastResult.spin !== undefined && ` • ${t('casino_result_landed', { spin: lastResult.spin })}`}
           </div>
@@ -208,7 +208,7 @@ export default function CasinoPage() {
                 bet === b ? 'bg-red-700 border-red-500' : 'bg-zinc-900 border-zinc-700 hover:border-zinc-500'
               }`}
             >
-              ${b.toLocaleString()}
+              {fm(b)}
             </button>
           ))}
           <input
@@ -220,7 +220,7 @@ export default function CasinoPage() {
         </div>
         <div className="text-xs text-zinc-500 mt-1">
           {t('casino_your_cash')}{' '}
-          <span className="text-emerald-400 font-mono">{player ? formatCash(player.cash, language) : '$0'}</span> •{' '}
+          <span className="text-emerald-400 font-mono">{player ? formatCash(player.cash, language) : fm(0)}</span> •{' '}
           {t('casino_house_edge_note')}
         </div>
       </div>
@@ -241,7 +241,7 @@ export default function CasinoPage() {
             disabled={busy || !player}
             className="w-full py-3 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 rounded-xl font-bold text-lg disabled:opacity-60"
           >
-            {busy ? t('casino_dealing') : t('casino_deal_button', { bet: `$${bet.toLocaleString()}` })}
+            {busy ? t('casino_dealing') : t('casino_deal_button', { bet: fm(bet) })}
           </button>
 
           <p className="text-[10px] text-zinc-500 mt-2">{t('casino_blackjack_note')}</p>
@@ -284,7 +284,7 @@ export default function CasinoPage() {
             disabled={busy || !player}
             className="w-full py-3 bg-gradient-to-r from-amber-700 to-yellow-600 hover:from-amber-600 rounded-xl font-bold text-lg disabled:opacity-60"
           >
-            {busy ? t('casino_spinning') : t('casino_spin_button', { bet: `$${bet.toLocaleString()}` })}
+            {busy ? t('casino_spinning') : t('casino_spin_button', { bet: fm(bet) })}
           </button>
           <p className="text-[10px] text-zinc-500 mt-2">{t('casino_roulette_note')}</p>
         </div>

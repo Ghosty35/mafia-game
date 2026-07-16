@@ -14,7 +14,7 @@ const powerPacks: { power: number; price: number; labelKey: TranslationKey }[] =
 ];
 
 export default function ArmoryPage() {
-  const { t } = useLanguage();
+  const { t, fm } = useLanguage();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -35,7 +35,7 @@ export default function ArmoryPage() {
           : t('armory_purchase_failed'),
       );
     } else {
-      setMessage(t('armory_bought', { power, price: `$${price}` }));
+      setMessage(t('armory_bought', { power, price: fm(price) }));
     }
     setBusy(false);
   };
@@ -60,7 +60,7 @@ export default function ArmoryPage() {
               {t('armory_power', { power: pack.power })}
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-lg font-mono">${pack.price}</span>
+              <span className="text-lg font-mono">{fm(pack.price)}</span>
               <button
                 onClick={() => buyPower(pack.power, pack.price)}
                 disabled={busy}

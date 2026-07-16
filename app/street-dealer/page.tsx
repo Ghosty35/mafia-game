@@ -21,7 +21,7 @@ const DRUG_CAPS: Record<typeof DRUGS[number], number> = {
 
 export default function StreetDealerPage() {
   const { player, refreshPlayer, canPerformAction, recordAction, showToast } = usePlayer();
-  const { t } = useLanguage();
+  const { t, fm } = useLanguage();
   const [prices, setPrices] = useState<DrugPrices>({ Coke: 120, Weed: 80, Meth: 200, Pills: 50 });
   const [city, setCity] = useState<City>('New York');
   const [drugStorage, setDrugStorage] = useState<Record<string, number>>({});
@@ -103,7 +103,7 @@ export default function StreetDealerPage() {
     const res = data as { total: number; storage: Record<string, number> };
     if (res?.storage) setDrugStorage(res.storage);
     if (refreshPlayer) await refreshPlayer();
-    showToast(t('dealer_bought', { amount, drug, total: `$${res?.total ?? ''}` }), 'success');
+    showToast(t('dealer_bought', { amount, drug, total: fm(res?.total ?? 0) }), 'success');
   };
 
   const sellDrug = async (drug: typeof DRUGS[number], qty: number) => {
@@ -123,7 +123,7 @@ export default function StreetDealerPage() {
     const res = data as { revenue: number; storage: Record<string, number> };
     if (res?.storage) setDrugStorage(res.storage);
     if (refreshPlayer) await refreshPlayer();
-    showToast(t('dealer_sold', { qty, drug, revenue: `$${res?.revenue ?? ''}` }), 'success');
+    showToast(t('dealer_sold', { qty, drug, revenue: fm(res?.revenue ?? 0) }), 'success');
   };
 
   if (!player) return <div>{t('loading')}</div>;
@@ -179,7 +179,7 @@ export default function StreetDealerPage() {
             {drug === 'Meth' && <img src="https://picsum.photos/id/251/300/80" alt="Meth" className="w-full h-16 object-cover rounded mb-2" />}
             {drug === 'Pills' && <img src="https://picsum.photos/id/180/300/80" alt="Pills" className="w-full h-16 object-cover rounded mb-2" />}
             <h3 className="font-bold">{drug}</h3>
-            <div className="text-2xl font-mono text-emerald-400 my-2">${prices[drug]}</div>
+            <div className="text-2xl font-mono text-emerald-400 my-2">{fm(prices[drug])}</div>
             <div className="flex gap-2">
               <button onClick={() => buyDrug(drug)} className="flex-1 py-1 bg-red-700 rounded text-xs">{t('dealer_buy', { qty: buyQty })}</button>
               <button onClick={() => sellDrug(drug, sellQty)} className="flex-1 py-1 bg-emerald-700 rounded text-xs">{t('dealer_sell', { qty: sellQty })}</button>

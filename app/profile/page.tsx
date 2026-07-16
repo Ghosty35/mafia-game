@@ -17,7 +17,7 @@ export default function ProfilePage() {
 
 function ProfileContent() {
   const { player } = usePlayer();
-  const { t } = useLanguage();
+  const { t, fm } = useLanguage();
   const searchParams = useSearchParams();
   const viewUser = searchParams.get('user') || searchParams.get('username');
 
@@ -76,8 +76,8 @@ function ProfileContent() {
 
         <div className="card p-5">
           <div className="text-xs text-zinc-500">{t('profile_wealth_section')}</div>
-          <div>{t('profile_cash')} <span className="font-mono">${(p.cash || 0).toLocaleString()}</span></div>
-          <div>{t('profile_bank')} <span className="font-mono">${(p.personal_bank || 0).toLocaleString()}</span></div>
+          <div>{t('profile_cash')} <span className="font-mono">{fm(p.cash || 0)}</span></div>
+          <div>{t('profile_bank')} <span className="font-mono">{fm(p.personal_bank || 0)}</span></div>
           <div>{t('profile_diamonds')} <span className="font-mono">{p.diamonds || 0} 💎</span></div>
           <div>{t('profile_power', { power: p.power || 0 })}</div>
         </div>

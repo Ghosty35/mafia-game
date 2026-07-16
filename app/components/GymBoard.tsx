@@ -18,7 +18,7 @@ function cashCost(startStat: number, sessions: number): number {
 
 export default function GymBoard() {
   const { player, refreshPlayer, showToast } = usePlayer();
-  const { t, language } = useLanguage();
+  const { t, language, fm } = useLanguage();
   const [discipline, setDiscipline] = useState<Discipline>('strength');
   const [sessions, setSessions] = useState(1);
   const [busy, setBusy] = useState(false);
@@ -63,7 +63,7 @@ export default function GymBoard() {
           gained: data?.gained ?? sessions,
           discipline: t(discipline === 'strength' ? 'gym_strength' : 'gym_defense'),
           stat: data?.new_stat ?? currentStat + sessions,
-          cost: `$${fmt(Number(data?.cost ?? totalCash))}`,
+          cost: fm(Number(data?.cost ?? totalCash)),
         }),
         'success',
       );
@@ -147,7 +147,7 @@ export default function GymBoard() {
 
         <div className="text-xs text-zinc-400 space-y-0.5">
           <div>
-            {t('gym_cost_preview', { cash: `$${fmt(totalCash)}`, stamina: totalStamina })}
+            {t('gym_cost_preview', { cash: fm(totalCash), stamina: totalStamina })}
           </div>
           <div>
             {t('gym_gain_preview', {

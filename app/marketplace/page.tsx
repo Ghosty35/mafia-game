@@ -15,7 +15,7 @@ interface Bid {
 
 export default function MarketplacePage() {
   const { player } = usePlayer();
-  const { t } = useLanguage();
+  const { t, fm } = useLanguage();
   const [bids, setBids] = useState<Bid[]>([
     { propertyId: '1', name: 'New York Train Station', currentBid: 25000, bidder: 'PlayerX', timeLeft: 45 },
     { propertyId: '2', name: 'Chicago Metal Factory', currentBid: 42000, bidder: 'BossY', timeLeft: 120 },
@@ -40,7 +40,7 @@ export default function MarketplacePage() {
         : b
     );
     setBids(newBids);
-    setMessage(t('market_bid_preview', { amount: `$${bidAmount}` }));
+    setMessage(t('market_bid_preview', { amount: fm(bidAmount) }));
     setBidAmount(0);
   };
 
@@ -49,7 +49,7 @@ export default function MarketplacePage() {
       setMessage(t('market_instant_first'));
       return;
     }
-    setMessage(t('market_instant_preview', { name: prop.name, price: `$${instantBuyPrice}` }));
+    setMessage(t('market_instant_preview', { name: prop.name, price: fm(instantBuyPrice) }));
   };
 
   return (
@@ -77,7 +77,7 @@ export default function MarketplacePage() {
             <div className="flex justify-between mb-3">
               <div>
                 <h3 className="font-bold">{bid.name}</h3>
-                <p className="text-xs">{t('market_current_bid', { bid: `$${bid.currentBid}`, bidder: bid.bidder })}</p>
+                <p className="text-xs">{t('market_current_bid', { bid: fm(bid.currentBid), bidder: bid.bidder })}</p>
                 <p className="text-xs text-orange-400">{t('market_time_left', { minutes: bid.timeLeft })}</p>
               </div>
             </div>

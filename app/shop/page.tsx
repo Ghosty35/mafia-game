@@ -7,7 +7,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { usePlayer } from '../components/PlayerContext';
 
 export default function ShopPage() {
-  const { t } = useLanguage();
+  const { t, fm } = useLanguage();
   const { player, refreshPlayer } = usePlayer();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -131,7 +131,7 @@ export default function ShopPage() {
             <h3 className="font-bold">Body Armor</h3>
             <p className="text-sm text-zinc-400">+5 Protection • Reduces health damage</p>
             <div className="mt-3 text-emerald-400 font-mono">
-              ${getDiscountedPrice(450)}{discountLabel}
+              {fm(getDiscountedPrice(450))}{discountLabel}
             </div>
           </button>
 
@@ -144,7 +144,7 @@ export default function ShopPage() {
             <h3 className="font-bold">Pitbull</h3>
             <p className="text-sm text-zinc-400">+8 Protection • Loyal guard dog</p>
             <div className="mt-3 text-emerald-400 font-mono">
-              ${getDiscountedPrice(780)}{discountLabel}
+              {fm(getDiscountedPrice(780))}{discountLabel}
             </div>
           </button>
 
@@ -157,7 +157,7 @@ export default function ShopPage() {
             <h3 className="font-bold">Bodyguard</h3>
             <p className="text-sm text-zinc-400">+12 Protection • Professional protection</p>
             <div className="mt-3 text-emerald-400 font-mono">
-              ${getDiscountedPrice(1350)}{discountLabel}
+              {fm(getDiscountedPrice(1350))}{discountLabel}
             </div>
           </button>
         </div>
@@ -248,7 +248,7 @@ export default function ShopPage() {
 // Personal bodyguards: each one absorbs an incoming rip/murder attempt.
 // Escalating server-side pricing ($50k → $500k), max 5. RPC: hire_personal_bodyguard.
 function BodyguardCard({ busy, setMessage }: { busy: boolean; setMessage: (m: string) => void }) {
-  const { t, language } = useLanguage();
+  const { t, language, fm } = useLanguage();
   const { player, refreshPlayer } = usePlayer();
   const [localBusy, setLocalBusy] = useState(false);
 
@@ -273,7 +273,7 @@ function BodyguardCard({ busy, setMessage }: { busy: boolean; setMessage: (m: st
         return;
       }
       await refreshPlayer();
-      setMessage(t('bg_hired', { count: data?.bodyguards ?? guards + 1, cost: `$${fmt(Number(data?.cost ?? 0))}` }));
+      setMessage(t('bg_hired', { count: data?.bodyguards ?? guards + 1, cost: fm(Number(data?.cost ?? 0)) }));
     } finally {
       setLocalBusy(false);
     }
@@ -293,7 +293,7 @@ function BodyguardCard({ busy, setMessage }: { busy: boolean; setMessage: (m: st
         disabled={busy || localBusy || guards >= 5}
         className="w-full py-2.5 bg-red-700 hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed rounded font-semibold text-sm"
       >
-        {guards >= 5 ? t('bg_max') : t('bg_hire', { cost: `$${fmt(nextCost ?? 0)}` })}
+        {guards >= 5 ? t('bg_max') : t('bg_hire', { cost: fm(nextCost ?? 0) })}
       </button>
     </div>
   );
@@ -302,6 +302,7 @@ function BodyguardCard({ busy, setMessage }: { busy: boolean; setMessage: (m: st
 // Local component for family VIP buffs with proper pricing ratios
 function FamilyBuffsShop({ busy, setMessage, isDonator }: { busy: boolean; setMessage: (m: string) => void; isDonator?: boolean }) {
   const [localBusy, setLocalBusy] = useState(false);
+  const { fm } = useLanguage();
   const { refreshPlayer } = usePlayer();
   const supabase = createClient();
 
@@ -382,7 +383,7 @@ function FamilyBuffsShop({ busy, setMessage, isDonator }: { busy: boolean; setMe
                 onClick={() => buyBuff(b, false, 'cash')}
                 className="flex-1 text-left px-3 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-sm border border-zinc-700"
               >
-                💵 ${(b.cash / 1000).toFixed(0)}k cash<br />
+                💵 {fm(b.cash)} cash<br />
                 <span className="text-[10px] text-emerald-400">Family bank conversion</span>
               </button>
 

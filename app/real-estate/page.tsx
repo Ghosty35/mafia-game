@@ -26,7 +26,7 @@ interface Property {
 
 export default function RealEstatePage() {
   const { player, refreshPlayer, showToast } = usePlayer();
-  const { t } = useLanguage();
+  const { t, fm } = useLanguage();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [billAmount, setBillAmount] = useState(0);
@@ -108,8 +108,8 @@ export default function RealEstatePage() {
       t('re_bought', {
         name: customName,
         city: prop.city,
-        price: `$${prop.price}`,
-        tax: `$${data?.tax ?? tax}`,
+        price: fm(prop.price),
+        tax: fm(data?.tax ?? tax),
       }),
     );
     setBusy(false);
@@ -128,7 +128,7 @@ export default function RealEstatePage() {
 
     if (
       !confirm(
-        t('re_confirm_pay', { amount: `$${pay}`, method }) +
+        t('re_confirm_pay', { amount: fm(pay), method }) +
           (method === 'bank' ? t('re_bank_extra') : ''),
       )
     ) {
@@ -153,7 +153,7 @@ export default function RealEstatePage() {
     if (refreshPlayer) await refreshPlayer();
     router.refresh();
     showToast(
-      `${t('re_paid', { amount: `$${pay}`, method, debt: `$${newDebt}` })} ${
+      `${t('re_paid', { amount: fm(pay), method, debt: fm(newDebt) })} ${
         newDebt > 0 ? t('re_pay_more') : t('re_all_clear')
       }`,
     );
@@ -224,7 +224,7 @@ export default function RealEstatePage() {
 
               <div className="my-2 text-sm">
                 <div>
-                  {t('re_purchase')} <span className="font-mono">${prop.price.toLocaleString()}</span>
+                  {t('re_purchase')} <span className="font-mono">{fm(prop.price)}</span>
                 </div>
                 <div>
                   {t('re_avg_income')}{' '}
@@ -329,7 +329,7 @@ export default function RealEstatePage() {
                 </div>
                 <div className="text-right text-sm">
                   <div>
-                    {t('re_current_debt')} <span className="font-mono text-red-400">${debt}</span>
+                    {t('re_current_debt')} <span className="font-mono text-red-400">{fm(debt)}</span>
                   </div>
                   <div>
                     {t('re_avg_maint_short')} <span className="font-mono">-${maintCost}/hr</span>
@@ -342,7 +342,7 @@ export default function RealEstatePage() {
               </div>
 
               <div className="text-xs mb-3">
-                {t('re_prop_bank', { amount: `$${prop.bank_balance || 0}` })}
+                {t('re_prop_bank', { amount: fm(prop.bank_balance || 0) })}
               </div>
 
               <div className="mb-3">

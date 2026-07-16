@@ -29,7 +29,7 @@ type RaceCar = {
 
 export default function RacePage() {
   const { player, refreshPlayer } = usePlayer();
-  const { t } = useLanguage();
+  const { t, fm } = useLanguage();
   const [openRaces, setOpenRaces] = useState<PostedRace[]>([]);
   const [history, setHistory] = useState<PostedRace[]>([]);
   const [bet, setBet] = useState(500);
@@ -84,7 +84,7 @@ export default function RacePage() {
     }
     if (refreshPlayer) await refreshPlayer();
     await loadRaces();
-    setMessage(t('race_posted', { fee: `$${data?.entry_fee ?? 0}`, minutes: expireMinutes }));
+    setMessage(t('race_posted', { fee: fm(data?.entry_fee ?? 0), minutes: expireMinutes }));
   };
 
   const joinRace = async (race: PostedRace) => {
@@ -118,8 +118,8 @@ export default function RacePage() {
     await loadRaces();
     setMessage(
       data?.you_won
-        ? t('race_won', { opponent: (data?.winner === race.poster_name ? race.joined_name : race.poster_name) ?? '', pot: `$${data?.pot ?? 0}` })
-        : t('race_lost', { opponent: data?.winner ?? '', bet: `$${race.bet}` }),
+        ? t('race_won', { opponent: (data?.winner === race.poster_name ? race.joined_name : race.poster_name) ?? '', pot: fm(data?.pot ?? 0) })
+        : t('race_lost', { opponent: data?.winner ?? '', bet: fm(race.bet) }),
     );
   };
 
@@ -133,7 +133,7 @@ export default function RacePage() {
     }
     if (refreshPlayer) await refreshPlayer();
     await loadRaces();
-    setMessage(t('race_canceled') + (data?.refunded ? ` (+$${data.refunded} refunded)` : ''));
+    setMessage(t('race_canceled') + (data?.refunded ? ` (+${fm(data.refunded)} refunded)` : ''));
   };
 
   return (
@@ -195,7 +195,7 @@ export default function RacePage() {
               <div key={race.id} className="mb-2 p-2 bg-zinc-950 rounded text-sm">
                 {t('race_line', {
                   poster: race.poster_name,
-                  bet: `$${race.bet}`,
+                  bet: fm(race.bet),
                   car: race.car_name,
                   time: timeLeft,
                 })}
@@ -241,7 +241,7 @@ export default function RacePage() {
             {t('race_history_line', {
               winner: h.winner_name || '?',
               loser: h.winner_name === h.poster_name ? h.joined_name || '?' : h.poster_name,
-              amount: `$${h.bet * 2}`,
+              amount: fm(h.bet * 2),
               time: new Date(h.created_at).toLocaleTimeString(),
             })}
           </div>

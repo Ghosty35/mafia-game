@@ -58,7 +58,7 @@ export default function FamiliesPage() {
 }
 
 function FamiliesContent() {
-  const { t } = useLanguage();
+  const { t, fm } = useLanguage();
   const { player, updatePlayer, refreshPlayer } = usePlayer();  // need player for level/cash/diamonds checks + updates
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -271,7 +271,7 @@ function FamiliesContent() {
   const donate = async () => {
     if (!donationAmount || donationAmount <= 0) return;
 
-    if (!confirm(`Confirm donation of $${donationAmount} to the family pending bank? This will be reviewed by leadership.`)) {
+    if (!confirm(`Confirm donation of ${fm(donationAmount)} to the family pending bank? This will be reviewed by leadership.`)) {
       return;
     }
 
@@ -408,13 +408,13 @@ function FamiliesContent() {
                 <div className="bg-zinc-950 p-3 rounded-xl">
                   <div className="text-[10px] text-zinc-500">FAMILY BANK</div>
                   <div className="text-xl font-bold text-emerald-400 tabular-nums">
-                    ${(myFamily.family.bank ?? 0).toLocaleString()}
+                    {fm(myFamily.family.bank ?? 0)}
                   </div>
                 </div>
                 <div className="bg-zinc-950 p-3 rounded-xl">
                   <div className="text-[10px] text-zinc-500">PENDING BANK</div>
                   <div className="text-xl font-bold text-yellow-400 tabular-nums">
-                    ${(myFamily.family.pending_bank ?? myFamily.pending_bank ?? 0).toLocaleString()}
+                    {fm(myFamily.family.pending_bank ?? myFamily.pending_bank ?? 0)}
                   </div>
                 </div>
               </div>
@@ -548,7 +548,7 @@ function FamiliesContent() {
                                 >
                                   {d.username || 'Unknown'}
                                 </Link>{' '}
-                                donated <span className="text-emerald-400">${d.amount}</span>
+                                donated <span className="text-emerald-400">{fm(d.amount)}</span>
                                 <span className="text-xs text-zinc-500 ml-2">{new Date(d.donated_at).toLocaleString()}</span>
                               </div>
                               {canAcceptDonations && (
@@ -786,6 +786,7 @@ function FamilyPowerHourlySection({
   const [busyClaim, setBusyClaim] = useState(false);
   const [msg, setMsg] = useState('');
 
+  const { fm } = useLanguage();
   const { refreshPlayer } = usePlayer();
   const router = useRouter();
   const supabase = createClient();
@@ -803,7 +804,7 @@ function FamilyPowerHourlySection({
 
   const buyPower = async () => {
     if (!spendAmount || spendAmount < 25000) return;
-    if (!confirm(`Confirm spend $${spendAmount} from family bank to buy power?`)) {
+    if (!confirm(`Confirm spend ${fm(spendAmount)} from family bank to buy power?`)) {
       return;
     }
     setBusyPower(true);
@@ -817,7 +818,7 @@ function FamilyPowerHourlySection({
       await onRefresh();
       if (refreshPlayer) await refreshPlayer();
       router.refresh();
-      setMsg(`+${data?.power_gained || '?'} Family Power purchased! Bank spent: $${spendAmount.toLocaleString()}`);
+      setMsg(`+${data?.power_gained || '?'} Family Power purchased! Bank spent: ${fm(spendAmount)}`);
     }
   };
 
@@ -836,7 +837,7 @@ function FamilyPowerHourlySection({
       await onRefresh();
       if (refreshPlayer) await refreshPlayer();
       router.refresh();
-      setMsg(`Claimed for ${data.hours}h: $${data.total_pay} total • $${data.bank_deposit} → Bank (60%) • $${data.cash_deposit} → Cash (40%). Power: ${data.family_power}`);
+      setMsg(`Claimed for ${data.hours}h: ${fm(data.total_pay)} total • ${fm(data.bank_deposit)} → Bank (60%) • ${fm(data.cash_deposit)} → Cash (40%). Power: ${data.family_power}`);
     } else {
       setMsg(data?.reason === 'NO_PAY_DUE' ? `No pay due yet (${data.hours || 0}h elapsed).` : 'Nothing to claim.');
     }
@@ -854,7 +855,7 @@ function FamilyPowerHourlySection({
         </div>
         <div className="text-right">
           <div className="text-xs text-zinc-400">Avg Hourly / Member</div>
-          <div className="text-2xl font-mono text-emerald-400 tabular-nums">${hourly}</div>
+          <div className="text-2xl font-mono text-emerald-400 tabular-nums">{fm(hourly)}</div>
         </div>
       </div>
 
@@ -891,7 +892,7 @@ function FamilyPowerHourlySection({
             >
               {busyPower ? 'Buying...' : 'Buy Power (spend bank)'}
             </button>
-            <span className="text-xs text-zinc-500">~1 power per $2,000 spent (min $25k)</span>
+            <span className="text-xs text-zinc-500">~1 power per {fm(2000)} spent (min {fm(25000)})</span>
           </div>
           <div className="text-[10px] text-amber-300 mt-1">Buying power is how you turn donations into real strength and better pay for the whole family.</div>
         </div>

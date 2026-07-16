@@ -15,6 +15,7 @@ import {
   type TranslationKey,
   type TranslationParams,
 } from './translations';
+import { formatMoney, moneySymbol } from './money';
 
 type SetLanguageOptions = {
   /** Skip writing to DB/localStorage (used when applying the saved DB preference). */
@@ -25,6 +26,10 @@ type LanguageContextType = {
   language: Language;
   setLanguage: (lang: Language, options?: SetLanguageOptions) => void;
   t: (key: TranslationKey, params?: TranslationParams) => string;
+  /** Format an amount in the player's display currency ($ for EN, € for NL). */
+  fm: (amount: number | string | null | undefined) => string;
+  /** The bare currency symbol for the active language. */
+  currency: string;
 };
 
 const LanguageContext = createContext<LanguageContextType | null>(null);
@@ -56,8 +61,13 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const t = (key: TranslationKey, params?: TranslationParams) =>
     interpolate(translations[language][key] ?? translations.en[key], params);
 
+  const fm = (amount: number | string | null | undefined) =>
+    formatMoney(amount, language);
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider
+      value={{ language, setLanguage, t, fm, currency: moneySymbol(language) }}
+    >
       {children}
     </LanguageContext.Provider>
   );

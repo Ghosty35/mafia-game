@@ -30,7 +30,7 @@ type TuningPart = {
 
 export default function GaragePage() {
   const { player, refreshPlayer } = usePlayer();
-  const { t } = useLanguage();
+  const { t, fm } = useLanguage();
   const router = useRouter();
   const [message, setMessage] = useState('');
   const [cars, setCars] = useState<Car[]>([]);
@@ -100,7 +100,7 @@ export default function GaragePage() {
       return;
     }
     const cost = (data?.cost as number) ?? 0;
-    await afterAction(t('garage_repaired', { cost: `$${cost}` }));
+    await afterAction(t('garage_repaired', { cost: fm(cost) }));
   };
 
   const tuneCar = async (car: Car) => {
@@ -154,7 +154,7 @@ export default function GaragePage() {
       return;
     }
     const sale = (data?.sale as number) ?? 0;
-    await afterAction(t('garage_sold', { price: `$${sale}` }));
+    await afterAction(t('garage_sold', { price: fm(sale) }));
   };
 
   const crushCar = async (car: Car) => {
@@ -210,7 +210,7 @@ export default function GaragePage() {
                     onClick={() => buyTuningPart(car, part)}
                     className="text-xs bg-emerald-700 px-2 py-0.5 rounded mr-1 mt-1"
                   >
-                    {t(part.nameKey)} (${part.cost}) {t(part.descKey)}
+                    {t(part.nameKey)} ({fm(part.cost)}) {t(part.descKey)}
                   </button>
                 ))}
               </div>
@@ -242,7 +242,7 @@ export default function GaragePage() {
               <button onClick={() => sellCar(car)} className="text-sm bg-emerald-600 px-2 py-1 rounded">
                 {t('garage_sell_button', {
                   name: car.name,
-                  price: `$${Math.floor(car.value * (car.condition / 100))}`,
+                  price: fm(Math.floor(car.value * (car.condition / 100))),
                 })}
               </button>
             </div>

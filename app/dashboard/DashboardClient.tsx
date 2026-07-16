@@ -25,7 +25,7 @@ export default function DashboardClient({
     my_role: string | null;
   } | null;
 }) {
-  const { t } = useLanguage();
+  const { t, fm } = useLanguage();
   const [player, setPlayer] = useState<Player | null>(initialPlayer);
   const [serverTimes, setServerTimes] = useState({ europe: '', us: '' });
 
@@ -268,7 +268,7 @@ export default function DashboardClient({
             <div className="text-sm">Power: {player.power ?? 0}</div>
           </div>
           <div className="card p-4">
-            <div className="text-sm">Bank: ${player.personal_bank ?? 0}</div>
+            <div className="text-sm">Bank: {fm(player.personal_bank ?? 0)}</div>
             <div className="text-sm">Weed KGs: {player.drug_storage?.Weed ?? 0}</div>
             <div className="text-sm">Coke KGs: {player.drug_storage?.Coke ?? 0}</div>
           </div>

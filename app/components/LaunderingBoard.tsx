@@ -23,7 +23,7 @@ const CHANNEL_META: Record<string, { icon: string; labelKey: TranslationKey }> =
 
 export default function LaunderingBoard() {
   const { player, refreshPlayer, showToast } = usePlayer();
-  const { t, language } = useLanguage();
+  const { t, language, fm } = useLanguage();
   const [dirty, setDirty] = useState<number>(0);
   const [channels, setChannels] = useState<Channel[]>([]);
   const [selected, setSelected] = useState('laundromat');
@@ -84,13 +84,13 @@ export default function LaunderingBoard() {
         return;
       }
       if (data?.busted) {
-        showToast(t('ld_busted', { lost: `$${fmt(Number(data.lost))}` }), 'fail');
+        showToast(t('ld_busted', { lost: fm(Number(data.lost)) }), 'fail');
       } else {
         showToast(
           t('ld_success', {
-            washed: `$${fmt(Number(data.washed))}`,
-            cleaned: `$${fmt(Number(data.cleaned))}`,
-            fee: `$${fmt(Number(data.fee))}`,
+            washed: fm(Number(data.washed)),
+            cleaned: fm(Number(data.cleaned)),
+            fee: fm(Number(data.fee)),
           }),
           'success',
         );
@@ -109,11 +109,11 @@ export default function LaunderingBoard() {
       <div className="grid grid-cols-2 gap-3">
         <div className="card p-4 border border-red-900/60 bg-zinc-900">
           <div className="text-[11px] text-zinc-500">🩸 {t('ld_dirty_balance')}</div>
-          <div className="font-mono text-xl text-red-400">${fmt(dirty)}</div>
+          <div className="font-mono text-xl text-red-400">{fm(dirty)}</div>
         </div>
         <div className="card p-4 border border-zinc-700 bg-zinc-900">
           <div className="text-[11px] text-zinc-500">💵 {t('ld_clean_balance')}</div>
-          <div className="font-mono text-xl text-emerald-400">${fmt(player?.cash ?? 0)}</div>
+          <div className="font-mono text-xl text-emerald-400">{fm(player?.cash ?? 0)}</div>
         </div>
       </div>
 
@@ -140,8 +140,8 @@ export default function LaunderingBoard() {
                 {t('ld_fee')}: <span className="text-amber-400 font-mono">{Math.round(c.fee_pct * 100)}%</span>
               </div>
               <div className="text-xs text-zinc-400">
-                {t('ld_cap_24h')}: <span className="font-mono">${fmt(left)}</span>{' '}
-                <span className="text-zinc-600">(${fmt(c.used_24h)} {t('ld_used')})</span>
+                {t('ld_cap_24h')}: <span className="font-mono">{fm(left)}</span>{' '}
+                <span className="text-zinc-600">({fm(c.used_24h)} {t('ld_used')})</span>
               </div>
               {!c.unlocked && (
                 <div className="text-[10px] text-orange-400 mt-1">{t('ld_unlock_level', { level: c.min_level })}</div>
@@ -168,13 +168,13 @@ export default function LaunderingBoard() {
               onClick={() => setAmount(maxWash)}
               className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-xs"
             >
-              {t('ld_max')} (${fmt(maxWash)})
+              {t('ld_max')} ({fm(maxWash)})
             </button>
           </div>
         </label>
 
         <div className="text-xs text-zinc-400 space-y-0.5">
-          <div>{t('ld_you_receive', { amount: `$${fmt(receive)}` })}</div>
+          <div>{t('ld_you_receive', { amount: fm(receive) })}</div>
           <div className={bustPct > 10 ? 'text-orange-400' : ''}>
             {t('ld_bust_risk', { pct: bustPct, lawyer: hasLawyer ? t('ld_bust_lawyer') : '' })}
           </div>

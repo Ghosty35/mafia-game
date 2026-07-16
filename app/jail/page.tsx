@@ -10,7 +10,7 @@ import Link from 'next/link';
 
 export default function JailPage() {
   const { player, refreshPlayer } = usePlayer();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
   const [breakoutSkill, setBreakoutSkill] = useState(10);
   const [message, setMessage] = useState('');
@@ -95,7 +95,7 @@ export default function JailPage() {
           {t('jail_skill')}: {breakoutSkill}%
         </div>
         <button onClick={trainBreakout} className="mt-2 px-4 py-1 bg-blue-700 rounded text-sm">
-          {t('jail_train_button', { cost: formatCash(500) })}
+          {t('jail_train_button', { cost: formatCash(500, language) })}
         </button>
         {player?.jailed_until && (
           <button onClick={attemptBreakout} className="ml-2 px-4 py-1 bg-red-700 rounded text-sm">

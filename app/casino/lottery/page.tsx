@@ -6,7 +6,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function LotteryPage() {
   const { player, refreshPlayer } = usePlayer();
-  const { t } = useLanguage();
+  const { t, fm } = useLanguage();
   const [message, setMessage] = useState('');
   const [timeToFriday, setTimeToFriday] = useState('');
 
@@ -43,7 +43,7 @@ export default function LotteryPage() {
       return;
     }
     if (data?.won) {
-      setMessage(t('lottery_won', { prize: `$${(data.prize || 0).toLocaleString()}` }));
+      setMessage(t('lottery_won', { prize: fm(data.prize || 0) }));
       await refreshPlayer?.();
     } else {
       setMessage(t('lottery_lost'));

@@ -15,7 +15,7 @@ interface ServerStats {
 }
 
 export default function ServerStatusPage() {
-  const { t } = useLanguage();
+  const { t, fm } = useLanguage();
   const [stats, setStats] = useState<ServerStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -68,14 +68,13 @@ export default function ServerStatusPage() {
     return () => clearInterval(interval);
   }, []);
 
-  const formatMoney = (n: number) => '$' + n.toLocaleString();
 
   const statCards = stats ? [
     { label: t('status_online'), value: stats.online_people.toLocaleString(), icon: '🟢', sub: t('status_online_sub') },
     { label: t('status_week'), value: stats.logged_in_this_week.toLocaleString(), icon: '📅', sub: t('status_week_sub') },
     { label: t('status_families'), value: stats.total_families.toLocaleString(), icon: '👑', sub: t('status_families_sub') },
     { label: t('status_members'), value: stats.total_family_members.toLocaleString(), icon: '👥', sub: t('status_members_sub') },
-    { label: t('status_money'), value: formatMoney(stats.total_money_circulation), icon: '💵', sub: t('status_money_sub') },
+    { label: t('status_money'), value: fm(stats.total_money_circulation), icon: '💵', sub: t('status_money_sub') },
     { label: t('status_registered'), value: stats.people_registered.toLocaleString(), icon: '📋', sub: t('status_registered_sub') },
   ] : [];
 

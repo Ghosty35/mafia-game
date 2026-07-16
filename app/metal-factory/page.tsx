@@ -15,7 +15,7 @@ type FactoryState = {
 
 export default function MetalFactoryPage() {
   const { player, refreshPlayer } = usePlayer();
-  const { t, language } = useLanguage();
+  const { t, language, fm } = useLanguage();
   const [amount, setAmount] = useState(100);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
@@ -57,14 +57,14 @@ export default function MetalFactoryPage() {
       else setMessage(error.message || t('factory_purchase_failed'));
     } else if (data?.busted) {
       await refreshPlayer();
-      setMessage(t('factory_busted', { fine: `$${fmt(Number(data.fine))}` }));
+      setMessage(t('factory_busted', { fine: fm(Number(data.fine)) }));
     } else {
       await refreshPlayer();
       const bought = Number(data?.bullets_bought || 0);
       const requested = Number(data?.requested || amount);
       let text = t('factory_bought', {
         bullets: fmt(bought),
-        cost: `$${fmt(Number(data?.cost || 0))}`,
+        cost: fm(Number(data?.cost || 0)),
       });
       if (bought < requested) text += ` ${t('factory_partial', { bullets: fmt(bought) })}`;
       setMessage(text);
@@ -100,7 +100,7 @@ export default function MetalFactoryPage() {
         <div className="flex items-center justify-between text-[10px] text-zinc-500 mt-1.5">
           <span>{t('factory_refill_note', { rate: fmt(factory?.refill_per_hour ?? 2500) })}</span>
           <span>
-            {t('factory_unit_price')}: <span className="font-mono text-emerald-400">${unitPrice}</span>
+            {t('factory_unit_price')}: <span className="font-mono text-emerald-400">{fm(unitPrice)}</span>
           </span>
         </div>
       </div>
@@ -117,7 +117,7 @@ export default function MetalFactoryPage() {
         </div>
 
         <div className="text-sm mb-4">
-          {t('factory_cost')} <span className="font-mono">${fmt(Math.min(amount, stock) * unitPrice)}</span>
+          {t('factory_cost')} <span className="font-mono">{fm(Math.min(amount, stock) * unitPrice)}</span>
           {amount > 5000 && <span className="text-red-400 ml-2">{t('factory_high_risk')}</span>}
           {factory && amount > stock && (
             <span className="text-orange-400 ml-2">{t('factory_low_stock', { stock: fmt(stock) })}</span>

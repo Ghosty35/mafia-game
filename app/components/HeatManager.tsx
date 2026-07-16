@@ -25,7 +25,7 @@ function heatColor(heat: number) {
 
 export default function HeatManager({ variant = 'full' }: { variant?: Variant }) {
   const { player, refreshPlayer, showToast } = usePlayer();
-  const { t } = useLanguage();
+  const { t, fm } = useLanguage();
   const [busy, setBusy] = useState<string | null>(null);
 
   if (!player) return null;
@@ -88,7 +88,7 @@ export default function HeatManager({ variant = 'full' }: { variant?: Variant })
           className="px-3 py-2 rounded text-sm bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {it.emoji} {t(it.labelKey)} <span className="text-zinc-400">({it.desc})</span> —{' '}
-          <span className="text-emerald-400">${it.price.toLocaleString()}</span>
+          <span className="text-emerald-400">{fm(it.price)}</span>
         </button>
       ))}
     </div>

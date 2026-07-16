@@ -10,7 +10,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function TravelPage() {
   const { player, refreshPlayer } = usePlayer();
-  const { t, language } = useLanguage();
+  const { t, language, fm } = useLanguage();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -34,7 +34,7 @@ export default function TravelPage() {
       else setMessage(error.message || t('travel_failed'));
     } else {
       await refreshPlayer();
-      let text = t('travel_done', { city, cost: `$${data?.cost || 380}` });
+      let text = t('travel_done', { city, cost: fm(data?.cost || 380) });
       // Random street event on the road (071)
       const evText = streetEventText(data?.event, t, language);
       if (evText) text += ` ${evText}`;
@@ -59,7 +59,7 @@ export default function TravelPage() {
         {CITIES.map((city) => (
           <div key={city} className="card p-5">
             <h3 className="font-bold text-lg mb-2">{city}</h3>
-            <p className="text-xs text-zinc-500 mb-3">{t('travel_cost_note', { cost: '$380' })}</p>
+            <p className="text-xs text-zinc-500 mb-3">{t('travel_cost_note', { cost: fm(380) })}</p>
             <button
               onClick={() => travelTo(city)}
               disabled={busy || city === currentCity}

@@ -21,7 +21,7 @@ type TradeResult = {
 
 export default function StocksPage() {
   const { player, updatePlayer, refreshPlayer } = usePlayer();
-  const { t } = useLanguage();
+  const { t, fm, currency } = useLanguage();
   const [stocks, setStocks] = useState<Stock[]>([]);
   const [holdings, setHoldings] = useState<Record<string, number>>({});
   const [busy, setBusy] = useState(false);
@@ -151,7 +151,7 @@ export default function StocksPage() {
       <div className="mb-4 card p-4">
         <div className="text-xs">
           {t('stocks_portfolio_value')}{' '}
-          <span className="font-mono text-emerald-400">${portfolioValue().toLocaleString()}</span>
+          <span className="font-mono text-emerald-400">{fm(portfolioValue())}</span>
         </div>
         <div className="text-xs text-zinc-500">{t('stocks_portfolio_note')}</div>
         {migrationMissing && (
@@ -174,7 +174,7 @@ export default function StocksPage() {
                   <div className="font-bold">
                     {s.name} <span className="font-mono text-xs text-zinc-500">({s.ticker})</span>
                   </div>
-                  <div className="text-3xl font-mono mt-1">${s.current_price.toFixed(2)}</div>
+                  <div className="text-3xl font-mono mt-1">{currency}{s.current_price.toFixed(2)}</div>
                 </div>
                 <div className={`text-right ${change >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                   {change >= 0 ? '+' : ''}

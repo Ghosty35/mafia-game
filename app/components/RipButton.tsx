@@ -9,7 +9,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 // player's cash-on-hand. Server-authoritative via rip_player(target).
 export default function RipButton({ targetUsername }: { targetUsername: string }) {
   const { player, refreshPlayer, showToast } = usePlayer();
-  const { t, language } = useLanguage();
+  const { t, language, fm } = useLanguage();
   const [busy, setBusy] = useState(false);
 
   // Never show a rip button against yourself.
@@ -41,7 +41,7 @@ export default function RipButton({ targetUsername }: { targetUsername: string }
         showToast(t('rip_blocked', { target: data?.target ?? targetUsername }), 'fail');
       } else if (data?.success) {
         const amount = new Intl.NumberFormat(language === 'nl' ? 'nl-NL' : 'en-US').format(Number(data.stolen));
-        showToast(t('rip_success', { target: data.target, amount: `$${amount}` }), 'success');
+        showToast(t('rip_success', { target: data.target, amount: fm(amount) }), 'success');
       } else {
         showToast(t('rip_fail', { target: data?.target ?? targetUsername }), 'fail');
       }
