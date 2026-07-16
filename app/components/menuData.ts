@@ -57,6 +57,7 @@ export const leftMenuCategories: MenuCategory[] = [
   {
     titleKey: 'side_city_services',
     items: [
+      { labelKey: 'menu_gym', href: '/gym', icon: '🏋️' },
       { labelKey: 'menu_safehouse', href: '/safehouse', icon: '🏠' },
       { labelKey: 'menu_hospital', href: '/hospital', icon: '🏥' },
       { labelKey: 'menu_jail', href: '/jail', icon: '🔒' },

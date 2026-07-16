@@ -23,6 +23,7 @@ export default function RipButton({ targetUsername }: { targetUsername: string }
     if (msg.includes('TARGET_PROTECTED')) return t('rip_err_protected', { target: targetUsername });
     if (msg.includes('TARGET_DEAD')) return t('rip_err_target_dead', { target: targetUsername });
     if (msg.includes('CANNOT_TARGET_SELF')) return t('rip_err_self');
+    if (msg.includes('NOT_ENOUGH_STAMINA')) return t('error_no_stamina');
     return t('rip_err_generic', { msg });
   };
 

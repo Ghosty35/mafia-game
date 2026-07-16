@@ -51,6 +51,10 @@ export type Player = {
   heat_updated_at?: string;    // anchor for passive heat decay (062)
   has_corrupt_lawyer?: boolean;// permanent +50% heat decay upgrade (062)
   dirty_cash?: number;         // criminal income awaiting laundering (066)
+  stamina?: number;            // 0-100 pacing resource for physical actions (069)
+  stamina_updated_at?: string; // anchor for lazy stamina regen (069)
+  strength?: number;           // gym stat: attacker edge in rip/murder, war points (069)
+  defense?: number;            // gym stat: resists rip/murder attempts (069)
   money_rank?: string;
   total_wealth?: number;
   last_active?: string;            // for online / server status

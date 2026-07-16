@@ -74,6 +74,7 @@ export default function MurderPage() {
         if (error.message.includes('ON_MURDER_COOLDOWN')) text = t('murder_on_cooldown');
         else if (error.message.includes('MURDER_LOCKED')) text = t('murder_locked_alert');
         else if (error.message.includes('TARGET_NOT_FOUND')) text = t('murder_invalid_input');
+        else if (error.message.includes('NOT_ENOUGH_STAMINA')) text = t('error_no_stamina');
         showToast(text, 'error');
       } else {
         updatePlayer(data.player);

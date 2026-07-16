@@ -195,7 +195,9 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
       showToast(
         error.message.includes('NOT_ENOUGH_BULLETS')
           ? 'Not enough bullets for this heist. Buy some at the Metal Factory.'
-          : error.message,
+          : error.message.includes('NOT_ENOUGH_STAMINA')
+            ? t('error_no_stamina')
+            : error.message,
         'error',
       );
     } else {

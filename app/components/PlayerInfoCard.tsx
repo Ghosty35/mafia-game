@@ -82,6 +82,9 @@ export default function PlayerInfoCard({ player: propPlayer, familyStatus: propF
   const power = player.power ?? (level * 50 + (player.rebirths ?? 0) * 500);
   const heat = player.heat ?? 0;
   const protection = player.protection ?? 0;
+  const stamina = player.stamina ?? 100;
+  const strength = player.strength ?? 10;
+  const defense = player.defense ?? 10;
 
   const rank = getRank(level);
   const rankName = t(rank.key as any);
@@ -140,6 +143,7 @@ export default function PlayerInfoCard({ player: propPlayer, familyStatus: propF
             <StatBar label={t('pi_life')} pct={health} valueText={`${health}%`}
               color={health > 60 ? 'bg-emerald-500' : health > 30 ? 'bg-yellow-500' : 'bg-red-500'} />
             <StatBar label={t('pi_murder_xp')} pct={murderProgress} valueText={`${murderSkill.toFixed(2)}`} color="bg-purple-500" />
+            <StatBar label={t('pi_stamina')} pct={stamina} valueText={`${stamina}/100`} color="bg-cyan-500" />
           </div>
 
           {/* Right: resources */}
@@ -164,6 +168,10 @@ export default function PlayerInfoCard({ player: propPlayer, familyStatus: propF
               <span className="text-[11px] text-zinc-500">⚡ {t('pi_power')}</span>
               <span className="font-mono text-white font-semibold">{formatNum(power)}</span>
             </div>
+            <Link href="/gym" className="flex items-center justify-between gap-2 hover:text-amber-300">
+              <span className="text-[11px] text-zinc-500">🏋️ {t('pi_stats')}</span>
+              <span className="font-mono text-amber-400">💪{strength} 🛡{defense}</span>
+            </Link>
             <Link href="/messages" className="flex items-center justify-between gap-2 hover:text-red-300">
               <span className="text-[11px] text-zinc-500">✉️ {t('pi_messages')}</span>
               <span className="font-mono text-red-400">→</span>

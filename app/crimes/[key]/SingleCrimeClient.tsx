@@ -63,6 +63,7 @@ export default function SingleCrimeClient({
       if (error.message.includes('ON_COOLDOWN')) text = t('error_on_cooldown');
       else if (error.message.includes('IN_JAIL')) text = t('error_in_jail');
       else if (error.message.includes('LEVEL_TOO_LOW')) text = t('error_level_too_low');
+      else if (error.message.includes('NOT_ENOUGH_STAMINA')) text = t('error_no_stamina');
       showToast(text, 'error');
       return;
     }

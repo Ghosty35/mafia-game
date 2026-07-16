@@ -61,6 +61,7 @@ const ERROR_KEYS: Record<string, TranslationKey> = {
   CITY_UNCLAIMED_USE_CLAIM: 'tw_err_unclaimed',
   ON_COOLDOWN: 'tw_err_cooldown',
   NOT_ENOUGH_BULLETS: 'tw_err_no_bullets',
+  NOT_ENOUGH_STAMINA: 'error_no_stamina',
   WAR_OVER: 'tw_err_war_over',
   NOT_YOUR_WAR: 'tw_err_not_your_war',
   IN_JAIL: 'tw_err_jailed',

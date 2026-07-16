@@ -59,6 +59,8 @@ export default function CrimesPanel({
         text = t('error_in_jail');
       } else if (error.message.includes('LEVEL_TOO_LOW')) {
         text = t('error_level_too_low');
+      } else if (error.message.includes('NOT_ENOUGH_STAMINA')) {
+        text = t('error_no_stamina');
       }
       setResult({ kind: 'error', text });
       return;
