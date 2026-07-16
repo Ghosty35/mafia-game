@@ -37,7 +37,9 @@ export default function RipButton({ targetUsername }: { targetUsername: string }
         showToast(mapError(error.message), 'error');
         return;
       }
-      if (data?.success) {
+      if (data?.blocked) {
+        showToast(t('rip_blocked', { target: data?.target ?? targetUsername }), 'fail');
+      } else if (data?.success) {
         const amount = new Intl.NumberFormat(language === 'nl' ? 'nl-NL' : 'en-US').format(Number(data.stolen));
         showToast(t('rip_success', { target: data.target, amount: `$${amount}` }), 'success');
       } else {

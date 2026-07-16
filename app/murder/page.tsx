@@ -78,9 +78,11 @@ export default function MurderPage() {
         showToast(text, 'error');
       } else {
         updatePlayer(data.player);
-        const message = data.success
-          ? `Hit successful! Stole $${(data.stolen || 0).toLocaleString()} and gained ${data.skill_gained} KillSkill.`
-          : `The hit failed — target got away. Heat increased.`;
+        const message = data.blocked
+          ? t('murder_blocked')
+          : data.success
+            ? `Hit successful! Stole $${(data.stolen || 0).toLocaleString()} and gained ${data.skill_gained} KillSkill.`
+            : `The hit failed — target got away. Heat increased.`;
         showToast(message, data.success ? 'success' : 'fail');
       }
     } catch (e: any) {

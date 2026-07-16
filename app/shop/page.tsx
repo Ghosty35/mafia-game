@@ -110,6 +110,13 @@ export default function ShopPage() {
         </div>
       </div>
 
+      {/* Personal bodyguards: absorb rip/murder attempts (070) */}
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">💼 {t('bg_title')}</h2>
+        <p className="text-xs text-zinc-500 mb-3">{t('bg_desc')}</p>
+        <BodyguardCard busy={busy} setMessage={setMessage} />
+      </div>
+
       {/* Protection / Weapon Shop (now functional) */}
       <div>
         <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">🛡️ Protection &amp; Bodyguards</h2>
@@ -235,6 +242,60 @@ export default function ShopPage() {
       </div>
       )}
     </main>
+  );
+}
+
+// Personal bodyguards: each one absorbs an incoming rip/murder attempt.
+// Escalating server-side pricing ($50k → $500k), max 5. RPC: hire_personal_bodyguard.
+function BodyguardCard({ busy, setMessage }: { busy: boolean; setMessage: (m: string) => void }) {
+  const { t, language } = useLanguage();
+  const { player, refreshPlayer } = usePlayer();
+  const [localBusy, setLocalBusy] = useState(false);
+
+  const fmt = (n: number) =>
+    new Intl.NumberFormat(language === 'nl' ? 'nl-NL' : 'en-US').format(Math.floor(n));
+
+  const guards = player?.bodyguards ?? 0;
+  const COSTS = [50000, 100000, 200000, 350000, 500000];
+  const nextCost = guards < 5 ? COSTS[guards] : null;
+
+  const hire = async () => {
+    if (localBusy) return;
+    setLocalBusy(true);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.rpc('hire_personal_bodyguard');
+      if (error) {
+        if (error.message.includes('NOT_ENOUGH_CASH')) setMessage(t('common_not_enough_cash'));
+        else if (error.message.includes('MAX_BODYGUARDS')) setMessage(t('bg_max'));
+        else if (error.message.includes('IN_JAIL')) setMessage(t('error_in_jail'));
+        else setMessage(error.message);
+        return;
+      }
+      await refreshPlayer();
+      setMessage(t('bg_hired', { count: data?.bodyguards ?? guards + 1, cost: `$${fmt(Number(data?.cost ?? 0))}` }));
+    } finally {
+      setLocalBusy(false);
+    }
+  };
+
+  return (
+    <div className="card p-5 border border-zinc-700 max-w-xl">
+      <div className="flex items-center justify-between mb-2">
+        <div className="font-bold">
+          💼 {t('bg_current')}: <span className="font-mono text-amber-400">{guards}/5</span>
+        </div>
+        <div className="text-lg tracking-wide">{'💼'.repeat(guards)}{'▫️'.repeat(5 - guards)}</div>
+      </div>
+      <p className="text-xs text-zinc-400 mb-3">{t('bg_note')}</p>
+      <button
+        onClick={hire}
+        disabled={busy || localBusy || guards >= 5}
+        className="w-full py-2.5 bg-red-700 hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed rounded font-semibold text-sm"
+      >
+        {guards >= 5 ? t('bg_max') : t('bg_hire', { cost: `$${fmt(nextCost ?? 0)}` })}
+      </button>
+    </div>
   );
 }
 

@@ -55,6 +55,7 @@ export type Player = {
   stamina_updated_at?: string; // anchor for lazy stamina regen (069)
   strength?: number;           // gym stat: attacker edge in rip/murder, war points (069)
   defense?: number;            // gym stat: resists rip/murder attempts (069)
+  bodyguards?: number;         // personal guards absorbing rip/murder attempts, max 5 (070)
   money_rank?: string;
   total_wealth?: number;
   last_active?: string;            // for online / server status

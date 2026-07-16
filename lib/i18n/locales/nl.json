@@ -1209,5 +1209,21 @@
   "gym_not_enough_stamina_hint": "Niet genoeg stamina voor zoveel sessies.",
   "gym_note": "Elke sessie kost 20 stamina en wordt duurder naarmate je stat groeit. Stats zijn permanent.",
   "pi_stamina": "Stamina",
-  "pi_stats": "Gym-stats"
+  "pi_stats": "Gym-stats",
+  "factory_stock": "Fabrieksvoorraad",
+  "factory_unit_price": "Prijs per kogel",
+  "factory_refill_note": "Vult {rate} kogels/uur bij.",
+  "factory_empty": "De fabriek is uitverkocht — kom terug als er is bijgevuld.",
+  "factory_empty_btn": "Uitverkocht",
+  "factory_partial": "(de fabriek had er nog maar {bullets})",
+  "factory_low_stock": "Nog maar {stock} op voorraad — je krijgt wat er is.",
+  "bg_title": "Persoonlijke Bodyguards",
+  "bg_desc": "Elke bodyguard vangt één rip- of moordpoging op — de bodyguard gaat neer, jij niet.",
+  "bg_current": "Jouw crew",
+  "bg_note": "Prijzen lopen op per bodyguard: $50k, $100k, $200k, $350k, $500k. Max 5. Verloren bodyguards moet je opnieuw inhuren.",
+  "bg_hire": "Bodyguard inhuren ({cost})",
+  "bg_hired": "Bodyguard ingehuurd ({count}/5) voor {cost}.",
+  "bg_max": "Je crew is vol (5/5).",
+  "rip_blocked": "Een bodyguard greep in — {target} was onaantastbaar. Hun bodyguard ging wel neer.",
+  "murder_blocked": "Een bodyguard ving de kogel op — het doelwit overleefde. Hun bodyguard is weg."
 }

@@ -1209,5 +1209,21 @@
   "gym_not_enough_stamina_hint": "Not enough stamina for this many sessions.",
   "gym_note": "Each session costs 20 stamina and gets pricier as your stat grows. Stats are permanent.",
   "pi_stamina": "Stamina",
-  "pi_stats": "Gym stats"
+  "pi_stats": "Gym stats",
+  "factory_stock": "Factory stock",
+  "factory_unit_price": "Price per bullet",
+  "factory_refill_note": "Restocks {rate} bullets/hour.",
+  "factory_empty": "The factory is sold out — come back when it has restocked.",
+  "factory_empty_btn": "Sold out",
+  "factory_partial": "(the factory only had {bullets} left)",
+  "factory_low_stock": "Only {stock} in stock — you'll get what's left.",
+  "bg_title": "Personal Bodyguards",
+  "bg_desc": "Each bodyguard absorbs one incoming rip or murder attempt — the guard goes down, you don't.",
+  "bg_current": "Your crew",
+  "bg_note": "Prices climb per guard: $50k, $100k, $200k, $350k, $500k. Max 5. Lost guards must be re-hired.",
+  "bg_hire": "Hire bodyguard ({cost})",
+  "bg_hired": "Bodyguard hired ({count}/5) for {cost}.",
+  "bg_max": "Your crew is full (5/5).",
+  "rip_blocked": "A bodyguard stepped in — {target} was untouchable. Their guard went down though.",
+  "murder_blocked": "A bodyguard took the bullet — the target survived. Their guard is gone."
 }
