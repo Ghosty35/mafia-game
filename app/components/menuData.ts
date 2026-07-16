@@ -101,6 +101,7 @@ export const rightMenuCategories: MenuCategory[] = [
     titleKey: 'side_reputation',
     items: [
       { labelKey: 'menu_leaderboard', href: '/leaderboard', icon: '🏆' },
+      { labelKey: 'menu_most_wanted', href: '/most-wanted', icon: '🚨' },
       { labelKey: 'menu_my_profile', href: '/profile', icon: '👤' },
       { labelKey: 'menu_server_status', href: '/server-status', icon: '🟢' },
     ],

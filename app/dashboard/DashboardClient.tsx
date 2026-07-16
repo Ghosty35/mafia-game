@@ -7,6 +7,7 @@ import type { Player } from '@/lib/types';
 import UsernamePrompt from './UsernamePrompt';
 import LiveLogs from '../components/LiveLogs';
 import HeatManager from '../components/HeatManager';
+import MostWantedBoard from '../components/MostWantedBoard';
 
 
 export default function DashboardClient({
@@ -135,6 +136,19 @@ export default function DashboardClient({
 
       {/* Heat management — passive decay, cool-down items, corrupt lawyer */}
       <HeatManager variant="full" />
+
+      {/* Live server activity feed + Most Wanted preview */}
+      <section className="grid md:grid-cols-2 gap-4">
+        <LiveLogs />
+        <div>
+          <MostWantedBoard limit={8} compact />
+          <div className="mt-2 text-right">
+            <Link href="/most-wanted" className="text-xs text-red-400 hover:underline">
+              Full Most Wanted board →
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {/* Latest News */}
       <section>
