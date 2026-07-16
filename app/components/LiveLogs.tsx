@@ -21,6 +21,9 @@ const EVENT_ICON: Record<string, string> = {
   murder: '🔫',
   crime: '🚔',
   war: '⚔️',
+  territory: '🗺️',
+  rip: '🥷',
+  bust: '🚨',
 };
 
 function timeAgo(iso: string): string {

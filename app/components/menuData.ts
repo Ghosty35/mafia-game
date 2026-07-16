@@ -93,6 +93,7 @@ export const rightMenuCategories: MenuCategory[] = [
     titleKey: 'side_family',
     items: [
       { labelKey: 'menu_my_family', href: '/families', icon: '👥' },
+      { labelKey: 'menu_territories', href: '/territories', icon: '🗺️' },
       { labelKey: 'menu_family_bank', href: '/families?tab=banking', icon: '💰' },
       { labelKey: 'menu_family_donations', href: '/families?tab=donations', icon: '🏦' },
       { labelKey: 'menu_family_profile', href: '/families?tab=profile', icon: '📋' },
