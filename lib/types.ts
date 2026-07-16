@@ -48,6 +48,8 @@ export type Player = {
   owned_properties?: OwnedProperty[];
   heist_gear?: { tier?: string; label?: string; bonus?: number } | null; // server-set via buy_heist_gear
   weapons?: string[];          // owned heist weapon ids (buy_weapon)
+  heat_updated_at?: string;    // anchor for passive heat decay (062)
+  has_corrupt_lawyer?: boolean;// permanent +50% heat decay upgrade (062)
   money_rank?: string;
   total_wealth?: number;
   last_active?: string;            // for online / server status

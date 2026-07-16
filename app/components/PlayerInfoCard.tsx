@@ -147,9 +147,11 @@ export default function PlayerInfoCard({ player: propPlayer, familyStatus: propF
             {protection > 0 && (
               <div className="text-xs text-blue-400 pt-2">🛡️+{protection}</div>
             )}
-            {heat > 30 && (
+            {heat >= 75 ? (
+              <div className="text-[9px] px-1.5 py-0.5 bg-red-600 text-white rounded font-bold tracking-wide pt-0 self-center">🚨 MOST WANTED {heat}</div>
+            ) : heat > 30 ? (
               <div className="text-[10px] text-red-400 pt-2">🔥{heat}</div>
-            )}
+            ) : null}
           </div>
 
           {/* Family */}

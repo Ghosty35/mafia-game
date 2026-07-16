@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
 import { CITIES, City } from '@/lib/cities';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import HeatManager from '../components/HeatManager';
 
 const DRUGS = ['Coke', 'Weed', 'Meth', 'Pills'] as const;
 
@@ -132,6 +133,9 @@ export default function StreetDealerPage() {
       <img src="https://picsum.photos/id/201/800/120" alt="Street Dealer" className="w-full h-24 object-cover rounded mb-4" />
       <h1 className="text-3xl font-bold mb-2">💊 {t('dealer_title', { city: currentCity })}</h1>
       <p className="text-sm text-zinc-400 mb-4">{t('dealer_desc')}</p>
+
+      {/* Heat-reduction items (also sold here on the street) */}
+      <HeatManager variant="store" />
 
       {/* Live Drug Storage Tracker */}
       <div className="mb-4 p-3 bg-zinc-900 border border-zinc-700 rounded">

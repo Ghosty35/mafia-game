@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import type { OwnedProperty } from '@/lib/types';
+import HeatManager from '../components/HeatManager';
 
 export default function SafehousePage() {
   const { player, refreshPlayer } = usePlayer();
@@ -92,6 +93,9 @@ export default function SafehousePage() {
     <div className="max-w-5xl mx-auto p-4 sm:p-6">
       <h1 className="text-3xl font-bold mb-4">🏠 {t('safehouse_title')}</h1>
       <p className="text-sm text-zinc-400 mb-6">{t('safehouse_desc')}</p>
+
+      {/* Lay low here to shed your heat */}
+      <HeatManager variant="laylow" />
 
       {safehouses.length === 0 && <p className="text-amber-400">{t('safehouse_none')}</p>}
 

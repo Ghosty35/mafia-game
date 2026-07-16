@@ -6,6 +6,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import type { Player } from '@/lib/types';
 import UsernamePrompt from './UsernamePrompt';
 import LiveLogs from '../components/LiveLogs';
+import HeatManager from '../components/HeatManager';
 
 
 export default function DashboardClient({
@@ -131,6 +132,9 @@ export default function DashboardClient({
       </div>
 
       {/* === HOME PAGE CONTENT === */}
+
+      {/* Heat management — passive decay, cool-down items, corrupt lawyer */}
+      <HeatManager variant="full" />
 
       {/* Latest News */}
       <section>
