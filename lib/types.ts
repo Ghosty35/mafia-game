@@ -50,6 +50,7 @@ export type Player = {
   weapons?: string[];          // owned heist weapon ids (buy_weapon)
   heat_updated_at?: string;    // anchor for passive heat decay (062)
   has_corrupt_lawyer?: boolean;// permanent +50% heat decay upgrade (062)
+  dirty_cash?: number;         // criminal income awaiting laundering (066)
   money_rank?: string;
   total_wealth?: number;
   last_active?: string;            // for online / server status

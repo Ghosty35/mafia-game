@@ -37,6 +37,7 @@ export const leftMenuCategories: MenuCategory[] = [
     titleKey: 'side_economy',
     items: [
       { labelKey: 'menu_bank', href: '/bank', icon: '🏦' },
+      { labelKey: 'menu_laundering', href: '/laundering', icon: '🧼' },
       { labelKey: 'menu_stocks', href: '/stocks', icon: '📈' },
       { labelKey: 'menu_real_estate', href: '/real-estate', icon: '🏠' },
       { labelKey: 'menu_marketplace', href: '/marketplace', icon: '🏛️' },

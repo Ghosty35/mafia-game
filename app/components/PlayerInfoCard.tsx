@@ -148,6 +148,10 @@ export default function PlayerInfoCard({ player: propPlayer, familyStatus: propF
               <span className="text-[11px] text-zinc-500">💵 {t('pi_cash')}</span>
               <span className="font-mono text-emerald-400">${formatNum(cash)}</span>
             </Link>
+            <Link href="/laundering" className="flex items-center justify-between gap-2 hover:text-red-300">
+              <span className="text-[11px] text-zinc-500">🩸 {t('pi_dirty')}</span>
+              <span className="font-mono text-red-400">${formatNum(player.dirty_cash ?? 0)}</span>
+            </Link>
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] text-zinc-500">🏦 {t('pi_bank')}</span>
               <span className="font-mono text-emerald-300">${formatNum(player.personal_bank || 0)}</span>
