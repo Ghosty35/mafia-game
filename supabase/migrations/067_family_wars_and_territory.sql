@@ -138,7 +138,7 @@ DECLARE
   winner_name text;
   loser_name text;
   attacker_won boolean;
-  loot bigint := 0;
+  v_loot bigint := 0;  -- v_ prefix: plain "loot" collides with the family_wars column in embedded SQL
 BEGIN
   SELECT * INTO w FROM public.family_wars WHERE id = p_war_id FOR UPDATE;
   IF w.id IS NULL OR w.state <> 'active' OR now() < w.ends_at THEN
@@ -159,11 +159,11 @@ BEGIN
   PERFORM 1 FROM public.families WHERE id IN (winner_id, loser_id) ORDER BY id FOR UPDATE;
 
   -- loot: 10% of the loser's family bank, zero-sum transfer
-  SELECT FLOOR(GREATEST(0, COALESCE(bank, 0)) * 0.10) INTO loot
+  SELECT FLOOR(GREATEST(0, COALESCE(bank, 0)) * 0.10) INTO v_loot
   FROM public.families WHERE id = loser_id;
-  IF loot > 0 THEN
-    UPDATE public.families SET bank = bank - loot WHERE id = loser_id;
-    UPDATE public.families SET bank = bank + loot WHERE id = winner_id;
+  IF v_loot > 0 THEN
+    UPDATE public.families SET bank = bank - v_loot WHERE id = loser_id;
+    UPDATE public.families SET bank = bank + v_loot WHERE id = winner_id;
   END IF;
 
   UPDATE public.families
@@ -193,7 +193,7 @@ BEGIN
 
   UPDATE public.family_wars
   SET state = CASE WHEN attacker_won THEN 'attacker_won' ELSE 'defender_won' END,
-      loot = _resolve_war.loot,
+      loot = v_loot,
       resolved_at = now()
   WHERE id = w.id;
 
@@ -203,12 +203,12 @@ BEGIN
   PERFORM public._log_event_named(
     winner_name, 'war',
     'won the war against ' || loser_name || ' over ' || w.city ||
-    CASE WHEN loot > 0 THEN ' and looted $' || loot || '!' ELSE '!' END
+    CASE WHEN v_loot > 0 THEN ' and looted $' || v_loot || '!' ELSE '!' END
   );
 
   RETURN jsonb_build_object(
     'winner', winner_name, 'loser', loser_name,
-    'city', w.city, 'loot', loot, 'attacker_won', attacker_won
+    'city', w.city, 'loot', v_loot, 'attacker_won', attacker_won
   );
 END;
 $$;
