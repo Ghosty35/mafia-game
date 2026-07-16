@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
+import { streetEventText } from '@/lib/streetEvents';
 import type { Player } from '@/lib/types';
 
 type Heist = {
@@ -49,7 +50,7 @@ const DEFAULT_HEISTS: Heist[] = [
 ];
 
 export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { player: contextPlayer, updatePlayer, showToast } = usePlayer();
   const [player, setPlayer] = useState<Player | null>(initialPlayer || contextPlayer);
   const [heists, setHeists] = useState<Heist[]>(DEFAULT_HEISTS);
@@ -215,9 +216,12 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
       cdData?.forEach((cd: any) => { cdMap[cd.heist_key] = Date.parse(cd.available_at); });
       setCooldowns(cdMap);
 
-      const text = data.success
+      let text = data.success
         ? `✅ Heist Successful! You got $${data.reward.toLocaleString()}. Used ${data.crew_used} crew + ${gearBonus}% gear. Estimated chance was ~${data.success_chance}%.`
         : `❌ Heist Failed — the crew got caught. Used ${data.crew_used} crew + ${gearBonus}% gear. Estimated chance was ~${data.success_chance}%.`;
+      // Random street event (071)
+      const evText = streetEventText(data.event, t, language);
+      if (evText) text += ` ${evText}`;
       showToast(text, data.success ? 'success' : 'fail');
     }
 

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { formatCash, formatSeconds } from '@/lib/format';
+import { streetEventText } from '@/lib/streetEvents';
 import { usePlayer } from '../components/PlayerContext';
 import { useRouter } from 'next/navigation';
 import type { Crime, Player } from '@/lib/types';
@@ -123,6 +124,10 @@ export default function SingleCrimeView({ crimeKey }: { crimeKey: string }) {
     if (res.in_family && res.family_respect_gained) {
       baseText += ` • +${res.family_respect_gained} Family Respect`;
     }
+
+    // Random street event (071)
+    const evText = streetEventText(res.event, t, language);
+    if (evText) baseText += ` • ${evText}`;
     // Dynamic message for pickpocket already, extend for other crimes if needed (deep dive: vary per action)
 
     if (res.leveled_up) {

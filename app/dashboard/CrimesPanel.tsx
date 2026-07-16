@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import type { TranslationKey } from '@/lib/i18n/translations';
 import { formatCash, formatSeconds } from '@/lib/format';
+import { streetEventText } from '@/lib/streetEvents';
 import type { Crime, CrimeResult, Player } from '@/lib/types';
 
 type ResultBanner = {
@@ -96,6 +97,10 @@ export default function CrimesPanel({
     if (res.in_family && res.family_respect_gained && res.family_respect_gained > 0) {
       baseText += `  •  +${res.family_respect_gained} Family Respect`;
     }
+
+    // Random street event (071)
+    const evText = streetEventText((res as any).event, t, language);
+    if (evText) baseText += `  •  ${evText}`;
 
     if (res.leveled_up) {
       setResult({

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { formatCash, formatSeconds } from '@/lib/format';
+import { streetEventText } from '@/lib/streetEvents';
 import { usePlayer } from '../../components/PlayerContext';
 import type { Crime, Player, CrimeResult } from '@/lib/types';
 
@@ -87,6 +88,10 @@ export default function SingleCrimeClient({
     if (res.in_family && res.family_respect_gained && res.family_respect_gained > 0) {
       baseText += ` • +${res.family_respect_gained} Family Respect`;
     }
+
+    // Random street event (071)
+    const evText = streetEventText((res as any).event, t, language);
+    if (evText) baseText += ` • ${evText}`;
 
     if (res.leveled_up) {
       showToast(baseText + ' ' + t('crime_level_up').replace('{level}', String(res.player.level)), 'levelup');

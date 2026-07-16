@@ -1225,5 +1225,10 @@
   "bg_hired": "Bodyguard hired ({count}/5) for {cost}.",
   "bg_max": "Your crew is full (5/5).",
   "rip_blocked": "A bodyguard stepped in — {target} was untouchable. Their guard went down though.",
-  "murder_blocked": "A bodyguard took the bullet — the target survived. Their guard is gone."
+  "murder_blocked": "A bodyguard took the bullet — the target survived. Their guard is gone.",
+  "ev_wallet": "💰 You found a fat wallet on the way: +{amount} dirty cash!",
+  "ev_tip": "🤫 An informant tipped you off — the cops looked the other way (-10 heat).",
+  "ev_shakedown": "🚔 Police shakedown! They squeezed {amount} out of you (+10 heat).",
+  "ev_mugging": "🔪 You got mugged in an alley and lost {amount}.",
+  "travel_dead": "You can't travel while dead."
 }

@@ -4,12 +4,13 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { CITIES, City } from '@/lib/cities';
+import { streetEventText } from '@/lib/streetEvents';
 import { usePlayer } from '../components/PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function TravelPage() {
   const { player, refreshPlayer } = usePlayer();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -27,14 +28,17 @@ export default function TravelPage() {
     const { data, error } = await supabase.rpc('travel_to_city', { city });
 
     if (error) {
-      setMessage(
-        error.message.includes('NOT_ENOUGH_CASH')
-          ? t('travel_no_cash')
-          : error.message || t('travel_failed'),
-      );
+      if (error.message.includes('NOT_ENOUGH_CASH')) setMessage(t('travel_no_cash'));
+      else if (error.message.includes('IN_JAIL')) setMessage(t('error_in_jail'));
+      else if (error.message.includes('DEAD')) setMessage(t('travel_dead'));
+      else setMessage(error.message || t('travel_failed'));
     } else {
       await refreshPlayer();
-      setMessage(t('travel_done', { city, cost: `$${data?.cost || 380}` }));
+      let text = t('travel_done', { city, cost: `$${data?.cost || 380}` });
+      // Random street event on the road (071)
+      const evText = streetEventText(data?.event, t, language);
+      if (evText) text += ` ${evText}`;
+      setMessage(text);
     }
 
     setBusy(false);

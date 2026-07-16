@@ -1225,5 +1225,10 @@
   "bg_hired": "Bodyguard ingehuurd ({count}/5) voor {cost}.",
   "bg_max": "Je crew is vol (5/5).",
   "rip_blocked": "Een bodyguard greep in — {target} was onaantastbaar. Hun bodyguard ging wel neer.",
-  "murder_blocked": "Een bodyguard ving de kogel op — het doelwit overleefde. Hun bodyguard is weg."
+  "murder_blocked": "Een bodyguard ving de kogel op — het doelwit overleefde. Hun bodyguard is weg.",
+  "ev_wallet": "💰 Je vond onderweg een dikke portemonnee: +{amount} zwart geld!",
+  "ev_tip": "🤫 Een informant tipte je — de politie keek de andere kant op (-10 heat).",
+  "ev_shakedown": "🚔 Politie-shakedown! Ze persten {amount} uit je (+10 heat).",
+  "ev_mugging": "🔪 Je bent beroofd in een steegje en verloor {amount}.",
+  "travel_dead": "Je kunt niet reizen terwijl je dood bent."
 }
