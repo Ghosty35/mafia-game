@@ -47,6 +47,7 @@ export type Player = {
   murder_cooldown?: string;    // ISO for cooldown
   owned_properties?: OwnedProperty[];
   heist_gear?: { tier?: string; label?: string; bonus?: number } | null; // server-set via buy_heist_gear
+  weapons?: string[];          // owned heist weapon ids (buy_weapon)
   money_rank?: string;
   total_wealth?: number;
   last_active?: string;            // for online / server status

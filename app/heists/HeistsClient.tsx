@@ -56,12 +56,58 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
   const [cooldowns, setCooldowns] = useState<Record<string, number>>({});
   const [crew, setCrew] = useState(2);
   const [bulletsUsed, setBulletsUsed] = useState(100);
-  const [selectedWeapon, setSelectedWeapon] = useState('Pistol');
+  const [selectedWeapon, setSelectedWeapon] = useState('pistol');
   const [gearBonus, setGearBonus] = useState(0);
   const [busy, setBusy] = useState(false);
   const [targets, setTargets] = useState<any[]>([]);
+  const [cars, setCars] = useState<Array<{ id: string; name: string; condition: number }>>([]);
+  const [selectedCarId, setSelectedCarId] = useState('');
 
   const supabase = createClient();
+
+  // Weapon catalog (mirrors buy_weapon / _weapon_bonus server-side).
+  const WEAPONS: Array<{ id: string; label: string; bonus: number; price: number }> = [
+    { id: 'pistol', label: 'Pistol', bonus: 4, price: 2500 },
+    { id: 'smg', label: 'SMG', bonus: 9, price: 12000 },
+    { id: 'rifle', label: 'Rifle', bonus: 16, price: 35000 },
+  ];
+  const ownedWeapons: string[] = Array.isArray(player?.weapons) ? (player!.weapons as string[]) : [];
+
+  // Load the player's cars for the getaway-driver selector.
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const { data } = await supabase.rpc('get_garage');
+      if (active && data?.cars) {
+        const list = data.cars as Array<{ id: string; name: string; condition: number }>;
+        setCars(list);
+        setSelectedCarId((cur) => cur || (list[0]?.id ?? ''));
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [supabase]);
+
+  const buyWeapon = async (weaponId: string) => {
+    if (!player) return;
+    const { data, error } = await supabase.rpc('buy_weapon', { weapon_id: weaponId });
+    if (error) {
+      showToast(
+        error.message.includes('NOT_ENOUGH_CASH')
+          ? 'Not enough cash for this weapon.'
+          : error.message.includes('ALREADY_OWNED')
+            ? 'You already own that weapon.'
+            : error.message,
+        'error',
+      );
+      return;
+    }
+    const updated = { ...player, cash: data.new_cash, weapons: [...ownedWeapons, weaponId] } as Player;
+    setPlayer(updated);
+    updatePlayer(updated);
+    setSelectedWeapon(weaponId);
+  };
 
   // Reflect the persistent, server-authoritative gear bonus.
   useEffect(() => {
@@ -126,12 +172,23 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
       return;
     }
 
+    if (!ownedWeapons.includes(selectedWeapon)) {
+      showToast('Select a weapon you own — buy one in the Armory first.', 'error');
+      return;
+    }
+    if (!selectedCarId) {
+      showToast('Pick a getaway car — buy one in the Garage first.', 'error');
+      return;
+    }
+
     setBusy(true);
 
     const { data, error } = await supabase.rpc('commit_heist', {
       heist_key: heist.key,
       crew_size: crew,
       bullets_used: bulletsUsed,
+      weapon: selectedWeapon,
+      car_id: selectedCarId,
     });
 
     if (error) {
@@ -224,18 +281,75 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
         <p className="text-[10px] text-zinc-500 mt-2">Gear is permanent and applies to your future heists (server-side).</p>
       </section>
 
+      {/* Weapons + Getaway driver (required to run a heist) */}
+      <section className="card p-5">
+        <h2 className="font-bold mb-3">🔫 Weapons (own one to run a heist)</h2>
+        <div className="flex flex-wrap gap-3 items-center">
+          {WEAPONS.map((w) => {
+            const owned = ownedWeapons.includes(w.id);
+            return (
+              <div key={w.id} className="flex items-center gap-1">
+                {owned ? (
+                  <button
+                    onClick={() => setSelectedWeapon(w.id)}
+                    className={`px-4 py-2 rounded text-sm ${selectedWeapon === w.id ? 'bg-red-700' : 'bg-zinc-800 hover:bg-zinc-700'}`}
+                  >
+                    {w.label} (+{w.bonus}%){selectedWeapon === w.id ? ' ✓' : ''}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => buyWeapon(w.id)}
+                    className="px-4 py-2 bg-emerald-800 hover:bg-emerald-700 rounded text-sm"
+                  >
+                    Buy {w.label} (+{w.bonus}%) — ${w.price.toLocaleString()}
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <h2 className="font-bold mt-4 mb-2">🚗 Getaway driver</h2>
+        {cars.length === 0 ? (
+          <p className="text-xs text-amber-400">
+            No cars available. Buy one in the <Link href="/garage" className="underline">Garage</Link> to run heists.
+          </p>
+        ) : (
+          <select
+            value={selectedCarId}
+            onChange={(e) => setSelectedCarId(e.target.value)}
+            className="bg-zinc-900 border border-zinc-700 px-2 py-1 rounded text-sm"
+          >
+            {cars.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name} ({c.condition}%)
+              </option>
+            ))}
+          </select>
+        )}
+        <p className="text-[10px] text-zinc-500 mt-2">
+          The getaway car adds up to +10% success and takes −8% condition wear per heist (repair it in the Garage).
+        </p>
+      </section>
+
       {/* Heist List with real cooldowns */}
       <div className="grid md:grid-cols-2 gap-4">
         {heists.map((h) => {
           const status = getHeistStatus(h);
           const canDo = player.level >= h.min_level && !inJail && status.ready;
           // Mirror the server formula (commit_heist): base + gear + crew +
-          // bullets (min(15, used/10) pp) - heat penalty, capped at 90%.
+          // bullets + weapon + getaway - heat penalty, capped at 90%.
           const bulletPct = Math.min(15, bulletsUsed / 10);
+          const weaponPct = ownedWeapons.includes(selectedWeapon)
+            ? (WEAPONS.find((w) => w.id === selectedWeapon)?.bonus ?? 0)
+            : 0;
+          const gcar = cars.find((c) => c.id === selectedCarId);
+          const getawayPct = gcar ? Math.min(10, Math.floor(gcar.condition / 12)) : 0;
           const successEst = Math.round(
             Math.min(
               0.9,
-              h.base_success + gearBonus / 100 + ((crew - 1) * 10) / 100 + bulletPct / 100 - (player.heat || 0) / 250,
+              h.base_success + gearBonus / 100 + ((crew - 1) * 10) / 100 + bulletPct / 100 +
+                weaponPct / 100 + getawayPct / 100 - (player.heat || 0) / 250,
             ) * 100,
           );
 
@@ -271,14 +385,18 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
                 </button>
               </div>
 
-              {/* Weapon and Bullets for heist */}
-              <div className="mt-2 text-xs">
-                <span>Weapon:</span>
-                <select value={selectedWeapon} onChange={e => setSelectedWeapon(e.target.value)} className="ml-2 bg-zinc-800 text-xs">
-                  <option>Pistol</option>
-                  <option>SMG</option>
-                  <option>Rifle</option>
-                </select>
+              {/* Loadout summary — weapon + getaway are picked in the Armory above */}
+              <div className="mt-2 text-xs text-zinc-400">
+                Loadout:{' '}
+                <span className={ownedWeapons.includes(selectedWeapon) ? 'text-emerald-400' : 'text-red-400'}>
+                  {ownedWeapons.includes(selectedWeapon)
+                    ? WEAPONS.find((w) => w.id === selectedWeapon)?.label
+                    : '⚠ no weapon'}
+                </span>{' '}
+                · Getaway:{' '}
+                <span className={selectedCarId ? 'text-emerald-400' : 'text-red-400'}>
+                  {cars.find((c) => c.id === selectedCarId)?.name ?? '⚠ none'}
+                </span>
               </div>
               <div className="mt-1 text-xs">
                 <span>Bullets (0-500, required for bonus):</span>
