@@ -13,7 +13,7 @@ type WantedEntry = {
   username: string;
   heat: number;
   level: number;
-  cash: number;
+  dirty_cash: number;
   city: string | null;
   is_donator: boolean;
   family_tag: string | null;
@@ -64,7 +64,7 @@ export default function MostWantedBoard({ limit = 25, compact = false }: { limit
         <div className="col-span-4">{t('mw_col_criminal')}</div>
         <div className="col-span-3">{t('mw_col_status')}</div>
         <div className="col-span-2 text-right">{t('mw_col_heat')}</div>
-        {!compact && <div className="col-span-2 text-right">{t('mw_col_cash')}</div>}
+        {!compact && <div className="col-span-2 text-right">🩸 {t('mw_col_dirty')}</div>}
       </div>
 
       {loading ? (
@@ -98,8 +98,8 @@ export default function MostWantedBoard({ limit = 25, compact = false }: { limit
                 🔥 {r.heat}
               </div>
               {!compact && (
-                <div className="col-span-2 text-right font-mono text-emerald-400 tabular-nums">
-                  {formatCash(r.cash ?? 0, language)}
+                <div className="col-span-2 text-right font-mono text-red-400 tabular-nums">
+                  {formatCash(r.dirty_cash ?? 0, language)}
                 </div>
               )}
             </div>
