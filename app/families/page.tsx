@@ -63,19 +63,8 @@ export default function MyFamilyPage() {
     await reload();
   };
 
-  const leave = async () => {
-    if (!confirm(t('fam_confirm_leave'))) return;
-    setBusy(true);
-    setError(null);
-    const { error: err } = await supabase.rpc('leave_family');
-    setBusy(false);
-    if (err) {
-      setError(t('fam_err_leave'));
-      return;
-    }
-    await reload();
-    router.refresh();
-  };
+  // Leaving costs a fee and puts a bounty on your head (077), so it gets its
+  // own page to explain the deal rather than a bare confirm() here.
 
   if (loading) {
     return <div className="max-w-5xl mx-auto p-6 text-zinc-400 text-sm">{t('loading')}</div>;
@@ -247,9 +236,9 @@ export default function MyFamilyPage() {
 
       {/* Leave */}
       <div className="flex justify-end">
-        <button onClick={leave} disabled={busy} className="px-4 py-2 bg-zinc-900 border border-zinc-700 hover:border-red-800 hover:text-red-400 rounded-lg text-xs disabled:opacity-50">
+        <Link href="/families/leave" className="px-4 py-2 bg-zinc-900 border border-zinc-700 hover:border-red-800 hover:text-red-400 rounded-lg text-xs">
           🚪 {t('fam_leave')}
-        </button>
+        </Link>
       </div>
     </div>
   );
