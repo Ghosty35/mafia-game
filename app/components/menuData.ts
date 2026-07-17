@@ -67,6 +67,10 @@ export const leftMenuCategories: MenuCategory[] = [
     titleKey: 'side_casino',
     items: [
       { labelKey: 'menu_casino_floor', href: '/casino', icon: '🎰' },
+      { labelKey: 'menu_blackjack', href: '/casino/blackjack', icon: '🃏' },
+      { labelKey: 'menu_roulette', href: '/casino/roulette', icon: '🎡' },
+      { labelKey: 'menu_poker', href: '/casino/poker', icon: '🎴' },
+      { labelKey: 'menu_rps', href: '/casino/rps', icon: '✊' },
       { labelKey: 'menu_lottery', href: '/casino/lottery', icon: '🎟️' },
     ],
   },

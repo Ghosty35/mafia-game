@@ -184,6 +184,26 @@ export default function CasinoPage() {
 
       {message && <div className="mb-5 p-3 bg-zinc-900 border border-zinc-700 rounded text-sm">{message}</div>}
 
+      {/* The real tables (079/080) — proper games, not the quick-play flip below */}
+      <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { href: '/casino/blackjack', icon: '🃏', label: t('menu_blackjack'), sub: t('bj_subtitle') },
+          { href: '/casino/roulette', icon: '🎡', label: t('menu_roulette'), sub: t('rl_subtitle') },
+          { href: '/casino/poker', icon: '🎴', label: t('menu_poker'), sub: t('vp_subtitle') },
+          { href: '/casino/rps', icon: '✊', label: t('menu_rps'), sub: t('rps_subtitle') },
+        ].map((g) => (
+          <Link
+            key={g.href}
+            href={g.href}
+            className="card p-4 hover:border-red-700 transition flex flex-col"
+          >
+            <div className="text-3xl mb-1">{g.icon}</div>
+            <div className="font-bold text-sm">{g.label}</div>
+            <div className="text-[10px] text-zinc-500 leading-tight mt-0.5">{g.sub}</div>
+          </Link>
+        ))}
+      </div>
+
       {/* Live Pools - attracts gamblers */}
       <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-3">
         {poolCards.map((p, i) => (
