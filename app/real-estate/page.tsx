@@ -193,6 +193,35 @@ export default function RealEstatePage() {
 
   const owned = player.owned_properties || [];
 
+  // Mirror the server-side per-type caps (055_property_catalog_and_hardened_purchase.sql)
+  // so the Buy buttons disable at max instead of allowing wasted clicks that the
+  // server would reject. The server remains the source of truth.
+  const ownedByPtype: Record<string, number> = {};
+  for (const e of owned as any[]) {
+    const ptype = (e?.ptype || e?.name || '').toLowerCase();
+    if (ptype) ownedByPtype[ptype] = (ownedByPtype[ptype] || 0) + 1;
+  }
+  const isAtTotalCap = owned.length >= 4;
+  const isPtypeMaxed = (ptype: string) => {
+    if (ptype === 'mansion') return (ownedByPtype['mansion'] || 0) >= 1;
+    if (ptype === 'villa') return (ownedByPtype['villa'] || 0) >= 2;
+    if (ptype === 'house') return (ownedByPtype['house'] || 0) >= 4;
+    return false;
+  };
+  const isDuplicateOwned = (prop: Property) =>
+    owned.some((e: any) => e?.catalog_id === prop.id || e?.id === prop.id);
+
+  const propertyBlockedReason = (prop: Property): string | null => {
+    if (isDuplicateOwned(prop)) return t('re_house_in_city');
+    if (isAtTotalCap) return t('re_total_limit');
+    if (isPtypeMaxed(prop.ptype)) {
+      if (prop.ptype === 'mansion') return t('re_max_mansion');
+      if (prop.ptype === 'villa') return t('re_max_villas');
+      if (prop.ptype === 'house') return t('re_max_houses');
+    }
+    return null;
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-4 sm:p-6">
       <h1 className="text-3xl font-bold mb-4">🏠 {t('re_title')}</h1>
@@ -255,13 +284,23 @@ export default function RealEstatePage() {
                 <div className="italic text-amber-400 text-xs mt-1">{t('re_flavor_residential')}</div>
               </div>
 
-              <button
-                onClick={() => buyProperty(prop)}
-                disabled={busy}
-                className="w-full mt-2 py-2 bg-red-700 hover:bg-red-600 rounded text-sm font-semibold"
-              >
-                {t('re_buy_button', { name: t(prop.nameKey) })}
-              </button>
+              {(() => {
+                const blocked = propertyBlockedReason(prop);
+                const cantAfford = player.cash < prop.price + Math.floor(prop.price * 0.1);
+                return (
+                  <button
+                    onClick={() => buyProperty(prop)}
+                    disabled={busy || !!blocked || cantAfford}
+                    className="w-full mt-2 py-2 bg-red-700 hover:bg-red-600 rounded text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {blocked
+                      ? blocked
+                      : cantAfford
+                        ? t('re_no_cash_tax')
+                        : t('re_buy_button', { name: t(prop.nameKey) })}
+                  </button>
+                );
+              })()}
             </div>
           );
         })}

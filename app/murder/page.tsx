@@ -9,10 +9,13 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useRouter } from 'next/navigation';
 import type { TranslationKey } from '@/lib/i18n/translations';
 
-const WEAPONS: { name: string; labelKey: TranslationKey; descKey: TranslationKey; price: number; bonus: number }[] = [
-  { name: 'Pistol', labelKey: 'murder_weapon_pistol', descKey: 'murder_weapon_pistol_desc', price: 200, bonus: 5 },
-  { name: 'SMG', labelKey: 'murder_weapon_smg', descKey: 'murder_weapon_smg_desc', price: 800, bonus: 15 },
-  { name: 'Rifle', labelKey: 'murder_weapon_rifle', descKey: 'murder_weapon_rifle_desc', price: 2500, bonus: 30 },
+// Weapon bonus % matches the server's attempt_murder() logic (077_leave_family_bounty.sql):
+//   Rifle +20, SMG +10, Pistol (and any other) +0. No weapon is purchased/charged
+//   in a murder — weapons are selected, not bought here — so there is no price.
+const WEAPONS: { name: string; labelKey: TranslationKey; descKey: TranslationKey; bonus: number }[] = [
+  { name: 'Pistol', labelKey: 'murder_weapon_pistol', descKey: 'murder_weapon_pistol_desc', bonus: 0 },
+  { name: 'SMG', labelKey: 'murder_weapon_smg', descKey: 'murder_weapon_smg_desc', bonus: 10 },
+  { name: 'Rifle', labelKey: 'murder_weapon_rifle', descKey: 'murder_weapon_rifle_desc', bonus: 20 },
 ];
 
 export default function MurderPage() {
@@ -59,7 +62,6 @@ function MurderContent() {
   const canCleanHit = murderSkillPercent >= 75;
 
   const currentWeapon = WEAPONS.find(w => w.name === selectedWeapon)!;
-  const totalCost = currentWeapon.price;
 
   const attemptMurder = async () => {
     if (!isUnlocked) {
@@ -159,8 +161,7 @@ function MurderContent() {
                 onClick={() => setSelectedWeapon(w.name)}
                 className={`flex-1 p-3 rounded text-sm ${selectedWeapon === w.name ? 'bg-red-700' : 'bg-zinc-800'}`}
               >
-                {t(w.labelKey)} (+{w.bonus}%)<br />
-                <span className="text-xs">{fm(w.price)}</span>
+                {t(w.labelKey)} (+{w.bonus}%)
               </button>
             ))}
           </div>
