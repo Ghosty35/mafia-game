@@ -114,88 +114,99 @@ function MurderContent() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-4">🔫 {t('murder_title')}</h1>
+    <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-4">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight mb-1">🔫 {t('murder_title')}</h1>
+        <p className="text-xs text-zinc-400">{t('murder_desc')}</p>
+      </div>
+
       {!isUnlocked && (
-        <div className="mb-4 p-3 bg-red-950 border border-red-800 rounded text-sm">
+        <div className="bg-red-950/40 border border-red-900/50 rounded-xl p-4 text-sm">
+          <div className="font-semibold text-red-400 mb-1">🔒 Locked</div>
           {t('murder_locked_banner', { level: player.level, skill: murderSkillPercent })}
         </div>
       )}
       {isUnlocked && !canCleanHit && (
-        <div className="mb-4 p-3 bg-yellow-950 border border-yellow-800 rounded text-sm">
+        <div className="bg-amber-950/40 border border-amber-900/50 rounded-xl p-4 text-sm">
+          <div className="font-semibold text-amber-400 mb-1">⚠️ Low Skill</div>
           {t('murder_low_skill_banner')}
         </div>
       )}
-      <p className="text-sm text-zinc-400 mb-6">{t('murder_desc')}</p>
 
       {/* 076: murder needs a warm detective tip — say so up front. */}
-      <div className="mb-4 p-3 bg-zinc-900 border border-zinc-800 rounded text-xs text-zinc-400">
-        🕵️ {t('murder_intel_required')}{' '}
-        <Link href="/detective" className="text-red-400 hover:underline">{t('menu_detective')}</Link>
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-xs text-zinc-400 flex items-center gap-2">
+        <span>🕵️</span>
+        {t('murder_intel_required')}{' '}
+        <Link href="/detective" className="text-amber-400 hover:text-amber-300 transition-colors">{t('menu_detective')}</Link>
       </div>
 
       {cooldown > 0 && (
-        <div className="mb-4 p-2 bg-orange-900 text-orange-200 rounded text-sm">
-          {t('murder_cooldown', { minutes: Math.floor(cooldown / 60), seconds: cooldown % 60 })}
+        <div className="bg-orange-950/40 border border-orange-800/50 rounded-xl p-3 text-sm text-orange-300">
+          ⏱ {t('murder_cooldown', { minutes: Math.floor(cooldown / 60), seconds: cooldown % 60 })}
         </div>
       )}
 
-      <div className="card p-6 mb-6">
-        <div className="mb-4">
-          <label className="block text-sm mb-1">{t('murder_target_label')}</label>
-          <input 
-            type="text" 
-            value={targetName} 
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-5">
+        <div>
+          <label className="block text-xs text-zinc-400 uppercase tracking-wider mb-2">{t('murder_target_label')}</label>
+          <input
+            type="text"
+            value={targetName}
             onChange={e => setTargetName(e.target.value)}
-            className="w-full bg-zinc-900 border border-zinc-700 rounded px-4 py-2"
+            className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-amber-700"
             placeholder={t('murder_target_placeholder')}
           />
         </div>
 
-        <div className="mb-4">
-          <label className="block text-sm mb-1">{t('murder_weapon_label')}</label>
+        <div>
+          <label className="block text-xs text-zinc-400 uppercase tracking-wider mb-2">{t('murder_weapon_label')}</label>
           <div className="flex gap-2">
             {WEAPONS.map(w => (
-              <button 
+              <button
                 key={w.name}
                 onClick={() => setSelectedWeapon(w.name)}
-                className={`flex-1 p-3 rounded text-sm ${selectedWeapon === w.name ? 'bg-red-700' : 'bg-zinc-800'}`}
+                className={`flex-1 p-3 rounded-lg text-sm font-semibold transition-all ${
+                  selectedWeapon === w.name
+                    ? 'bg-red-700 text-white border border-red-600 shadow-[0_0_10px_rgba(220,38,38,0.2)]'
+                    : 'bg-zinc-800 text-zinc-300 border border-zinc-700 hover:border-zinc-600'
+                }`}
               >
+                {w.name === 'Rifle' && '🎯 '}{w.name === 'SMG' && '🔫 '}{w.name === 'Pistol' && '🔫 '}
                 {t(w.labelKey)} (+{w.bonus}%)
               </button>
             ))}
           </div>
-          <p className="text-xs mt-1 text-zinc-500">{t(currentWeapon.descKey)}</p>
+          <p className="text-xs text-zinc-500 mt-2">{t(currentWeapon.descKey)}</p>
         </div>
 
-        <div className="mb-4">
-          <label className="block text-sm mb-1">{t('murder_bullets_label')}</label>
-          <input 
-            type="range" 
-            min="0" 
-            max="500" 
-            value={bulletsUsed} 
+        <div>
+          <label className="block text-xs text-zinc-400 uppercase tracking-wider mb-2">{t('murder_bullets_label')}</label>
+          <input
+            type="range"
+            min="0"
+            max="500"
+            value={bulletsUsed}
             onChange={e => setBulletsUsed(parseInt(e.target.value))}
-            className="w-full"
+            className="w-full accent-red-600"
           />
-          <div className="flex justify-between text-xs">
+          <div className="flex justify-between text-xs text-zinc-500 mt-1">
             <span>0</span>
-            <span className="font-mono">{bulletsUsed}</span>
+            <span className="font-mono text-red-400 font-bold">{bulletsUsed}</span>
             <span>500</span>
           </div>
           <p className="text-xs text-zinc-500 mt-1">{t('murder_current_bullets', { bullets: player.bullets || 0 })}</p>
         </div>
 
-        <button 
-          onClick={attemptMurder} 
+        <button
+          onClick={attemptMurder}
           disabled={busy || !targetName.trim() || !isUnlocked || bulletsUsed < 10 || cooldown > 0}
-          className="w-full py-3 bg-red-700 hover:bg-red-600 rounded font-bold disabled:opacity-50"
+          className="w-full py-3 bg-red-700 hover:bg-red-600 disabled:bg-zinc-800 disabled:text-zinc-500 disabled:cursor-not-allowed rounded-lg font-bold text-sm tracking-wide transition-colors"
         >
           {busy ? t('murder_attempting') : cooldown > 0 ? t('murder_on_cooldown') : !isUnlocked ? t('murder_locked_button') : t('murder_attempt_button', { weapon: t(currentWeapon.labelKey), bullets: bulletsUsed })}
         </button>
       </div>
 
-      <Link href="/dashboard" className="mt-6 inline-block text-sm text-red-400">← {t('common_back')}</Link>
+      <Link href="/dashboard" className="inline-block text-sm text-amber-400 hover:text-amber-300 transition-colors">← {t('common_back')}</Link>
     </div>
   );
 }
