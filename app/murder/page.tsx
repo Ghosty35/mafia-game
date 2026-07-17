@@ -63,11 +63,11 @@ function MurderContent() {
 
   const attemptMurder = async () => {
     if (!isUnlocked) {
-      alert(t('murder_locked_alert'));
+      showToast(t('murder_locked_alert'), 'error');
       return;
     }
     if (!targetName.trim() || bulletsUsed < 10 || bulletsUsed > 500 || (player.bullets || 0) < bulletsUsed) {
-      alert(t('murder_invalid_input'));
+      showToast(t('murder_invalid_input'), 'error');
       return;
     }
 
