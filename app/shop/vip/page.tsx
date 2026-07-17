@@ -170,7 +170,7 @@ function FamilyBuffsShop({ busy, setMessage, isDonator }: { busy: boolean; setMe
           return;
         }
         await refreshPlayer();
-        setMessage(t('vip_buff_bought', { label: buff.label, power: powerGain }));
+        setMessage(t('vip_buff_bought', { label: buff.label, power: data?.power_gain ?? 0 }));
       }
     } finally {
       setLocalBusy(false);
