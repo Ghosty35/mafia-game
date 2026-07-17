@@ -40,6 +40,7 @@ export default function RacePage() {
   const [selectedCarId, setSelectedCarId] = useState('');
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
 
   const cars: RaceCar[] = player?.cars || [];
   const validCars = cars.filter((c) => (c.condition || 100) >= 75);
@@ -59,6 +60,11 @@ export default function RacePage() {
     const iv = setInterval(loadRaces, 10000); // keep the open-race board live
     return () => clearInterval(iv);
   }, [player?.id, loadRaces]);
+
+  useEffect(() => {
+    const tick = setInterval(() => setNow(Date.now()), 60000); // update timers every minute
+    return () => clearInterval(tick);
+  }, []);
 
   const postRace = async () => {
     if (!player || !selectedCarId || validCars.length === 0) {
@@ -228,7 +234,7 @@ export default function RacePage() {
           ) : (
             openRaces.map((race) => {
               const minutesLeft = race.expire_at
-                ? Math.max(0, Math.floor((new Date(race.expire_at).getTime() - Date.now()) / 60000))
+                ? Math.max(0, Math.floor((new Date(race.expire_at).getTime() - now) / 60000))
                 : 0;
               const mine = race.poster_id === player?.id;
               const canStart = race.status === 'ready' && (mine || race.joined_by === player?.id);

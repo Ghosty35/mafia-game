@@ -26,8 +26,8 @@ const EVENT_ICON: Record<string, string> = {
   bust: '🚨',
 };
 
-function timeAgo(iso: string): string {
-  const secs = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+function timeAgo(iso: string, now: number): string {
+  const secs = Math.max(0, Math.floor((now - new Date(iso).getTime()) / 1000));
   if (secs < 60) return `${secs}s`;
   const mins = Math.floor(secs / 60);
   if (mins < 60) return `${mins}m`;
@@ -40,6 +40,7 @@ export default function LiveLogs() {
   const { t } = useLanguage();
   const [events, setEvents] = useState<GameEvent[]>([]);
   const [, force] = useState(0); // re-render so relative times tick
+  const [now, setNow] = useState(() => Date.now());
 
   // Keep the supabase client stable so the poll interval never restarts.
   const supabaseRef = useRef(createClient());
@@ -51,7 +52,10 @@ export default function LiveLogs() {
     };
     load();
     const poll = setInterval(load, 12000);
-    const tick = setInterval(() => force((n) => n + 1), 30000); // refresh "Xs ago"
+    const tick = setInterval(() => {
+      force((n) => n + 1);
+      setNow(Date.now());
+    }, 30000); // refresh "Xs ago"
     return () => {
       clearInterval(poll);
       clearInterval(tick);
@@ -81,7 +85,7 @@ export default function LiveLogs() {
                 <span className="font-semibold text-red-400">{e.username}</span>{' '}
                 <span className="text-zinc-300">{e.message}</span>
               </span>
-              <span className="text-[10px] text-zinc-500 font-mono whitespace-nowrap">{timeAgo(e.created_at)}</span>
+              <span className="text-[10px] text-zinc-500 font-mono whitespace-nowrap">{timeAgo(e.created_at, now)}</span>
             </div>
           ))
         )}

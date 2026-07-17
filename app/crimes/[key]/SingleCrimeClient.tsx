@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { formatCash, formatSeconds } from '@/lib/format';
@@ -21,7 +22,8 @@ export default function SingleCrimeClient({
   familyStatus?: any;
 }) {
   const { t, language } = useLanguage();
-  const { updatePlayer, showToast } = usePlayer();
+  const { updatePlayer, refreshPlayer, showToast } = usePlayer();
+  const router = useRouter();
   const [player, setPlayer] = useState<Player | null>(initialPlayer);
   const [cooldowns, setCooldowns] = useState<Record<string, number>>(() =>
     Object.fromEntries(
@@ -73,6 +75,8 @@ export default function SingleCrimeClient({
     setPlayer(res.player);
     updatePlayer(res.player);
     setCooldowns((prev) => ({ ...prev, [crime.key]: Date.parse(res.available_at) }));
+    if (refreshPlayer) await refreshPlayer();
+    router.refresh();
 
     let baseText = res.success
       ? t('crime_result_success').replace('{cash}', formatCash(res.reward, language)).replace('{xp}', String(res.xp_gained))

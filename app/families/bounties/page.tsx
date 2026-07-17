@@ -38,6 +38,7 @@ export default function BountiesPage() {
   const [bounties, setBounties] = useState<Bounty[]>([]);
   const [mine, setMine] = useState<MyBounty | null>(null);
   const [loading, setLoading] = useState(true);
+  const [now, setNow] = useState(() => Date.now());
 
   const supabase = createClient();
 
@@ -55,9 +56,14 @@ export default function BountiesPage() {
     if (player) load();
   }, [player?.id, load]);
 
+  useEffect(() => {
+    const tick = setInterval(() => setNow(Date.now()), 60000); // update every minute
+    return () => clearInterval(tick);
+  }, []);
+
   if (loading) return <div className="max-w-4xl mx-auto p-6 text-zinc-400 text-sm">{t('loading')}</div>;
 
-  const daysLeft = (iso: string) => Math.max(0, Math.ceil((new Date(iso).getTime() - Date.now()) / 86400000));
+  const daysLeft = (iso: string) => Math.max(0, Math.ceil((new Date(iso).getTime() - now) / 86400000));
   const open = bounties.filter((b) => !b.claimed_by);
   const collected = bounties.filter((b) => b.claimed_by);
 

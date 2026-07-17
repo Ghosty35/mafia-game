@@ -32,6 +32,7 @@ function ProfileContent() {
   const [publicProfile, setPublicProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [now, setNow] = useState(() => Date.now());
 
   // Viewing someone else only when the name differs from our own.
   const isOwn = !viewUser || (player?.username != null && viewUser.toLowerCase() === player.username.toLowerCase());
@@ -56,6 +57,11 @@ function ProfileContent() {
     load();
   }, [viewUser, isOwn]);
 
+  useEffect(() => {
+    const tick = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(tick);
+  }, []);
+
   if (loading || (isOwn && !player)) {
     return <div className="max-w-4xl mx-auto p-6 text-zinc-400 text-sm">{t('profile_loading')}</div>;
   }
@@ -72,7 +78,7 @@ function ProfileContent() {
 
   const rank = getRank(p.level ?? 1);
   const nextRank = getNextRank(p.level ?? 1);
-  const online = p.last_active && Date.now() - new Date(p.last_active).getTime() < 15 * 60 * 1000;
+  const online = p.last_active && now - new Date(p.last_active).getTime() < 15 * 60 * 1000;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
