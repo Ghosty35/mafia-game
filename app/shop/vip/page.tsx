@@ -45,13 +45,6 @@ export default function VipStorePage() {
     { icon: '⚡', title: t('vip_perk_regen_title'), desc: t('vip_perk_regen_desc') },
   ];
 
-  const comingSoon = [
-    { icon: '⏱️', title: t('vip_soon_cooldown_title'), desc: t('vip_soon_cooldown_desc'), price: 250 },
-    { icon: '💰', title: t('vip_soon_cash_title'), desc: t('vip_soon_cash_desc'), price: 180 },
-    { icon: '🛡️', title: t('vip_soon_jail_title'), desc: t('vip_soon_jail_desc'), price: 120 },
-    { icon: '⭐', title: t('vip_soon_xp_title'), desc: t('vip_soon_xp_desc'), price: 150 },
-  ];
-
   return (
     <main className="flex-1 px-4 py-6 max-w-5xl mx-auto w-full space-y-4">
       <div className="flex items-start justify-between gap-3 flex-wrap">
@@ -120,27 +113,6 @@ export default function VipStorePage() {
       >
         <p className="text-xs text-zinc-400 mb-3">{t('vip_buffs_desc')}</p>
         <FamilyBuffsShop busy={busy} setMessage={setMessage} isDonator={isDonator} />
-      </Panel>
-
-      {/* Diamond boosts — coming soon */}
-      <Panel
-        title={t('vip_soon_title')}
-        icon="💎"
-        actions={<span className="text-[10px] px-2 py-px bg-zinc-800 text-zinc-500 rounded uppercase">{t('vip_soon_badge')}</span>}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-          {comingSoon.map((item, i) => (
-            <div key={i} className="card p-4 flex flex-col opacity-70">
-              <div className="text-2xl mb-1.5">{item.icon}</div>
-              <div className="font-bold text-sm">{item.title}</div>
-              <div className="text-xs text-zinc-400 mt-1 flex-1">{item.desc}</div>
-              <div className="mt-3 flex items-center justify-between">
-                <span className="font-mono text-xs text-yellow-400">{item.price} 💎</span>
-                <span className="text-[10px] px-2 py-0.5 bg-zinc-800 text-zinc-500 rounded">{t('vip_soon_badge')}</span>
-              </div>
-            </div>
-          ))}
-        </div>
       </Panel>
 
       <div className="text-[11px] text-zinc-500 text-center">

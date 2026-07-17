@@ -43,27 +43,11 @@ export default function StocksPage() {
       const { data: d2 } = await supabase.rpc('get_stock_market');
       if (d2) setStocks(d2 as Stock[]);
     } catch (e) {
+      // Market is live server-side; if it can't load, say so honestly rather
+      // than showing invented prices someone might try to trade on.
       setMigrationMissing(true);
+      setStocks([]);
       setMsg(`${t('stocks_migration_error')} ${e instanceof Error ? e.message : ''}`);
-      // Fallback demo data so page isn't empty
-      if (stocks.length === 0) {
-        setStocks([
-          {
-            ticker: 'GOTHAM',
-            name: 'Gotham Realty Trust',
-            current_price: 142.5,
-            prev_price: 140.0,
-            volatility: 0.025,
-          },
-          {
-            ticker: 'PHARMA',
-            name: 'Street Pharma Co.',
-            current_price: 67.8,
-            prev_price: 71.2,
-            volatility: 0.06,
-          },
-        ]);
-      }
     }
   };
 
@@ -156,10 +140,14 @@ export default function StocksPage() {
         <div className="text-xs text-zinc-500">{t('stocks_portfolio_note')}</div>
         {migrationMissing && (
           <div className="mt-2 text-amber-400 text-xs border border-amber-700 p-2 rounded">
-            {t('stocks_demo_warning')}
+            {t('stocks_unavailable')}
           </div>
         )}
       </div>
+
+      {migrationMissing && stocks.length === 0 && (
+        <div className="card p-8 text-center text-sm text-zinc-500">{t('stocks_unavailable')}</div>
+      )}
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {stocks.map((s) => {

@@ -28,6 +28,26 @@ export default function DashboardClient({
   const { t, fm } = useLanguage();
   const [player, setPlayer] = useState<Player | null>(initialPlayer);
   const [serverTimes, setServerTimes] = useState({ europe: '', us: '' });
+  const [serverStats, setServerStats] = useState<{
+    online_people: number;
+    total_families: number;
+    people_registered: number;
+    total_money_circulation: number;
+  } | null>(null);
+
+  // Real, live server stats for the hub (there is no season/round system — the
+  // old panel showed a hardcoded 2026 progress bar that meant nothing).
+  useEffect(() => {
+    let alive = true;
+    const load = async () => {
+      const supabase = (await import('@/lib/supabase/client')).createClient();
+      const { data } = await supabase.rpc('get_server_stats');
+      if (alive && data) setServerStats(data);
+    };
+    load();
+    const iv = setInterval(load, 30000);
+    return () => { alive = false; clearInterval(iv); };
+  }, []);
 
   // Live server clocks in two timezones
   useEffect(() => {
@@ -53,13 +73,6 @@ export default function DashboardClient({
     return () => clearInterval(interval);
   }, []);
 
-  // Round info (demo - current season, start/end)
-  const roundStart = new Date('2026-01-01T00:00:00Z');
-  const roundEnd = new Date('2026-12-31T23:59:59Z');
-  const now = new Date();
-  const daysLeft = Math.max(0, Math.ceil((roundEnd.getTime() - now.getTime()) / (1000 * 3600 * 24)));
-  const roundProgress = Math.min(100, Math.max(0, Math.floor(((now.getTime() - roundStart.getTime()) / (roundEnd.getTime() - roundStart.getTime())) * 100)));
-
   if (!player) {
     return (
       <div className="p-8">
@@ -72,30 +85,34 @@ export default function DashboardClient({
     <div className="space-y-10">
       {!player.username && <UsernamePrompt onClaimed={setPlayer} />}
 
-      {/* Front Page - Game Info, Round, Live Server Clocks */}
+      {/* Front Page - live server stats + clocks */}
       <div className="card p-6 bg-zinc-900 border border-red-900/50">
-        <h2 className="text-2xl font-bold mb-4">🏠 Welcome to the Streets - Game Hub</h2>
+        <h2 className="text-2xl font-bold mb-4">🏠 {t('hub_title')}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
           <div>
-            <div className="font-semibold text-red-400">Current Round / Season</div>
-            <div>Season 2026 - "God of the Streets"</div>
-            <div>Started: {roundStart.toLocaleDateString()} {roundStart.toLocaleTimeString()}</div>
-            <div>Ends: {roundEnd.toLocaleDateString()} {roundEnd.toLocaleTimeString()}</div>
-            <div className="mt-1">Time Left: <span className="font-mono text-emerald-400">{daysLeft} days</span></div>
-            <div className="mt-1">Progress: <span className="font-mono">{roundProgress}%</span></div>
-            <div className="h-2 bg-zinc-800 rounded mt-1">
-              <div className="h-2 bg-red-600 rounded" style={{width: `${roundProgress}%`}} />
+            <div className="font-semibold text-red-400 mb-2">{t('hub_server')}</div>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { label: t('status_online'), value: serverStats ? serverStats.online_people.toLocaleString() : '—', color: 'text-emerald-400' },
+                { label: t('status_registered'), value: serverStats ? serverStats.people_registered.toLocaleString() : '—', color: 'text-white' },
+                { label: t('status_families'), value: serverStats ? serverStats.total_families.toLocaleString() : '—', color: 'text-amber-400' },
+                { label: t('status_money'), value: serverStats ? fm(serverStats.total_money_circulation) : '—', color: 'text-emerald-400' },
+              ].map((s, i) => (
+                <div key={i} className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2">
+                  <div className="text-[10px] uppercase tracking-wider text-zinc-500">{s.label}</div>
+                  <div className={`font-mono font-semibold tabular-nums ${s.color}`}>{s.value}</div>
+                </div>
+              ))}
             </div>
+            <Link href="/server-status" className="inline-block mt-2 text-xs text-red-400 hover:underline">{t('menu_server_status')} →</Link>
           </div>
           <div>
-            <div className="font-semibold text-red-400">Live Server Clocks</div>
+            <div className="font-semibold text-red-400 mb-2">{t('hub_clocks')}</div>
             <div className="font-mono mt-1">{serverTimes.europe}</div>
             <div className="font-mono">{serverTimes.us}</div>
-            <div className="text-xs text-zinc-500 mt-2">Live synced every second. All trackers (crimes, weed, races, cooldowns) update globally from PlayerContext.</div>
-            <div className="mt-2 text-xs">Useful Info: Check sidebars for crimes, family, safehouse. Use travel for city profits. Donators get perks!</div>
+            <div className="text-xs text-zinc-500 mt-2">{t('hub_clocks_note')}</div>
           </div>
         </div>
-        <div className="mt-4 text-xs text-zinc-400">Home brings you here for round status + live everything. Cooldowns sync across pages.</div>
       </div>
 
       {player.jailed_until && new Date(player.jailed_until).getTime() > Date.now() && (
@@ -147,43 +164,6 @@ export default function DashboardClient({
               {t('mw_full_board')}
             </Link>
           </div>
-        </div>
-      </section>
-
-      {/* Latest News */}
-      <section>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xl font-bold flex items-center gap-2">📰 Latest News</h2>
-          <span className="text-xs text-zinc-500">Updated today</span>
-        </div>
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="card p-5">
-            <div className="text-emerald-400 text-xs font-semibold mb-1">NEW</div>
-            <h3 className="font-semibold mb-1">Family Bank System Live</h3>
-            <p className="text-sm text-zinc-400">
-              Families can now collect donations into the Treasury. Managers and Accountants can accept pending donations.
-              Stronger families = more power in upcoming wars.
-            </p>
-          </div>
-          <div className="card p-5">
-            <div className="text-amber-400 text-xs font-semibold mb-1">UPDATE</div>
-            <h3 className="font-semibold mb-1">New Side Navigation</h3>
-            <p className="text-sm text-zinc-400">
-              We’ve added categorized side menus for faster access to Crimes, Bank, Family and Rankings.
-              No more hunting around.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Game Updates */}
-      <section>
-        <h2 className="text-xl font-bold mb-3">🚀 Game Updates</h2>
-        <div className="card p-5 space-y-3 text-sm">
-          <div>• <strong>Family Roles Expanded</strong> — Boss, Underboss, Accountant, Managers (max 2), Caporegime and more.</div>
-          <div>• <strong>Pending Donations</strong> — Donations now go through approval for better control.</div>
-          <div>• <strong>Improved Navigation</strong> — Categorized side menus for quick access.</div>
-          <div>• <strong>Next:</strong> Heists, Territory control &amp; Family Wars coming soon.</div>
         </div>
       </section>
 

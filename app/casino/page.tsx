@@ -1,322 +1,109 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePlayer } from '../components/PlayerContext';
 import { createClient } from '@/lib/supabase/client';
-import { formatCash } from '@/lib/format';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
-import type { Player } from '@/lib/types';
+import type { TranslationKey } from '@/lib/i18n/translations';
+import Panel from '../components/Panel';
 
-type CasinoPools = {
-  blackjack: number;
-  roulette: number;
-  lottery: number;
-  general: number;
-};
+type CasinoPools = { blackjack: number; roulette: number; lottery: number; general: number };
 
-type CasinoPlayResult = {
-  won: boolean;
-  payout: number;
-  player: Player;
-};
+export const dynamic = 'force-dynamic';
 
-type LastResult = {
-  game: string;
-  won: boolean;
-  bet: number;
-  payout?: number;
-  net?: number;
-  spin?: number;
-  choice?: string;
-};
-
+// Casino hub. Every game here is a real, server-dealt standalone (079/080) —
+// the old floor also had a "quick play" that was a coin flip dressed up with a
+// client-side random roulette number; that's gone. Pools are live from
+// get_casino_pools (they grow from real losing bets), never hardcoded.
 export default function CasinoPage() {
-  const { player, updatePlayer, refreshPlayer } = usePlayer();
-  const { t, language, fm } = useLanguage();
-  const [message, setMessage] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [bet, setBet] = useState(5000);
-  const [pools, setPools] = useState<CasinoPools>({
-    blackjack: 1250000,
-    roulette: 890000,
-    lottery: 2450000,
-    general: 560000,
-  });
-  const [lastResult, setLastResult] = useState<LastResult | null>(null);
-
-  // Live pool fetch (from new RPC or fallback)
-  const fetchPools = async () => {
-    const supabase = createClient();
-    try {
-      const { data } = await supabase.rpc('get_casino_pools');
-      if (data) setPools(data as CasinoPools);
-    } catch {
-      // fallback demo numbers grow slowly with play
-    }
-  };
+  const { player } = usePlayer();
+  const { t, fm } = useLanguage();
+  const [pools, setPools] = useState<CasinoPools | null>(null);
 
   useEffect(() => {
+    const supabase = createClient();
+    const fetchPools = async () => {
+      const { data } = await supabase.rpc('get_casino_pools');
+      if (data) setPools(data as CasinoPools);
+    };
     fetchPools();
+    const iv = setInterval(fetchPools, 20000);
+    return () => clearInterval(iv);
   }, []);
 
-  const playGame = async (game: 'blackjack' | 'roulette') => {
-    if (!player) return;
-    if (bet < 100 || bet > 200000) {
-      setMessage(t('casino_bet_range'));
-      return;
-    }
-    if (player.cash < bet) {
-      setMessage(t('common_not_enough_cash'));
-      return;
-    }
-
-    setBusy(true);
-    setMessage('');
-    const supabase = createClient();
-
-    try {
-      const { data, error } = await supabase.rpc('play_casino', { game, bet });
-      if (error) throw error;
-
-      const res = data as CasinoPlayResult;
-      updatePlayer(res.player);
-      await refreshPlayer();
-
-      const won = res.won;
-      const net = won ? res.payout - bet : -bet;
-      setLastResult({ game, won, bet, payout: res.payout, net });
-
-      setMessage(
-        won
-          ? t('casino_win_msg', {
-              game: game.toUpperCase(),
-              net: fm(res.payout - bet),
-              payout: fm(res.payout),
-            })
-          : t('casino_lose_msg', { bet: fm(bet), game }),
-      );
-
-      // Refresh pools
-      await fetchPools();
-    } catch (e) {
-      setMessage(e instanceof Error ? e.message : t('casino_play_failed'));
-    }
-    setBusy(false);
-  };
-
-  // Roulette specific: choose bet type for extra fun
-  const [rouletteChoice, setRouletteChoice] = useState<'red' | 'black' | 'number'>('red');
-  const [rouletteNumber, setRouletteNumber] = useState(7);
-
-  const playRoulette = async () => {
-    if (!player) return;
-    if (player.cash < bet) {
-      setMessage(t('common_not_enough_cash'));
-      return;
-    }
-    setBusy(true);
-
-    const supabase = createClient();
-    try {
-      const { data, error } = await supabase.rpc('play_casino', { game: 'roulette', bet });
-      if (error) throw error;
-
-      const res = data as CasinoPlayResult;
-      updatePlayer(res.player);
-      await refreshPlayer();
-
-      // Visual roulette result (client side for show)
-      const spin = Math.floor(Math.random() * 37);
-      const won = res.won;
-
-      setLastResult({ game: 'roulette', won, bet, spin, choice: rouletteChoice });
-      setMessage(
-        won
-          ? t('casino_roulette_win', { spin })
-          : t('casino_roulette_lose', { spin, bet: fm(bet) }),
-      );
-
-      await fetchPools();
-    } catch (e) {
-      setMessage(e instanceof Error ? e.message : t('casino_play_failed'));
-    }
-    setBusy(false);
-  };
-
-  const currentBetOptions = [1000, 5000, 10000, 25000, 50000, 100000];
-
-  const poolCards = [
-    { label: t('casino_pool_blackjack'), val: pools.blackjack, icon: '♠️' },
-    { label: t('casino_pool_roulette'), val: pools.roulette, icon: '🎡' },
-    { label: t('casino_pool_lottery'), val: pools.lottery, icon: '🎟️' },
-    { label: t('casino_pool_general'), val: pools.general, icon: '💰' },
+  const games: Array<{ href: string; icon: string; label: TranslationKey; sub: TranslationKey }> = [
+    { href: '/casino/blackjack', icon: '🃏', label: 'menu_blackjack', sub: 'bj_subtitle' },
+    { href: '/casino/roulette', icon: '🎡', label: 'menu_roulette', sub: 'rl_subtitle' },
+    { href: '/casino/poker', icon: '🎴', label: 'menu_poker', sub: 'vp_subtitle' },
+    { href: '/casino/rps', icon: '✊', label: 'menu_rps', sub: 'rps_subtitle' },
   ];
 
+  const poolCards: Array<{ label: TranslationKey; val: number; icon: string }> = pools
+    ? [
+        { label: 'casino_pool_blackjack', val: pools.blackjack, icon: '♠️' },
+        { label: 'casino_pool_roulette', val: pools.roulette, icon: '🎡' },
+        { label: 'casino_pool_lottery', val: pools.lottery, icon: '🎟️' },
+        { label: 'casino_pool_general', val: pools.general, icon: '💰' },
+      ]
+    : [];
+
   return (
-    <div className="max-w-6xl mx-auto p-4 sm:p-6">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-4">
+    <div className="max-w-5xl mx-auto px-4 py-6 space-y-4">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">🎰 {t('casino_title')}</h1>
-          <p className="text-zinc-400">{t('casino_desc')}</p>
+          <h1 className="text-2xl font-bold tracking-tight mb-1">🎰 {t('casino_title')}</h1>
+          <p className="text-xs text-zinc-400">{t('casino_desc')}</p>
         </div>
-        <Link href="/casino/lottery" className="text-red-400 hover:underline font-semibold shrink-0">
-          {t('casino_weekly_lottery')}
-        </Link>
-      </div>
-
-      {lastResult && (
-        <div
-          className={`mb-5 p-4 rounded-xl border ${
-            lastResult.won ? 'border-green-700 bg-green-950/40' : 'border-red-800 bg-red-950/30'
-          }`}
-        >
-          <div className="font-semibold">{lastResult.won ? t('casino_winner') : t('casino_house_wins')}</div>
-          <div className="text-sm mt-1">
-            {lastResult.game} • {t('casino_result_bet', { bet: fm(lastResult.bet ?? 0) })}
-            {lastResult.payout
-              ? ` • ${t('casino_result_paid', { payout: fm(lastResult.payout) })}`
-              : ''}
-            {lastResult.spin !== undefined && ` • ${t('casino_result_landed', { spin: lastResult.spin })}`}
-          </div>
+        <div className="text-right">
+          <div className="text-[10px] uppercase tracking-wider text-zinc-500">{t('casino_your_cash')}</div>
+          <div className="font-mono text-emerald-400 text-sm">{fm(player?.cash ?? 0)}</div>
         </div>
-      )}
-
-      {message && <div className="mb-5 p-3 bg-zinc-900 border border-zinc-700 rounded text-sm">{message}</div>}
-
-      {/* The real tables (079/080) — proper games, not the quick-play flip below */}
-      <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-3">
-        {[
-          { href: '/casino/blackjack', icon: '🃏', label: t('menu_blackjack'), sub: t('bj_subtitle') },
-          { href: '/casino/roulette', icon: '🎡', label: t('menu_roulette'), sub: t('rl_subtitle') },
-          { href: '/casino/poker', icon: '🎴', label: t('menu_poker'), sub: t('vp_subtitle') },
-          { href: '/casino/rps', icon: '✊', label: t('menu_rps'), sub: t('rps_subtitle') },
-        ].map((g) => (
-          <Link
-            key={g.href}
-            href={g.href}
-            className="card p-4 hover:border-red-700 transition flex flex-col"
-          >
-            <div className="text-3xl mb-1">{g.icon}</div>
-            <div className="font-bold text-sm">{g.label}</div>
-            <div className="text-[10px] text-zinc-500 leading-tight mt-0.5">{g.sub}</div>
-          </Link>
-        ))}
       </div>
 
-      {/* Live Pools - attracts gamblers */}
-      <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-3">
-        {poolCards.map((p, i) => (
-          <div key={i} className="card p-4 bg-zinc-950 border border-amber-900/50">
-            <div className="text-xs text-amber-400">
-              {p.icon} {p.label}
-            </div>
-            <div className="text-2xl font-mono text-emerald-400 mt-1">{formatCash(p.val, language)}</div>
-            <div className="text-[10px] text-zinc-500">{t('casino_pool_note')}</div>
-          </div>
-        ))}
-      </div>
-
-      <div className="mb-4">
-        <div className="text-sm mb-2">{t('casino_choose_wager')}</div>
-        <div className="flex flex-wrap gap-2">
-          {currentBetOptions.map((b) => (
-            <button
-              key={b}
-              onClick={() => setBet(b)}
-              className={`px-4 py-1 rounded text-sm border ${
-                bet === b ? 'bg-red-700 border-red-500' : 'bg-zinc-900 border-zinc-700 hover:border-zinc-500'
-              }`}
-            >
-              {fm(b)}
-            </button>
+      {/* The tables */}
+      <Panel title={t('casino_games_title')} icon="🃏" bodyClassName="p-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {games.map((g) => (
+            <Link key={g.href} href={g.href} className="card p-4 hover:border-red-700 transition flex flex-col">
+              <div className="text-3xl mb-1">{g.icon}</div>
+              <div className="font-bold text-sm">{t(g.label)}</div>
+              <div className="text-[10px] text-zinc-500 leading-tight mt-0.5">{t(g.sub)}</div>
+            </Link>
           ))}
-          <input
-            type="number"
-            value={bet}
-            onChange={(e) => setBet(Math.max(100, Math.min(200000, parseInt(e.target.value) || 1000)))}
-            className="bg-zinc-950 border border-zinc-700 px-3 py-1 w-28 rounded text-sm"
-          />
         </div>
-        <div className="text-xs text-zinc-500 mt-1">
-          {t('casino_your_cash')}{' '}
-          <span className="text-emerald-400 font-mono">{player ? formatCash(player.cash, language) : fm(0)}</span> •{' '}
-          {t('casino_house_edge_note')}
-        </div>
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-6">
-        {/* BLACKJACK - Fully working */}
-        <div className="card p-6 border border-red-900/60">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="text-4xl">♠️</div>
-            <div>
-              <div className="font-bold text-xl">{t('casino_blackjack')}</div>
-              <div className="text-xs text-zinc-400">{t('casino_blackjack_desc')}</div>
-            </div>
+        <Link
+          href="/casino/lottery"
+          className="mt-3 flex items-center justify-between bg-gradient-to-r from-amber-950/70 to-zinc-900 border border-amber-800/60 rounded-xl px-4 py-3 hover:border-amber-600 transition"
+        >
+          <div>
+            <div className="font-bold text-amber-300">🎟️ {t('casino_weekly_lottery')}</div>
+            <div className="text-[11px] text-zinc-400 mt-0.5">{t('casino_lottery_teaser')}</div>
           </div>
-
-          <button
-            onClick={() => playGame('blackjack')}
-            disabled={busy || !player}
-            className="w-full py-3 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-600 rounded-xl font-bold text-lg disabled:opacity-60"
-          >
-            {busy ? t('casino_dealing') : t('casino_deal_button', { bet: fm(bet) })}
-          </button>
-
-          <p className="text-[10px] text-zinc-500 mt-2">{t('casino_blackjack_note')}</p>
-        </div>
-
-        {/* ROULETTE - Fully working */}
-        <div className="card p-6 border border-amber-900/60">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="text-4xl">🎡</div>
-            <div>
-              <div className="font-bold text-xl">{t('casino_roulette')}</div>
-              <div className="text-xs text-zinc-400">{t('casino_roulette_desc')}</div>
-            </div>
-          </div>
-
-          <div className="flex gap-2 mb-3">
-            {(['red', 'black', 'number'] as const).map((c) => (
-              <button
-                key={c}
-                onClick={() => setRouletteChoice(c)}
-                className={`px-3 py-1 text-xs rounded ${rouletteChoice === c ? 'bg-amber-700' : 'bg-zinc-800'}`}
-              >
-                {c === 'number' ? t('casino_straight') : c === 'red' ? t('casino_red') : t('casino_black')}
-              </button>
-            ))}
-            {rouletteChoice === 'number' && (
-              <input
-                type="number"
-                min={0}
-                max={36}
-                value={rouletteNumber}
-                onChange={(e) => setRouletteNumber(parseInt(e.target.value) || 0)}
-                className="w-16 bg-zinc-950 border px-2 text-sm"
-              />
-            )}
-          </div>
-
-          <button
-            onClick={playRoulette}
-            disabled={busy || !player}
-            className="w-full py-3 bg-gradient-to-r from-amber-700 to-yellow-600 hover:from-amber-600 rounded-xl font-bold text-lg disabled:opacity-60"
-          >
-            {busy ? t('casino_spinning') : t('casino_spin_button', { bet: fm(bet) })}
-          </button>
-          <p className="text-[10px] text-zinc-500 mt-2">{t('casino_roulette_note')}</p>
-        </div>
-      </div>
-
-      <div className="mt-8 text-xs text-zinc-500 max-w-prose">{t('casino_footer')}</div>
-
-      <div className="mt-4">
-        <Link href="/dashboard" className="text-red-400 text-sm hover:underline">
-          ← {t('common_back_dashboard')}
+          <span className="text-amber-400 text-lg shrink-0">→</span>
         </Link>
-      </div>
+      </Panel>
+
+      {/* Live pools */}
+      <Panel title={t('casino_pools_title')} icon="💰">
+        {!pools ? (
+          <div className="text-sm text-zinc-500">{t('loading')}</div>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {poolCards.map((p, i) => (
+                <div key={i} className="bg-zinc-950 border border-amber-900/40 rounded-xl px-3 py-3">
+                  <div className="text-[11px] text-amber-400">{p.icon} {t(p.label)}</div>
+                  <div className="text-xl font-mono text-emerald-400 mt-1 tabular-nums">{fm(p.val)}</div>
+                </div>
+              ))}
+            </div>
+            <p className="text-[11px] text-zinc-500 mt-2">{t('casino_pool_note')}</p>
+          </>
+        )}
+      </Panel>
+
+      <div className="text-[11px] text-zinc-500">{t('casino_house_edge_note')}</div>
     </div>
   );
 }

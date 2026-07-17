@@ -8,12 +8,15 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { formatCash } from '@/lib/format';
 import Link from 'next/link';
 
+type Inmate = { username: string; city: string; level: number; minutes_left: number };
+
 export default function JailPage() {
   const { player, refreshPlayer } = usePlayer();
   const { t, language } = useLanguage();
   const router = useRouter();
   const [breakoutSkill, setBreakoutSkill] = useState(10);
   const [message, setMessage] = useState('');
+  const [inmates, setInmates] = useState<Inmate[]>([]);
 
   // Sync breakout skill from player when available
   useEffect(() => {
@@ -22,11 +25,17 @@ export default function JailPage() {
     }
   }, [player?.breakout_skill]);
 
-  const jailedPlayers = [
-    { username: 'Rival1', time: '45m', city: 'New York' },
-    { username: 'Thief2', time: '20m', city: 'Chicago' },
-    // Demo list, in real pull from server
-  ];
+  // Real jail roster (084): who is actually locked up right now.
+  useEffect(() => {
+    const supabase = createClient();
+    const load = async () => {
+      const { data } = await supabase.rpc('get_jailed_players');
+      setInmates(Array.isArray(data) ? (data as Inmate[]) : []);
+    };
+    load();
+    const iv = setInterval(load, 15000);
+    return () => clearInterval(iv);
+  }, [player?.jailed_until]);
 
   const trainBreakout = async () => {
     if (!player) return;
@@ -81,12 +90,20 @@ export default function JailPage() {
       {message && <div className="mb-4 p-3 bg-zinc-900 rounded">{message}</div>}
 
       <div className="card p-5 mb-6">
-        <h3 className="font-bold mb-2">{t('jail_inmates')}</h3>
-        {jailedPlayers.map((j, idx) => (
-          <div key={idx} className="text-sm mb-1">
-            {j.username} - {t('jail_time_in_city', { time: j.time, city: j.city })}
-          </div>
-        ))}
+        <h3 className="font-bold mb-2">{t('jail_inmates')} ({inmates.length})</h3>
+        {inmates.length === 0 ? (
+          <div className="text-sm text-zinc-500">{t('jail_empty')}</div>
+        ) : (
+          inmates.map((j, idx) => (
+            <div key={idx} className="text-sm mb-1 flex justify-between">
+              <span>
+                {j.username}{' '}
+                <span className="text-xs text-zinc-500">{t('jail_lvl_city', { level: j.level, city: j.city })}</span>
+              </span>
+              <span className="font-mono text-orange-400">{t('jail_minutes_left', { minutes: j.minutes_left })}</span>
+            </div>
+          ))
+        )}
       </div>
 
       <div className="card p-5 mb-6">
