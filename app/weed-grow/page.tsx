@@ -6,11 +6,13 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { useEconomy } from '@/lib/economy';
 
 export default function WeedGrowPage() {
   const { player, refreshPlayer, showToast } = usePlayer();
   const { t } = useLanguage();
   const router = useRouter();
+  const economy = useEconomy();
   const [weedProgress, setWeedProgress] = useState(0);
   const [harvestPercent, setHarvestPercent] = useState(100);
   const [busy, setBusy] = useState(false);
@@ -85,12 +87,13 @@ export default function WeedGrowPage() {
     setBusy(false);
   };
 
-  const WEED_CAP = 1000;
   const harvest = async () => {
     if (!player || weedProgress < 4) {
       showToast(t('weed_need_progress'), 'error');
       return;
     }
+
+    const weedCap = economy?.weed_cap ?? 1000;
 
     // Server computes kg from property type + quality and enforces the cap.
     const supabase = createClient();
@@ -98,7 +101,7 @@ export default function WeedGrowPage() {
     if (error) {
       const msg = error.message || '';
       showToast(
-        msg.includes('CAP_REACHED') ? t('weed_cap_reached', { cap: WEED_CAP })
+        msg.includes('CAP_REACHED') ? t('weed_cap_reached', { cap: weedCap })
           : msg.includes('NEED_PROGRESS') ? t('weed_need_progress')
           : (msg || t('weed_harvest_save_failed')),
         'error',

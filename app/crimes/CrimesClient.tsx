@@ -103,13 +103,12 @@ export default function CrimesClient({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {crimes.map((crime) => {
             const locked = player.level < crime.min_level;
+            // Remaining time comes from the server (get_my_cooldowns ->
+            // available_at), not a client recomputation, so it always matches
+            // what commit_crime will actually enforce.
             const availableAt = cooldowns[crime.key] ?? 0;
             const secondsLeft = Math.max(0, Math.ceil((availableAt - now) / 1000));
             const coolingDown = secondsLeft > 0;
-            let effectiveCooldown = Math.round(
-              crime.cooldown_seconds * (1 - Math.min(player.rebirths * 0.1, 0.5))
-            );
-            if (player.is_donator) effectiveCooldown = Math.round(effectiveCooldown * 0.8); // 20% global cooldown reduction for donators
 
             return (
               <Link
@@ -129,7 +128,7 @@ export default function CrimesClient({
                     </p>
                   </div>
                   <div className="text-right shrink-0 text-xs text-zinc-400 font-mono pt-0.5">
-                    ⏱ {formatSeconds(effectiveCooldown)}
+                    ⏱ {coolingDown ? `${formatSeconds(secondsLeft)} left` : formatSeconds(crime.cooldown_seconds)}
                   </div>
                 </div>
 
@@ -140,9 +139,6 @@ export default function CrimesClient({
                   <span className="text-zinc-600">•</span>
                   <span>
                     {Math.round(crime.success_chance * 100)}% {t('crime_success_rate')}
-                  </span>
-                  <span className="ml-2 text-blue-400">
-                    Your: {Math.round((crime.success_chance * 100) * 0.8)}% (live)
                   </span>
                   {locked && (
                     <span className="ml-auto text-amber-400/80 font-medium">🔒 Lvl {crime.min_level}</span>

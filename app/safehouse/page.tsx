@@ -7,11 +7,13 @@ import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import type { OwnedProperty } from '@/lib/types';
 import HeatManager from '../components/HeatManager';
+import { useEconomy } from '@/lib/economy';
 
 export default function SafehousePage() {
   const { player, refreshPlayer, showToast } = usePlayer();
   const { t, fm } = useLanguage();
   const router = useRouter();
+  const economy = useEconomy();
   const owned: OwnedProperty[] = player?.owned_properties || [];
   const safehouses = owned.filter(
     (p) =>
@@ -32,12 +34,21 @@ export default function SafehousePage() {
   };
 
   const getShedCap = (prop: OwnedProperty) => {
+    const cfg = economy?.shed;
     const lvl = prop.shed_level || 1;
-    let base = 1000;
-    if (lvl === 2) base = 2500;
-    if (lvl === 3) base = 3500;
-    if (prop.name.toLowerCase().includes('villa')) base = Math.floor(base * 1.5);
-    if (prop.name.toLowerCase().includes('mansion')) base = Math.floor(base * 2.5);
+    let base = cfg?.base ?? 1000;
+    if (cfg?.level_multiplier) {
+      const lm = (cfg.level_multiplier as Record<string, number>)[String(lvl)];
+      if (lm) base = lm;
+    }
+    const name = (prop.name || '').toLowerCase();
+    if (cfg?.tier_multiplier) {
+      if (name.includes('villa')) base = Math.floor(base * (cfg.tier_multiplier['villa'] ?? 1.5));
+      if (name.includes('mansion')) base = Math.floor(base * (cfg.tier_multiplier['mansion'] ?? 2.5));
+    } else {
+      if (name.includes('villa')) base = Math.floor(base * 1.5);
+      if (name.includes('mansion')) base = Math.floor(base * 2.5);
+    }
     return base;
   };
 
@@ -47,11 +58,11 @@ export default function SafehousePage() {
     const prop = props.find((p) => p.id === propId);
     if (!prop) return;
     const currentLvl = prop.shed_level || 1;
-    if (currentLvl >= 3) {
+    if (currentLvl >= (economy?.shed?.max_level ?? 3)) {
       showToast(t('safehouse_shed_max'), 'error');
       return;
     }
-    const cost = 50000 * currentLvl;
+    const cost = (economy?.shed?.upgrade_cost_per_level ?? 50000) * currentLvl;
     if (
       !confirm(
         t('safehouse_shed_confirm', { level: currentLvl + 1, cost: fm(cost) }),
@@ -247,7 +258,7 @@ export default function SafehousePage() {
                          showToast(t('safehouse_piggy_invalid_withdraw'), 'error');
                          return;
                        }
-                      const fee = Math.floor(amt * 0.008);
+                      const fee = Math.floor(amt * (economy?.piggy_fee_pct ?? 0.008));
                       const net = amt - fee;
                       if (
                         !confirm(
@@ -298,7 +309,7 @@ export default function SafehousePage() {
                 onClick={() => upgradeShed(prop.id)}
                 className="mt-2 px-3 py-1 bg-red-700 rounded text-sm"
               >
-                {t('safehouse_upgrade_shed', { cost: fm(50000 * (prop.shed_level || 1)) })}
+                {t('safehouse_upgrade_shed', { cost: fm((economy?.shed?.upgrade_cost_per_level ?? 50000) * (prop.shed_level || 1)) })}
               </button>
               <button
                 onClick={() => collectEarnings(prop.id)}

@@ -50,7 +50,9 @@ export default function SingleCrimeClient({
   const heat = player.heat || 0;
   const disabled = locked || coolingDown || inJail || busy;
 
-  const effectiveCooldown = Math.round(crime.cooldown_seconds * (1 - Math.min(player.rebirths * 0.1, 0.5)));
+  // Remaining time comes from the server (available_at), not a client
+  // recomputation, so it matches what commit_crime enforces.
+  const effectiveCooldown = crime.cooldown_seconds;
 
   const doSingleCrime = async () => {
     setBusy(true);
@@ -117,7 +119,7 @@ export default function SingleCrimeClient({
       <div className="card bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
         <div className="flex items-start justify-between mb-1">
           <h3 className="font-bold text-lg">{t(`crime_${crime.key}` as any)}</h3>
-          <span className="text-sm text-zinc-400 whitespace-nowrap">⏱ {formatSeconds(effectiveCooldown)}</span>
+          <span className="text-sm text-zinc-400 whitespace-nowrap">⏱ {coolingDown ? `${formatSeconds(secondsLeft)} left` : formatSeconds(effectiveCooldown)}</span>
         </div>
         <p className="text-sm text-zinc-500 mb-3">{t(`crime_${crime.key}_desc` as any)}</p>
 

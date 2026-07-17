@@ -1527,6 +1527,7 @@
   "jy_the_crusher": "The crusher",
   "jy_warning": "Crushing destroys the car permanently. If you want the money instead, sell it in the garage.",
   "jy_resale": "worth {price} sold",
+  "jy_yields": "crushing yields {bullets} bullets",
   "jy_confirm": "Crush the {name} for bullets? It's worth {price} if you sell it instead. This cannot be undone.",
   "jy_footer": "Bullets can also be bought at the",
   "dt_title": "Detective Agency",

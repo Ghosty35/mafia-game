@@ -7,6 +7,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { usePlayer } from '../components/PlayerContext';
 import { useRouter } from 'next/navigation';
 import Panel from '../components/Panel';
+import { useEconomy } from '@/lib/economy';
 
 // Normal shop: everyday cash items only. Everything VIP/donator/diamond
 // lives in the VIP Store (/shop/vip) per the bug-inspectie split.
@@ -14,6 +15,7 @@ export default function ShopPage() {
   const { t, fm } = useLanguage();
   const { player, refreshPlayer } = usePlayer();
   const router = useRouter();
+  const economy = useEconomy();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -40,11 +42,18 @@ export default function ShopPage() {
     setBusy(false);
   };
 
-  const protectionItems = [
-    { icon: '🛡️', title: t('shop_armor_title'), desc: t('shop_armor_desc'), points: 5, cost: 450 },
-    { icon: '🐕', title: t('shop_pitbull_title'), desc: t('shop_pitbull_desc'), points: 8, cost: 780 },
-    { icon: '💼', title: t('shop_bodyguard_title'), desc: t('shop_bodyguard_desc'), points: 12, cost: 1350 },
-  ];
+  // Live catalog from the server (mirrors migration 044 buy_protection).
+  const protectionItems = (economy?.protection ?? [
+    { points: 5, cost: 450 },
+    { points: 8, cost: 780 },
+    { points: 12, cost: 1350 },
+  ]).map((p) => ({
+    icon: p.points === 5 ? '🛡️' : p.points === 8 ? '🐕' : '💼',
+    title: p.points === 5 ? t('shop_armor_title') : p.points === 8 ? t('shop_pitbull_title') : t('shop_bodyguard_title'),
+    desc: p.points === 5 ? t('shop_armor_desc') : p.points === 8 ? t('shop_pitbull_desc') : t('shop_bodyguard_desc'),
+    points: p.points,
+    cost: p.cost,
+  }));
 
   return (
     <main className="flex-1 px-4 py-6 max-w-5xl mx-auto w-full space-y-4">
@@ -112,11 +121,12 @@ export default function ShopPage() {
 function BodyguardCard({ busy, setMessage, router }: { busy: boolean; setMessage: (m: string) => void; router: ReturnType<typeof useRouter> }) {
   const { t, fm } = useLanguage();
   const { player, refreshPlayer } = usePlayer();
+  const economy = useEconomy();
   const [localBusy, setLocalBusy] = useState(false);
 
   const guards = player?.bodyguards ?? 0;
-  const COSTS = [50000, 100000, 200000, 350000, 500000];
-  const nextCost = guards < 5 ? COSTS[guards] : null;
+  const bodyguardCosts = economy?.bodyguard_costs ?? [50000, 100000, 200000, 350000, 500000];
+  const nextCost = guards < (economy?.bodyguard_max ?? 5) ? bodyguardCosts[guards] : null;
 
   const hire = async () => {
     if (localBusy) return;
@@ -133,7 +143,7 @@ function BodyguardCard({ busy, setMessage, router }: { busy: boolean; setMessage
       }
       await refreshPlayer();
       router.refresh();
-      setMessage(t('bg_hired', { count: data?.bodyguards ?? guards + 1, cost: fm(Number(data?.cost ?? 0)) }));
+      setMessage(t('bg_hired', { count: data?.bodyguards ?? guards + 1, cost: fm(Number(data?.cost ?? nextCost ?? 0)) }));
     } finally {
       setLocalBusy(false);
     }
@@ -143,17 +153,17 @@ function BodyguardCard({ busy, setMessage, router }: { busy: boolean; setMessage
     <div className="max-w-xl">
       <div className="flex items-center justify-between mb-2">
         <div className="font-bold text-sm">
-          💼 {t('bg_current')}: <span className="font-mono text-amber-400">{guards}/5</span>
+          💼 {t('bg_current')}: <span className="font-mono text-amber-400">{guards}/{economy?.bodyguard_max ?? 5}</span>
         </div>
-        <div className="text-lg tracking-wide">{'💼'.repeat(guards)}{'▫️'.repeat(5 - guards)}</div>
+        <div className="text-lg tracking-wide">{'💼'.repeat(guards)}{'▫️'.repeat((economy?.bodyguard_max ?? 5) - guards)}</div>
       </div>
       <p className="text-xs text-zinc-400 mb-3">{t('bg_note')}</p>
       <button
         onClick={hire}
-        disabled={busy || localBusy || guards >= 5}
+        disabled={busy || localBusy || guards >= (economy?.bodyguard_max ?? 5)}
         className="w-full py-2.5 bg-red-700 hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg font-semibold text-sm"
       >
-        {guards >= 5 ? t('bg_max') : t('bg_hire', { cost: fm(nextCost ?? 0) })}
+        {guards >= (economy?.bodyguard_max ?? 5) ? t('bg_max') : t('bg_hire', { cost: fm(nextCost ?? 0) })}
       </button>
     </div>
   );

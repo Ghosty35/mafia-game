@@ -8,22 +8,17 @@ import { usePlayer } from '../components/PlayerContext';
 import { CITIES, City } from '@/lib/cities';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import HeatManager from '../components/HeatManager';
+import { useEconomy } from '@/lib/economy';
 
 const DRUGS = ['Coke', 'Weed', 'Meth', 'Pills'] as const;
 
 type DrugPrices = Record<typeof DRUGS[number], number>;
 
-const DRUG_CAPS: Record<typeof DRUGS[number], number> = {
-  Coke: 200,   // limited carry
-  Meth: 100,
-  Pills: 300,
-  Weed: 1000   // higher because growable in shed
-};
-
 export default function StreetDealerPage() {
   const { player, refreshPlayer, canPerformAction, recordAction, showToast } = usePlayer();
   const { t, fm } = useLanguage();
   const router = useRouter();
+  const economy = useEconomy();
   const [prices, setPrices] = useState<DrugPrices>({ Coke: 0, Weed: 0, Meth: 0, Pills: 0 });
   const [city, setCity] = useState<City>('New York');
   const [drugStorage, setDrugStorage] = useState<Record<string, number>>({});
@@ -94,9 +89,10 @@ export default function StreetDealerPage() {
     const { data, error } = await supabase.rpc('buy_drug', { p_drug: drug, p_qty: amount });
     if (error) {
       const msg = error.message || '';
+      const cap = economy?.drug_caps?.[drug] ?? 0;
       showToast(
         msg.includes('NOT_ENOUGH_CASH') ? t('dealer_no_cash_tax')
-          : msg.includes('CAP_REACHED') ? t('dealer_cap_reached', { drug, cap: DRUG_CAPS[drug] })
+          : msg.includes('CAP_REACHED') ? t('dealer_cap_reached', { drug, cap })
           : (msg || t('dealer_purchase_failed')),
         'error',
       );
@@ -144,7 +140,7 @@ export default function StreetDealerPage() {
         <div className="text-sm font-semibold mb-1">{t('dealer_storage_title')}</div>
         <div className="flex flex-wrap gap-4 text-xs">
           {DRUGS.map(d => (
-            <span key={d}>{d}: <span className="font-mono text-emerald-400">{drugStorage[d] || 0} kg</span> / {DRUG_CAPS[d]}</span>
+            <span key={d}>{d}: <span className="font-mono text-emerald-400">{drugStorage[d] || 0} kg</span> / {economy?.drug_caps?.[d] ?? '—'}</span>
           ))}
         </div>
       </div>

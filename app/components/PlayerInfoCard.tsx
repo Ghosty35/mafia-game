@@ -98,7 +98,8 @@ export default function PlayerInfoCard({ player: propPlayer, familyStatus: propF
   const murderSkill = player.murder_skill ?? 0;
   const cash = player.cash ?? 0;
   const diamonds = player.diamonds ?? 0;
-  const power = player.power ?? (level * 50 + (player.rebirths ?? 0) * 500);
+  // Server is the source of truth for power; never fake a value if it's null.
+  const power = player.power ?? null;
   const heat = player.heat ?? 0;
   const protection = player.protection ?? 0;
   const stamina = player.stamina ?? 100;
@@ -185,7 +186,7 @@ export default function PlayerInfoCard({ player: propPlayer, familyStatus: propF
             </div>
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] text-zinc-500">⚡ {t('pi_power')}</span>
-              <span className="font-mono text-white font-semibold">{formatNum(power)}</span>
+              <span className="font-mono text-white font-semibold">{power != null ? formatNum(power) : '—'}</span>
             </div>
             <Link href="/gym" title={t('pi_tt_stats')} className="flex items-center justify-between gap-2 hover:text-amber-300">
               <span className="text-[11px] text-zinc-500">🏋️ {t('pi_stats')}</span>

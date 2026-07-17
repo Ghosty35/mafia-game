@@ -9,6 +9,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import type { TranslationKey } from '@/lib/i18n/translations';
 import Panel from '../../components/Panel';
 import { useGarage, type GarageCar } from '../../components/useGarage';
+import { useEconomy } from '@/lib/economy';
 
 type TuningPart = {
   partId: string;
@@ -17,13 +18,6 @@ type TuningPart = {
   cost: number;
   bonus: number;
 };
-
-const TUNING_PARTS: TuningPart[] = [
-  { partId: 'engine', nameKey: 'garage_part_engine', descKey: 'garage_part_engine_desc', cost: 2500, bonus: 5 },
-  { partId: 'turbo', nameKey: 'garage_part_turbo', descKey: 'garage_part_turbo_desc', cost: 4000, bonus: 8 },
-  { partId: 'brakes', nameKey: 'garage_part_brakes', descKey: 'garage_part_brakes_desc', cost: 1500, bonus: 3 },
-  { partId: 'bodykit', nameKey: 'garage_part_bodykit', descKey: 'garage_part_bodykit_desc', cost: 1200, bonus: 2 },
-];
 
 export const dynamic = 'force-dynamic';
 
@@ -34,8 +28,23 @@ export default function TuneShopPage() {
   const { t, fm } = useLanguage();
   const router = useRouter();
   const { cars, loading, reload } = useGarage();
+  const economy = useEconomy();
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+
+  // Live catalog from the server (mirrors migration 051 garage_buy_part).
+  const TUNING_PARTS: TuningPart[] = (economy?.tuning_parts ?? [
+    { part_id: 'engine', cost: 2500, bonus: 5 },
+    { part_id: 'turbo', cost: 4000, bonus: 8 },
+    { part_id: 'brakes', cost: 1500, bonus: 3 },
+    { part_id: 'bodykit', cost: 1200, bonus: 2 },
+  ]).map((p) => ({
+    partId: p.part_id,
+    nameKey: `garage_part_${p.part_id}` as TranslationKey,
+    descKey: `garage_part_${p.part_id}_desc` as TranslationKey,
+    cost: p.cost,
+    bonus: p.bonus,
+  }));
 
   const supabase = createClient();
 

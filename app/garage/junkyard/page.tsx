@@ -25,8 +25,8 @@ export default function JunkyardPage() {
   const supabase = createClient();
 
   const crushCar = async (car: GarageCar) => {
-    const resale = Math.floor(car.value * (car.condition / 100));
-    if (!confirm(t('jy_confirm', { name: car.name, price: fm(resale) }))) return;
+    const bulletsGained = 15; // server-authoritative (garage_crush_car c_bullets)
+    if (!confirm(t('jy_confirm', { name: car.name, price: fm(bulletsGained) }))) return;
     setBusy(true);
     const { data, error } = await supabase.rpc('garage_crush_car', { p_car_id: car.id });
     setBusy(false);
@@ -37,7 +37,7 @@ export default function JunkyardPage() {
     await reload();
     if (refreshPlayer) await refreshPlayer();
     router.refresh();
-    setMessage(t('garage_crushed', { bullets: (data?.bullets_gained as number) ?? 15 }));
+    setMessage(t('garage_crushed', { bullets: (data?.bullets_gained as number) ?? bulletsGained }));
   };
 
   if (!player || loading) return <div className="max-w-5xl mx-auto p-6 text-zinc-400 text-sm">{t('loading')}</div>;
@@ -67,7 +67,7 @@ export default function JunkyardPage() {
               <div className="min-w-0 flex-1">
                 <div className="font-semibold text-sm">🚗 {car.name}</div>
                 <div className="text-[11px] text-zinc-500">
-                  {t('gr_condition')} {car.condition}% • {t('jy_resale', { price: fm(Math.floor(car.value * (car.condition / 100))) })}
+                  {t('gr_condition')} {car.condition}% • {t('jy_yields', { bullets: 15 })}
                 </div>
               </div>
               <button

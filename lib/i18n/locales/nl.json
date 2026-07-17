@@ -1527,6 +1527,7 @@
   "jy_the_crusher": "De pers",
   "jy_warning": "Persen vernietigt de auto permanent. Wil je het geld liever? Verkoop hem dan in de garage.",
   "jy_resale": "{price} waard bij verkoop",
+  "jy_yields": "pletten levert {bullets} kogels op",
   "jy_confirm": "De {name} tot kogels persen? Bij verkoop levert hij {price} op. Dit kan niet ongedaan worden gemaakt.",
   "jy_footer": "Kogels koop je ook bij de",
   "dt_title": "Detectivebureau",

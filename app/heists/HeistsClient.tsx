@@ -8,6 +8,7 @@ import { usePlayer } from '../components/PlayerContext';
 import { streetEventText } from '@/lib/streetEvents';
 import { useRouter } from 'next/navigation';
 import type { Player } from '@/lib/types';
+import { useEconomy } from '@/lib/economy';
 
 type Heist = {
   key: string;
@@ -54,6 +55,7 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
   const { t, language, fm } = useLanguage();
   const { player: contextPlayer, updatePlayer, refreshPlayer, showToast } = usePlayer();
   const router = useRouter();
+  const economy = useEconomy();
   const [player, setPlayer] = useState<Player | null>(initialPlayer || contextPlayer);
   const [heists, setHeists] = useState<Heist[]>(DEFAULT_HEISTS);
   const [cooldowns, setCooldowns] = useState<Record<string, number>>({});
@@ -69,12 +71,12 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
 
   const supabase = createClient();
 
-  // Weapon catalog (mirrors buy_weapon / _weapon_bonus server-side).
-  const WEAPONS: Array<{ id: string; label: string; bonus: number; price: number }> = [
-    { id: 'pistol', label: 'Pistol', bonus: 4, price: 2500 },
-    { id: 'smg', label: 'SMG', bonus: 9, price: 12000 },
-    { id: 'rifle', label: 'Rifle', bonus: 16, price: 35000 },
-  ];
+  // Weapon catalog (mirrors buy_weapon / _weapon_bonus server-side), served live.
+  const WEAPONS: Array<{ id: string; label: string; bonus: number; price: number }> = (economy?.weapons ?? [
+    { id: 'pistol', cost: 2500, bonus: 4 },
+    { id: 'smg', cost: 12000, bonus: 9 },
+    { id: 'rifle', cost: 35000, bonus: 16 },
+  ]).map((w) => ({ id: w.id, label: w.id.charAt(0).toUpperCase() + w.id.slice(1), bonus: w.bonus, price: w.cost }));
   const ownedWeapons: string[] = Array.isArray(player?.weapons) ? (player!.weapons as string[]) : [];
 
   // Load the player's cars for the getaway-driver selector.
@@ -294,9 +296,15 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
       <section className="card p-5">
         <h2 className="font-bold mb-3">🛡️ Heist Armory (Buy for this run)</h2>
         <div className="flex flex-wrap gap-3">
-          <button onClick={() => buyGear('pistol')} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm">Street Pistol (+8%) — {fm(450)}</button>
-          <button onClick={() => buyGear('kevlar')} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm">Kevlar + Tools (+12%) — {fm(720)}</button>
-          <button onClick={() => buyGear('fullkit')} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm">Full Kit (+18%) — {fm(1100)}</button>
+          {(economy?.heist_gear ?? [
+            { tier: 'pistol', cost: 450, bonus: 8 },
+            { tier: 'kevlar', cost: 720, bonus: 12 },
+            { tier: 'fullkit', cost: 1100, bonus: 18 },
+          ]).map((g) => (
+            <button key={g.tier} onClick={() => buyGear(g.tier)} className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-sm">
+              {g.tier === 'pistol' ? 'Street Pistol' : g.tier === 'kevlar' ? 'Kevlar + Tools' : 'Full Kit'} (+{g.bonus}%) — {fm(g.cost)}
+            </button>
+          ))}
           <div className="text-xs self-center text-emerald-400">Current gear bonus: +{gearBonus}%</div>
         </div>
         <p className="text-[10px] text-zinc-500 mt-2">Gear is permanent and applies to your future heists (server-side).</p>

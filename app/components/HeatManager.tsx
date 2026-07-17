@@ -5,14 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from './PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import type { TranslationKey } from '@/lib/i18n/translations';
-
-// Mirrors the server catalog in migration 062 (reduce_heat / buy_corrupt_lawyer).
-const HEAT_ITEMS: Array<{ key: string; labelKey: TranslationKey; emoji: string; desc: string; price: number }> = [
-  { key: 'burner', labelKey: 'hm_item_burner', emoji: '📱', desc: '−20 heat', price: 5000 },
-  { key: 'bribe', labelKey: 'hm_item_bribe', emoji: '🤝', desc: '−50 heat', price: 25000 },
-  { key: 'lay_low', labelKey: 'hm_item_lay_low', emoji: '🕶️', desc: 'heat → 0', price: 60000 },
-];
-const LAWYER_COST = 250000;
+import { useEconomy } from '@/lib/economy';
 
 type Variant = 'full' | 'store' | 'laylow';
 
@@ -27,6 +20,7 @@ export default function HeatManager({ variant = 'full' }: { variant?: Variant })
   const { player, refreshPlayer, showToast } = usePlayer();
   const { t, fm } = useLanguage();
   const [busy, setBusy] = useState<string | null>(null);
+  const economy = useEconomy();
 
   if (!player) return null;
 
@@ -34,6 +28,22 @@ export default function HeatManager({ variant = 'full' }: { variant?: Variant })
   const mostWanted = heat >= 75;
   const hasLawyer = !!player.has_corrupt_lawyer;
   const cash = player.cash ?? 0;
+
+  // Live catalog from the server (fallback to last-known constants if the RPC
+  // hasn't resolved yet, so buttons still render). Mirrors migration 062.
+  const HEAT_ITEMS = (economy?.heat_items ?? [
+    { key: 'burner', price: 5000, drop: 20, zero: false },
+    { key: 'bribe', price: 25000, drop: 50, zero: false },
+    { key: 'lay_low', price: 60000, drop: 0, zero: true },
+  ]).map((it) => {
+    const labelKey: TranslationKey =
+      it.key === 'burner' ? 'hm_item_burner' : it.key === 'bribe' ? 'hm_item_bribe' : 'hm_item_lay_low';
+    const desc =
+      it.key === 'burner' ? '−20 heat' : it.key === 'bribe' ? '−50 heat' : 'heat → 0';
+    const emoji = it.key === 'burner' ? '📱' : it.key === 'bribe' ? '🤝' : '🕶️';
+    return { key: it.key, labelKey, emoji, desc, price: it.price };
+  });
+  const LAWYER_COST = economy?.lawyer_cost ?? 250000;
 
   const mapErr = (msg: string) =>
     msg.includes('NO_HEAT')
