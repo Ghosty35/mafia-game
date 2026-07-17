@@ -739,6 +739,7 @@
   "armory_buy": "Buy Power",
   "armory_purchase_failed": "Purchase failed.",
   "armory_bought": "+{power} Power purchased for {price}!",
+  "armory_cap_reached": "Maximum power reached (10000).",
   "armory_footer": "Power increases your overall strength. Higher power = better leaderboard position and slight heist bonuses.",
   "re_title": "Real Estate",
   "re_desc": "Own the city. Grow your empire (and weed). Pay your bills on time or lose it all.",

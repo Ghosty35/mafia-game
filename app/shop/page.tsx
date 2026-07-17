@@ -25,6 +25,10 @@ export default function ShopPage() {
   const getDiscountedPrice = (base: number) => (isDonator ? Math.floor(base * 0.75) : base);
 
   const buyProtection = async (points: number, cost: number) => {
+    if ((player?.protection ?? 0) >= 50) {
+      setMessage('Maximum protection reached (50).');
+      return;
+    }
     setBusy(true);
     setMessage(null);
     const supabase = createClient();
@@ -33,7 +37,9 @@ export default function ShopPage() {
       cost: getDiscountedPrice(cost),
     });
     if (error) {
-      setMessage(error.message.includes('NOT_ENOUGH_CASH') ? t('common_not_enough_cash') : t('shop_buy_failed'));
+      if (error.message.includes('NOT_ENOUGH_CASH')) setMessage(t('common_not_enough_cash'));
+      else if (error.message.includes('POWER_CAP_REACHED')) setMessage('Maximum protection reached (50).');
+      else setMessage(t('shop_buy_failed'));
     } else {
       await refreshPlayer();
       router.refresh();
@@ -85,22 +91,26 @@ export default function ShopPage() {
           {isDonator && <span className="text-amber-400 ml-1">{t('shop_donator_discount')}</span>}
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {protectionItems.map((item) => (
-            <button
-              key={item.points}
-              onClick={() => buyProtection(item.points, item.cost)}
-              disabled={busy}
-              className="card p-5 text-left hover:border-red-700 transition disabled:opacity-50"
-            >
-              <div className="text-3xl mb-2">{item.icon}</div>
-              <h3 className="font-bold">{item.title}</h3>
-              <p className="text-sm text-zinc-400">{item.desc}</p>
-              <div className="mt-3 text-emerald-400 font-mono text-sm">
-                {fm(getDiscountedPrice(item.cost))}
-                {isDonator && <span className="text-[10px] text-zinc-500 line-through ml-2">{fm(item.cost)}</span>}
-              </div>
-            </button>
-          ))}
+          {protectionItems.map((item) => {
+            const atProtectionCap = (player?.protection ?? 0) >= 50;
+            return (
+              <button
+                key={item.points}
+                onClick={() => buyProtection(item.points, item.cost)}
+                disabled={busy || atProtectionCap}
+                title={atProtectionCap ? 'Maximum protection reached (50).' : undefined}
+                className="card p-5 text-left hover:border-red-700 transition disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <div className="text-3xl mb-2">{item.icon}</div>
+                <h3 className="font-bold">{item.title}</h3>
+                <p className="text-sm text-zinc-400">{item.desc}</p>
+                <div className="mt-3 text-emerald-400 font-mono text-sm">
+                  {fm(getDiscountedPrice(item.cost))}
+                  {isDonator && <span className="text-[10px] text-zinc-500 line-through ml-2">{fm(item.cost)}</span>}
+                </div>
+              </button>
+            );
+          })}
         </div>
         <p className="text-[11px] text-zinc-500 mt-2">{t('shop_protection_current', { value: player?.protection ?? 0 })}</p>
       </Panel>

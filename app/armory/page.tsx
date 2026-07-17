@@ -3,26 +3,35 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { usePlayer } from '../components/PlayerContext';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useRouter } from 'next/navigation';
 import type { TranslationKey } from '@/lib/i18n/translations';
 
 const powerPacks: { power: number; price: number; labelKey: TranslationKey }[] = [
-  { power: 50, price: 1200, labelKey: 'armory_pack_basic' }, // balanced
+  { power: 50, price: 1200, labelKey: 'armory_pack_basic' },
   { power: 150, price: 3500, labelKey: 'armory_pack_street' },
   { power: 400, price: 8500, labelKey: 'armory_pack_heavy' },
   { power: 1000, price: 18000, labelKey: 'armory_pack_warlord' },
 ];
 
+const MAX_POWER = 10000;
+
 export default function ArmoryPage() {
   const { t, fm } = useLanguage();
-  const { refreshPlayer } = usePlayer();
+  const { player, refreshPlayer } = usePlayer();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
+  const currentPower = player?.power ?? 0;
+  const atPowerCap = currentPower >= MAX_POWER;
+
   const buyPower = async (power: number, price: number) => {
+    if (atPowerCap) {
+      setMessage(t('armory_cap_reached') || 'Maximum power reached.');
+      return;
+    }
     setBusy(true);
     setMessage(null);
     const supabase = createClient();
@@ -33,11 +42,13 @@ export default function ArmoryPage() {
     });
 
     if (error) {
-      setMessage(
-        error.message.includes('NOT_ENOUGH_CASH')
-          ? t('common_not_enough_cash')
-          : t('armory_purchase_failed'),
-      );
+      if (error.message.includes('POWER_CAP_REACHED')) {
+        setMessage(t('armory_cap_reached') || 'Maximum power reached.');
+      } else if (error.message.includes('NOT_ENOUGH_CASH')) {
+        setMessage(t('common_not_enough_cash'));
+      } else {
+        setMessage(t('armory_purchase_failed'));
+      }
     } else {
       setMessage(t('armory_bought', { power, price: fm(price) }));
       if (refreshPlayer) await refreshPlayer();
@@ -69,15 +80,20 @@ export default function ArmoryPage() {
               <span className="text-lg font-mono">{fm(pack.price)}</span>
               <button
                 onClick={() => buyPower(pack.power, pack.price)}
-                disabled={busy}
-                className="px-4 py-2 bg-red-700 hover:bg-red-600 rounded text-sm font-semibold disabled:opacity-50"
+                disabled={busy || atPowerCap}
+                title={atPowerCap ? t('armory_cap_reached') || 'Maximum power reached.' : undefined}
+                className="px-4 py-2 bg-red-700 hover:bg-red-600 rounded text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                {t('armory_buy')}
+                {atPowerCap ? 'MAX' : t('armory_buy')}
               </button>
             </div>
           </div>
         ))}
       </div>
+
+      {atPowerCap && (
+        <p className="text-xs text-amber-400 mt-2">⚠️ {t('armory_cap_reached') || 'Maximum power reached (10000).'}</p>
+      )}
 
       <div className="mt-6 text-xs text-zinc-500">{t('armory_footer')}</div>
 

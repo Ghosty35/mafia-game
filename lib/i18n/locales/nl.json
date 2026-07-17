@@ -739,6 +739,7 @@
   "armory_buy": "Koop Kracht",
   "armory_purchase_failed": "Aankoop mislukt.",
   "armory_bought": "+{power} Kracht gekocht voor {price}!",
+  "armory_cap_reached": "Maximum kracht bereikt (10000).",
   "armory_footer": "Kracht verhoogt je algehele sterkte. Meer kracht = betere ranglijstpositie en lichte heist-bonussen.",
   "re_title": "Vastgoed",
   "re_desc": "Bezit de stad. Laat je imperium (en wiet) groeien. Betaal je rekeningen op tijd of raak alles kwijt.",
