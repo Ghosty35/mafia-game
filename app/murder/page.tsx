@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
@@ -14,9 +15,19 @@ const WEAPONS: { name: string; labelKey: TranslationKey; descKey: TranslationKey
 ];
 
 export default function MurderPage() {
+  return (
+    <Suspense fallback={<div className="max-w-4xl mx-auto p-6 text-zinc-400 text-sm" />}>
+      <MurderContent />
+    </Suspense>
+  );
+}
+
+function MurderContent() {
   const { player, updatePlayer, showToast } = usePlayer();
   const { t, fm } = useLanguage();
-  const [targetName, setTargetName] = useState('');
+  // The detective's "act now" link hands the target over (076).
+  const searchParams = useSearchParams();
+  const [targetName, setTargetName] = useState(searchParams.get('target') ?? '');
   const [selectedWeapon, setSelectedWeapon] = useState(WEAPONS[0].name);
   const [bulletsUsed, setBulletsUsed] = useState(50);
   const [busy, setBusy] = useState(false);
@@ -75,6 +86,10 @@ export default function MurderPage() {
         else if (error.message.includes('MURDER_LOCKED')) text = t('murder_locked_alert');
         else if (error.message.includes('TARGET_NOT_FOUND')) text = t('murder_invalid_input');
         else if (error.message.includes('NOT_ENOUGH_STAMINA')) text = t('error_no_stamina');
+        // 076: a hit needs fresh intel from the detective, in the right city
+        else if (error.message.includes('NO_INTEL')) text = t('murder_no_intel');
+        else if (error.message.includes('TARGET_MOVED')) text = t('murder_target_moved');
+        else if (error.message.includes('IN_JAIL')) text = t('error_in_jail');
         showToast(text, 'error');
       } else {
         updatePlayer(data.player);
@@ -106,6 +121,13 @@ export default function MurderPage() {
         </div>
       )}
       <p className="text-sm text-zinc-400 mb-6">{t('murder_desc')}</p>
+
+      {/* 076: murder needs a warm detective tip — say so up front. */}
+      <div className="mb-4 p-3 bg-zinc-900 border border-zinc-800 rounded text-xs text-zinc-400">
+        🕵️ {t('murder_intel_required')}{' '}
+        <Link href="/detective" className="text-red-400 hover:underline">{t('menu_detective')}</Link>
+      </div>
+
       {cooldown > 0 && (
         <div className="mb-4 p-2 bg-orange-900 text-orange-200 rounded text-sm">
           {t('murder_cooldown', { minutes: Math.floor(cooldown / 60), seconds: cooldown % 60 })}
