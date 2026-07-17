@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from './PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { useRouter } from 'next/navigation';
 
 type Discipline = 'strength' | 'defense';
 
@@ -19,6 +20,7 @@ function cashCost(startStat: number, sessions: number): number {
 export default function GymBoard() {
   const { player, refreshPlayer, showToast } = usePlayer();
   const { t, language, fm } = useLanguage();
+  const router = useRouter();
   const [discipline, setDiscipline] = useState<Discipline>('strength');
   const [sessions, setSessions] = useState(1);
   const [busy, setBusy] = useState(false);
@@ -68,6 +70,7 @@ export default function GymBoard() {
         'success',
       );
       if (refreshPlayer) await refreshPlayer();
+      router.refresh();
     } finally {
       setBusy(false);
     }

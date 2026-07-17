@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { useRouter } from 'next/navigation';
 import type { TranslationKey } from '@/lib/i18n/translations';
 
 const WEAPONS: { name: string; labelKey: TranslationKey; descKey: TranslationKey; price: number; bonus: number }[] = [
@@ -23,8 +24,9 @@ export default function MurderPage() {
 }
 
 function MurderContent() {
-  const { player, updatePlayer, showToast } = usePlayer();
+  const { player, updatePlayer, refreshPlayer, showToast } = usePlayer();
   const { t, fm } = useLanguage();
+  const router = useRouter();
   // The detective's "act now" link hands the target over (076).
   const searchParams = useSearchParams();
   const [targetName, setTargetName] = useState(searchParams.get('target') ?? '');
@@ -99,6 +101,8 @@ function MurderContent() {
             ? `Hit successful! Stole ${fm(data.stolen || 0)} and gained ${data.skill_gained} KillSkill.`
             : `The hit failed — target got away. Heat increased.`;
         showToast(message, data.success ? 'success' : 'fail');
+        if (refreshPlayer) await refreshPlayer();
+        router.refresh();
       }
     } catch (e: any) {
       showToast(e.message || t('common_error'), 'error');

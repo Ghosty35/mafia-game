@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { usePlayer } from '../components/PlayerContext';
+import { useRouter } from 'next/navigation';
 import type { TranslationKey } from '@/lib/i18n/translations';
 
 const powerPacks: { power: number; price: number; labelKey: TranslationKey }[] = [
@@ -15,6 +17,8 @@ const powerPacks: { power: number; price: number; labelKey: TranslationKey }[] =
 
 export default function ArmoryPage() {
   const { t, fm } = useLanguage();
+  const { refreshPlayer } = usePlayer();
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -36,6 +40,8 @@ export default function ArmoryPage() {
       );
     } else {
       setMessage(t('armory_bought', { power, price: fm(price) }));
+      if (refreshPlayer) await refreshPlayer();
+      router.refresh();
     }
     setBusy(false);
   };

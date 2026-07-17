@@ -9,7 +9,7 @@ import type { OwnedProperty } from '@/lib/types';
 import HeatManager from '../components/HeatManager';
 
 export default function SafehousePage() {
-  const { player, refreshPlayer } = usePlayer();
+  const { player, refreshPlayer, showToast } = usePlayer();
   const { t, fm } = useLanguage();
   const router = useRouter();
   const owned: OwnedProperty[] = player?.owned_properties || [];
@@ -48,7 +48,7 @@ export default function SafehousePage() {
     if (!prop) return;
     const currentLvl = prop.shed_level || 1;
     if (currentLvl >= 3) {
-      alert(t('safehouse_shed_max'));
+      showToast(t('safehouse_shed_max'), 'error');
       return;
     }
     const cost = 50000 * currentLvl;
@@ -61,16 +61,17 @@ export default function SafehousePage() {
     const supabase = createClient();
     const { data, error } = await supabase.rpc('upgrade_shed', { prop_id: propId });
     if (error) {
-      alert(
+      showToast(
         error.message.includes('NOT_ENOUGH_CASH')
           ? t('safehouse_shed_upgrade_no_cash')
           : error.message || t('safehouse_shed_upgrade_failed'),
+        'error',
       );
       return;
     }
     if (refreshPlayer) await refreshPlayer();
     router.refresh();
-    alert(t('safehouse_shed_upgraded', { level: data?.new_level }));
+    showToast(t('safehouse_shed_upgraded', { level: data?.new_level }), 'success');
   };
 
   // Income is accrued + collected server-side (collect_property_income):
@@ -81,12 +82,12 @@ export default function SafehousePage() {
     const supabase = createClient();
     const { data, error } = await supabase.rpc('collect_property_income', { prop_id: propId });
     if (error) {
-      alert(error.message || t('safehouse_earnings_save_failed'));
+      showToast(error.message || t('safehouse_earnings_save_failed'), 'error');
       return;
     }
     if (refreshPlayer) await refreshPlayer();
     router.refresh();
-    alert(t('safehouse_earnings_result', { net: fm(data?.collected ?? 0), tax: fm(0) }));
+    showToast(t('safehouse_earnings_result', { net: fm(data?.collected ?? 0), tax: fm(0) }), 'success');
   };
 
   return (
@@ -146,7 +147,7 @@ export default function SafehousePage() {
                     if (!player) return;
                     const current = prop.bodyguards || 0;
                     if (current >= 10) {
-                      alert(t('safehouse_hire_max'));
+                      showToast(t('safehouse_hire_max'), 'error');
                       return;
                     }
                     const supabase = createClient();
@@ -154,21 +155,23 @@ export default function SafehousePage() {
                       prop_id: prop.id,
                     });
                     if (error) {
-                      alert(
+                      showToast(
                         error.message.includes('NOT_ENOUGH_CASH')
                           ? t('common_not_enough_cash')
                           : error.message || t('safehouse_hire_failed'),
+                        'error',
                       );
                       return;
                     }
                     if (refreshPlayer) await refreshPlayer();
                     router.refresh();
-                    alert(
+                    showToast(
                       t('safehouse_hired', {
                         num: data?.bodyguards,
                         cost: fm(data?.cost ?? 0),
                         chance: 30 - (data?.bodyguards || 1) * 4,
                       }),
+                      'success',
                     );
                   }}
                   className="mt-2 px-3 py-1 bg-blue-700 rounded text-sm"
@@ -196,10 +199,10 @@ export default function SafehousePage() {
                         (document.getElementById(`piggy-deposit-${i}`) as HTMLInputElement)
                           ?.value || '0',
                       );
-                      if (amt <= 0 || (player?.cash || 0) < amt) {
-                        alert(t('safehouse_piggy_invalid_deposit'));
-                        return;
-                      }
+                       if (amt <= 0 || (player?.cash || 0) < amt) {
+                         showToast(t('safehouse_piggy_invalid_deposit'), 'error');
+                         return;
+                       }
                       if (!confirm(t('safehouse_piggy_confirm_deposit', { amount: fm(amt) }))) {
                         return;
                       }
@@ -208,18 +211,19 @@ export default function SafehousePage() {
                         prop_id: prop.id,
                         amount: amt,
                       });
-                      if (error) {
-                        alert(
-                          error.message.includes('NOT_ENOUGH_CASH')
-                            ? t('common_not_enough_cash')
-                            : error.message || t('safehouse_piggy_deposit_failed'),
-                        );
-                        return;
-                      }
-                      if (refreshPlayer) await refreshPlayer();
-                      router.refresh();
-                      alert(t('safehouse_piggy_deposited', { amount: fm(amt) }));
-                    }}
+                       if (error) {
+                         showToast(
+                           error.message.includes('NOT_ENOUGH_CASH')
+                             ? t('common_not_enough_cash')
+                             : error.message || t('safehouse_piggy_deposit_failed'),
+                           'error',
+                         );
+                         return;
+                       }
+                       if (refreshPlayer) await refreshPlayer();
+                       router.refresh();
+                       showToast(t('safehouse_piggy_deposited', { amount: fm(amt) }), 'success');
+                     }}
                     className="px-3 py-1 bg-emerald-700 rounded text-sm"
                   >
                     {t('safehouse_piggy_deposit')}
@@ -239,10 +243,10 @@ export default function SafehousePage() {
                         (document.getElementById(`piggy-withdraw-${i}`) as HTMLInputElement)
                           ?.value || '0',
                       );
-                      if (amt <= 0 || (prop.piggy_bank || 0) < amt) {
-                        alert(t('safehouse_piggy_invalid_withdraw'));
-                        return;
-                      }
+                       if (amt <= 0 || (prop.piggy_bank || 0) < amt) {
+                         showToast(t('safehouse_piggy_invalid_withdraw'), 'error');
+                         return;
+                       }
                       const fee = Math.floor(amt * 0.008);
                       const net = amt - fee;
                       if (
@@ -262,16 +266,17 @@ export default function SafehousePage() {
                         amount: amt,
                       });
                       if (error) {
-                        alert(
+                        showToast(
                           error.message.includes('NOT_ENOUGH_IN_PIGGYBANK')
                             ? t('safehouse_piggy_not_enough')
                             : error.message || t('safehouse_piggy_withdraw_failed'),
+                          'error',
                         );
                         return;
                       }
                       if (refreshPlayer) await refreshPlayer();
                       router.refresh();
-                      alert(t('safehouse_piggy_withdrew', { net: fm(net), fee: fm(fee) }));
+                      showToast(t('safehouse_piggy_withdrew', { net: fm(net), fee: fm(fee) }), 'success');
                     }}
                     className="px-3 py-1 bg-red-700 rounded text-sm"
                   >
@@ -385,14 +390,14 @@ export default function SafehousePage() {
             const { error } = await supabase.rpc('update_my_state', {
               patch: { avatar_url: avatar, bio },
             });
-            if (error) {
-              alert(error.message || t('safehouse_profile_save_failed'));
-              return;
-            }
-            if (refreshPlayer) await refreshPlayer();
-            router.refresh();
-            alert(t('safehouse_profile_saved'));
-          }}
+             if (error) {
+               showToast(error.message || t('safehouse_profile_save_failed'), 'error');
+               return;
+             }
+             if (refreshPlayer) await refreshPlayer();
+             router.refresh();
+             showToast(t('safehouse_profile_saved'), 'success');
+           }}
           className="mt-3 px-4 py-1 bg-red-700 rounded text-sm"
         >
           {t('safehouse_save_profile')}
@@ -423,7 +428,7 @@ export default function SafehousePage() {
               );
               const total = props.reduce((sum, p) => sum + (p.maintenance_due || 0), 0);
               if (total <= 0) {
-                alert(t('safehouse_no_bills'));
+                showToast(t('safehouse_no_bills'), 'error');
                 return;
               }
               if (
@@ -437,19 +442,20 @@ export default function SafehousePage() {
                   amount: p.maintenance_due,
                   method: 'cash',
                 });
-                if (error) {
-                  alert(
-                    error.message.includes('NOT_ENOUGH_CASH')
-                      ? t('safehouse_bills_no_cash')
-                      : error.message || t('safehouse_payment_failed'),
-                  );
-                  break;
-                }
-              }
-              if (refreshPlayer) await refreshPlayer();
-              router.refresh();
-              alert(t('safehouse_bills_paid'));
-            }}
+                 if (error) {
+                   showToast(
+                     error.message.includes('NOT_ENOUGH_CASH')
+                       ? t('safehouse_bills_no_cash')
+                       : error.message || t('safehouse_payment_failed'),
+                     'error',
+                   );
+                   break;
+                 }
+               }
+               if (refreshPlayer) await refreshPlayer();
+               router.refresh();
+               showToast(t('safehouse_bills_paid'), 'success');
+             }}
             className="mt-2 px-3 py-1 bg-emerald-700 rounded text-sm"
           >
             {t('safehouse_pay_all')}

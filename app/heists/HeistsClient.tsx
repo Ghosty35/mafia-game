@@ -6,6 +6,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
 import { streetEventText } from '@/lib/streetEvents';
+import { useRouter } from 'next/navigation';
 import type { Player } from '@/lib/types';
 
 type Heist = {
@@ -51,7 +52,8 @@ const DEFAULT_HEISTS: Heist[] = [
 
 export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) {
   const { t, language, fm } = useLanguage();
-  const { player: contextPlayer, updatePlayer, showToast } = usePlayer();
+  const { player: contextPlayer, updatePlayer, refreshPlayer, showToast } = usePlayer();
+  const router = useRouter();
   const [player, setPlayer] = useState<Player | null>(initialPlayer || contextPlayer);
   const [heists, setHeists] = useState<Heist[]>(DEFAULT_HEISTS);
   const [cooldowns, setCooldowns] = useState<Record<string, number>>({});
@@ -107,6 +109,8 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
     const updated = { ...player, cash: data.new_cash, weapons: [...ownedWeapons, weaponId] } as Player;
     setPlayer(updated);
     updatePlayer(updated);
+    if (refreshPlayer) await refreshPlayer();
+    router.refresh();
     setSelectedWeapon(weaponId);
   };
 
@@ -223,6 +227,8 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
       const evText = streetEventText(data.event, t, language);
       if (evText) text += ` ${evText}`;
       showToast(text, data.success ? 'success' : 'fail');
+      if (refreshPlayer) await refreshPlayer();
+      router.refresh();
     }
 
     setBusy(false);
@@ -244,6 +250,8 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
     setPlayer(updated);
     updatePlayer(updated);
     setGearBonus(Number(data.bonus || 0));
+    if (refreshPlayer) await refreshPlayer();
+    router.refresh();
   };
 
   const attemptHit = async (targetId: string, targetName: string) => {
@@ -259,6 +267,8 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
       const updated = data.player as Player;
       setPlayer(updated);
       updatePlayer(updated);
+      if (refreshPlayer) await refreshPlayer();
+      router.refresh();
       const text = data.success
         ? `Hit on ${targetName} successful! +${fm(data.stolen)} +${data.skill_gained} KillSkill`
         : `Hit failed on ${targetName}. Jailed for 5 min.`;

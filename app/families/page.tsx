@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { usePlayer } from '../components/PlayerContext';
 import Panel from '../components/Panel';
 import { useMyFamily, type FamilyMember } from '../components/useMyFamily';
 import type { TranslationKey } from '@/lib/i18n/translations';
@@ -19,6 +20,7 @@ export default function MyFamilyPage() {
   const dateLocale = language === 'nl' ? 'nl-NL' : 'en-US';
   const router = useRouter();
   const { data, loading, reload, inFamily, isLeader, canManageMembers } = useMyFamily();
+  const { refreshPlayer } = usePlayer();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,6 +49,8 @@ export default function MyFamilyPage() {
       return;
     }
     await reload();
+    if (refreshPlayer) await refreshPlayer();
+    router.refresh();
   };
 
   const kick = async (m: FamilyMember) => {
@@ -61,6 +65,8 @@ export default function MyFamilyPage() {
       return;
     }
     await reload();
+    if (refreshPlayer) await refreshPlayer();
+    router.refresh();
   };
 
   // Leaving costs a fee and puts a bounty on your head (077), so it gets its

@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { usePlayer } from '../components/PlayerContext';
+import { useRouter } from 'next/navigation';
 import Panel from '../components/Panel';
 
 // Normal shop: everyday cash items only. Everything VIP/donator/diamond
@@ -12,6 +13,7 @@ import Panel from '../components/Panel';
 export default function ShopPage() {
   const { t, fm } = useLanguage();
   const { player, refreshPlayer } = usePlayer();
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -32,6 +34,7 @@ export default function ShopPage() {
       setMessage(error.message.includes('NOT_ENOUGH_CASH') ? t('common_not_enough_cash') : t('shop_buy_failed'));
     } else {
       await refreshPlayer();
+      router.refresh();
       setMessage(t('shop_protection_bought', { points }));
     }
     setBusy(false);
@@ -96,7 +99,7 @@ export default function ShopPage() {
       {/* Personal bodyguards (070): absorb rip/murder attempts */}
       <Panel title={t('bg_title')} icon="💼">
         <p className="text-xs text-zinc-400 mb-3">{t('bg_desc')}</p>
-        <BodyguardCard busy={busy} setMessage={setMessage} />
+        <BodyguardCard busy={busy} setMessage={setMessage} router={router} />
       </Panel>
 
       <div className="text-[11px] text-zinc-500 text-center">{t('shop_footer')}</div>
@@ -106,7 +109,7 @@ export default function ShopPage() {
 
 // Personal bodyguards: each one absorbs an incoming rip/murder attempt.
 // Escalating server-side pricing ($50k → $500k), max 5. RPC: hire_personal_bodyguard.
-function BodyguardCard({ busy, setMessage }: { busy: boolean; setMessage: (m: string) => void }) {
+function BodyguardCard({ busy, setMessage, router }: { busy: boolean; setMessage: (m: string) => void; router: ReturnType<typeof useRouter> }) {
   const { t, fm } = useLanguage();
   const { player, refreshPlayer } = usePlayer();
   const [localBusy, setLocalBusy] = useState(false);
@@ -129,6 +132,7 @@ function BodyguardCard({ busy, setMessage }: { busy: boolean; setMessage: (m: st
         return;
       }
       await refreshPlayer();
+      router.refresh();
       setMessage(t('bg_hired', { count: data?.bodyguards ?? guards + 1, cost: fm(Number(data?.cost ?? 0)) }));
     } finally {
       setLocalBusy(false);

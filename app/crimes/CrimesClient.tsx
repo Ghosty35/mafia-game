@@ -7,6 +7,7 @@ import { usePlayer } from '../components/PlayerContext';
 import type { TranslationKey } from '@/lib/i18n/translations';
 import { formatCash, formatSeconds } from '@/lib/format';
 import type { CooldownRow, Crime, Player } from '@/lib/types';
+import { createClient } from '@/lib/supabase/client';
 
 export default function CrimesClient({
   initialPlayer,
@@ -31,7 +32,7 @@ export default function CrimesClient({
   const { player: contextPlayer } = usePlayer();
   const [localPlayer] = useState<Player | null>(initialPlayer);
   const player = contextPlayer || localPlayer;
-  const [cooldowns] = useState<Record<string, number>>(() =>
+  const [cooldowns, setCooldowns] = useState<Record<string, number>>(() =>
     Object.fromEntries(
       initialCooldowns.map((row) => [row.crime_key, Date.parse(row.available_at)])
     )
@@ -41,6 +42,25 @@ export default function CrimesClient({
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const sync = async () => {
+      const supabase = createClient();
+      const { data } = await supabase.rpc('get_my_cooldowns');
+      if (Array.isArray(data)) {
+        setCooldowns((prev) => {
+          const next = { ...prev };
+          (data as Array<{ key: string; available_at: string | null }>).forEach((row) => {
+            if (row.available_at) next[row.key] = Date.parse(row.available_at);
+          });
+          return next;
+        });
+      }
+    };
+    sync();
+    const poll = setInterval(sync, 10000);
+    return () => clearInterval(poll);
   }, []);
 
   if (!player) {

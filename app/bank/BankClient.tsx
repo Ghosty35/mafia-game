@@ -6,13 +6,11 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { formatCash } from '@/lib/format';
 import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
-import { useRouter } from 'next/navigation';
 import type { Player } from '@/lib/types';
 
 export default function BankClient({ initialPlayer, email }: { initialPlayer: Player | null; email: string }) {
   const { t, language, fm } = useLanguage();
-  const { player: contextPlayer, updatePlayer, refreshPlayer } = usePlayer();
-  const router = useRouter();
+  const { player: contextPlayer, updatePlayer, refreshPlayer, showToast } = usePlayer();
   const [amount, setAmount] = useState(100);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'cash' | 'bank' | 'assets' | 'gov'>('cash');
@@ -51,7 +49,7 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
 
   const handleDeposit = async () => {
     if (amount <= 0 || amount > player.cash) {
-      alert('Invalid amount or not enough cash!');
+      showToast('Invalid amount or not enough cash!', 'error');
       return;
     }
 
@@ -65,22 +63,21 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
     const { data, error } = await supabase.rpc('deposit_personal_bank', { amount });
 
     if (error) {
-      alert(error.message || 'Deposit failed');
+      showToast(error.message || 'Deposit failed', 'error');
     } else if (data?.player) {
       const updated = data.player as Player;
-      // Tax is now applied inside the RPC atomically
       const tax = Math.floor(amount * 0.005);
       updatePlayer(updated);
       setAmount(100);
       await refreshPlayer();
-      alert(`Deposit successful! Funds transferred to personal bank. (${fm(tax)} to Gov Tax)`);
+      showToast(`Deposit successful! Funds transferred to personal bank. (${fm(tax)} to Gov Tax)`, 'success');
     }
     setLoading(false);
   };
 
   const handleWithdraw = async () => {
     if (amount <= 0 || amount > currentBank) {
-      alert('Invalid amount or not enough in bank!');
+      showToast('Invalid amount or not enough in bank!', 'error');
       return;
     }
 
@@ -94,22 +91,21 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
     const { data, error } = await supabase.rpc('withdraw_personal_bank', { amount });
 
     if (error) {
-      alert(error.message || 'Withdraw failed');
+      showToast(error.message || 'Withdraw failed', 'error');
     } else if (data?.player) {
       const updated = data.player as Player;
-      // Tax is now applied inside the RPC atomically
       const tax = Math.floor(amount * 0.005);
       updatePlayer(updated);
       setAmount(100);
       await refreshPlayer();
-      alert(`Withdraw successful! Funds transferred to cash. (${fm(tax)} to Gov Tax)`);
+      showToast(`Withdraw successful! Funds transferred to cash. (${fm(tax)} to Gov Tax)`, 'success');
     }
     setLoading(false);
   };
 
   const handleGovDeposit = async () => {
     if (amount <= 0 || amount > player.cash) {
-      alert('Invalid amount or not enough cash!');
+      showToast('Not enough cash!', 'error');
       return;
     }
     if (!confirm(`Confirm deposit of ${fm(amount)} to Gov Tax Fund? This contributes to government taxes.`)) {
@@ -119,11 +115,11 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
     const supabase = createClient();
     const { error } = await supabase.rpc('gov_tax_deposit', { amount });
     if (error) {
-      alert(error.message.includes('NOT_ENOUGH_CASH') ? 'Not enough cash!' : (error.message || 'Deposit failed'));
+      showToast(error.message.includes('NOT_ENOUGH_CASH') ? 'Not enough cash!' : (error.message || 'Deposit failed'), 'error');
     } else {
       setAmount(100);
       await refreshPlayer();
-      alert('Deposited to Gov Tax Fund. Thank you for your contribution!');
+      showToast('Deposited to Gov Tax Fund. Thank you for your contribution!', 'success');
     }
     setLoading(false);
   };

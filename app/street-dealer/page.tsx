@@ -22,7 +22,7 @@ const DRUG_CAPS: Record<typeof DRUGS[number], number> = {
 export default function StreetDealerPage() {
   const { player, refreshPlayer, canPerformAction, recordAction, showToast } = usePlayer();
   const { t, fm } = useLanguage();
-  const [prices, setPrices] = useState<DrugPrices>({ Coke: 120, Weed: 80, Meth: 200, Pills: 50 });
+  const [prices, setPrices] = useState<DrugPrices>({ Coke: 0, Weed: 0, Meth: 0, Pills: 0 });
   const [city, setCity] = useState<City>('New York');
   const [drugStorage, setDrugStorage] = useState<Record<string, number>>({});
   const [cooldowns, setCooldowns] = useState<Record<string, number>>({}); // for timers like murder, grow

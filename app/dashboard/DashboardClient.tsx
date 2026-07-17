@@ -8,6 +8,8 @@ import UsernamePrompt from './UsernamePrompt';
 import LiveLogs from '../components/LiveLogs';
 import HeatManager from '../components/HeatManager';
 import MostWantedBoard from '../components/MostWantedBoard';
+import { usePlayer } from '../components/PlayerContext';
+import { useRouter } from 'next/navigation';
 
 
 export default function DashboardClient({
@@ -26,6 +28,8 @@ export default function DashboardClient({
   } | null;
 }) {
   const { t, fm } = useLanguage();
+  const { player: contextPlayer, updatePlayer, refreshPlayer } = usePlayer();
+  const router = useRouter();
   const [player, setPlayer] = useState<Player | null>(initialPlayer);
   const [serverTimes, setServerTimes] = useState({ europe: '', us: '' });
   const [serverStats, setServerStats] = useState<{
@@ -123,7 +127,11 @@ export default function DashboardClient({
             onClick={async () => {
               const supabase = (await import('@/lib/supabase/client')).createClient();
               const { data } = await supabase.rpc('breakout');
-              if (data?.player) setPlayer(data.player);
+              if (data?.player) {
+                setPlayer(data.player);
+                if (refreshPlayer) await refreshPlayer();
+                router.refresh();
+              }
             }}
             className="mt-3 text-sm bg-orange-600 hover:bg-orange-500 px-4 py-1.5 rounded font-semibold"
           >

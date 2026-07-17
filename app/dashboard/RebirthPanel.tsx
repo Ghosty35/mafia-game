@@ -42,10 +42,7 @@ export default function RebirthPanel({
       t('rebirth_done').replace('{bonus}', String((reborn.rebirths || 1) * 50))
     );
     onPlayerUpdate(reborn);
-    // Full correct flow: refresh context + hard revalidate page
     router.refresh();
-    // Also force a full reload for clean state across the game
-    setTimeout(() => { window.location.reload(); }, 1200);
   };
 
   return (
