@@ -80,13 +80,13 @@ export default function CrimesClient({
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold tracking-tight mb-1">{player.username || 'Boss'}, Welcome.</h1>
-        <p className="text-zinc-500">Commit crimes to build your empire.</p>
+        <p className="text-zinc-500 text-sm">Commit crimes to build your empire.</p>
       </div>
 
       {(!hideHeader || crimes.length > 1) && inJail && (
-        <div className="card bg-orange-950/60 border border-orange-800 px-4 py-3 flex items-center justify-between text-sm">
+        <div className="bg-orange-950/60 border border-orange-800/50 rounded-xl px-4 py-3 flex items-center justify-between text-sm">
           <p className="font-semibold text-orange-300">🚔 {t('jail_banner')}</p>
-          <p className="text-orange-200 font-mono">
+          <p className="text-orange-200 font-mono text-xs">
             {t('jail_release_in')} {formatSeconds(jailSecondsLeft)}
           </p>
         </div>
@@ -95,17 +95,14 @@ export default function CrimesClient({
       {/* Crime Status / Info only - NO commit buttons here.
           Commit buttons live only on the standalone dedicated pages. */}
       <section>
-        <div className="flex items-baseline justify-between mb-3">
-          <h2 className="text-lg font-bold tracking-tight">🔫 {t('crimes_title')}</h2>
-          <span className="text-xs text-zinc-500">Status &amp; Info • Click to commit</span>
+        <div className="flex items-baseline justify-between mb-4">
+          <h2 className="text-lg font-bold tracking-tight flex items-center gap-2">🔫 {t('crimes_title')}</h2>
+          <span className="text-[10px] uppercase tracking-wider text-zinc-500">Status &amp; Info • Click to commit</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {crimes.map((crime) => {
             const locked = player.level < crime.min_level;
-            // Remaining time comes from the server (get_my_cooldowns ->
-            // available_at), not a client recomputation, so it always matches
-            // what commit_crime will actually enforce.
             const availableAt = cooldowns[crime.key] ?? 0;
             const secondsLeft = Math.max(0, Math.ceil((availableAt - now) / 1000));
             const coolingDown = secondsLeft > 0;
@@ -114,21 +111,21 @@ export default function CrimesClient({
               <Link
                 key={crime.key}
                 href={`/crimes/${crime.key}`}
-                className={`group block crime-card bg-zinc-900 border border-zinc-800 transition-all hover:border-red-900/60 hover:-translate-y-px ${
-                  locked ? 'opacity-60' : ''
+                className={`group block bg-zinc-900 border border-zinc-800 rounded-xl p-4 transition-all hover:border-amber-700/50 hover:shadow-[0_0_15px_rgba(245,158,11,0.06)] ${
+                  locked ? 'opacity-50' : ''
                 }`}
               >
                 <div className="flex justify-between items-start gap-3 mb-2">
                   <div>
-                    <h3 className="font-semibold text-base leading-tight">
+                    <h3 className="font-semibold text-sm leading-tight">
                       {t(`crime_${crime.key}` as TranslationKey)}
                     </h3>
                     <p className="text-xs text-zinc-500 mt-0.5 leading-snug pr-2">
                       {t(`crime_${crime.key}_desc` as TranslationKey)}
                     </p>
                   </div>
-                  <div className="text-right shrink-0 text-xs text-zinc-400 font-mono pt-0.5">
-                    ⏱ {coolingDown ? `${formatSeconds(secondsLeft)} left` : formatSeconds(crime.cooldown_seconds)}
+                  <div className="text-right shrink-0 text-[10px] text-zinc-500 font-mono pt-0.5 uppercase tracking-wider">
+                    {coolingDown ? `⏱ ${formatSeconds(secondsLeft)}` : formatSeconds(crime.cooldown_seconds)}
                   </div>
                 </div>
 
@@ -136,25 +133,25 @@ export default function CrimesClient({
                   <span className="font-medium text-emerald-400/90">
                     {formatCash(crime.min_reward, language)}–{formatCash(crime.max_reward, language)}
                   </span>
-                  <span className="text-zinc-600">•</span>
+                  <span className="text-zinc-700">•</span>
                   <span>
                     {Math.round(crime.success_chance * 100)}% {t('crime_success_rate')}
                   </span>
                   {locked && (
-                    <span className="ml-auto text-amber-400/80 font-medium">🔒 Lvl {crime.min_level}</span>
+                    <span className="ml-auto text-amber-400/80 font-medium text-[10px] uppercase tracking-wider">🔒 Lvl {crime.min_level}</span>
                   )}
                 </div>
 
                 {/* Cooldown status */}
                 {coolingDown && (
-                  <div className="text-xs text-amber-400 mb-2">
-                    ⏱ Ready in {formatSeconds(secondsLeft)}
+                  <div className="text-[10px] text-amber-400/80 mb-2 uppercase tracking-wider">
+                    Ready in {formatSeconds(secondsLeft)}
                   </div>
                 )}
 
                 {/* Info hint - no action button on status page */}
-                <div className="mt-1 text-sm text-red-400 font-medium flex items-center gap-1 group-hover:text-red-300">
-                  View details &amp; commit on dedicated page →
+                <div className="mt-2 text-xs text-amber-400 font-medium flex items-center gap-1 group-hover:text-amber-300 transition-colors">
+                  View details &amp; commit →
                 </div>
               </Link>
             );
@@ -163,7 +160,7 @@ export default function CrimesClient({
       </section>
 
       {(!hideHeader || crimes.length > 1) && (
-        <div className="text-center text-sm text-zinc-500 pt-4">
+        <div className="text-center text-xs text-zinc-600 pt-4">
           Click any crime above to go to its standalone page where you can commit.
         </div>
       )}
