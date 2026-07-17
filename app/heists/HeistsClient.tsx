@@ -383,62 +383,72 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
           );
 
           return (
-            <div key={h.key} className="card p-5">
-              <div className="flex justify-between">
-                <h3 className="font-semibold text-xl">{h.key.replace(/_/g, ' ')}</h3>
-                <span className="text-xs text-zinc-500">Lvl {h.min_level}+ • Crew 2-3</span>
+            <div key={h.key} className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 hover:border-amber-700/50 transition-all">
+              <div className="flex justify-between items-start mb-3">
+                <h3 className="font-semibold text-base capitalize">{h.key.replace(/_/g, ' ')}</h3>
+                <span className="text-[10px] text-zinc-500 uppercase tracking-wider">Lvl {h.min_level}+ • Crew 2-3</span>
               </div>
 
-              <div className="mt-2 text-sm space-y-1">
-                <div>Reward: <span className="text-emerald-400">{fm(h.min_reward)} – {fm(h.max_reward)}</span></div>
-                <div>Est. Success: <span className="font-mono text-amber-400">{successEst}%</span></div>
+              <div className="text-xs space-y-1.5 mb-4">
+                <div className="flex justify-between">
+                  <span className="text-zinc-400">Reward</span>
+                  <span className="font-mono text-emerald-400 font-semibold">{fm(h.min_reward)} – {fm(h.max_reward)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-zinc-400">Est. Success</span>
+                  <span className="font-mono text-amber-400 font-semibold">{successEst}%</span>
+                </div>
                 {!status.ready && (
-                  <div className="text-orange-400 text-xs">⏱ Cooldown: {status.timeLeft}</div>
+                  <div className="text-orange-400 text-[10px] uppercase tracking-wider">⏱ Cooldown: {status.timeLeft}</div>
                 )}
               </div>
 
               {/* Crew selector: 2 or 3 only (3rd optional) */}
-              <div className="mt-3 flex items-center gap-2 text-xs">
-                <span>Crew:</span>
-                <button 
-                  onClick={() => setCrew(2)} 
-                  className={`px-3 py-1 rounded ${crew === 2 ? 'bg-red-700' : 'bg-zinc-800'}`}
+              <div className="flex items-center gap-2 text-xs mb-3">
+                <span className="text-zinc-500 uppercase tracking-wider text-[10px]">Crew:</span>
+                <button
+                  onClick={() => setCrew(2)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    crew === 2 ? 'bg-red-700 text-white border border-red-600' : 'bg-zinc-800 text-zinc-400 border border-zinc-700 hover:border-zinc-600'
+                  }`}
                 >
                   2
                 </button>
-                <button 
-                  onClick={() => setCrew(3)} 
-                  className={`px-3 py-1 rounded ${crew === 3 ? 'bg-red-700' : 'bg-zinc-800'}`}
+                <button
+                  onClick={() => setCrew(3)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                    crew === 3 ? 'bg-red-700 text-white border border-red-600' : 'bg-zinc-800 text-zinc-400 border border-zinc-700 hover:border-zinc-600'
+                  }`}
                 >
                   3 (optional)
                 </button>
               </div>
 
               {/* Loadout summary — weapon + getaway are picked in the Armory above */}
-              <div className="mt-2 text-xs text-zinc-400">
+              <div className="text-xs text-zinc-400 mb-2">
                 Loadout:{' '}
-                <span className={ownedWeapons.includes(selectedWeapon) ? 'text-emerald-400' : 'text-red-400'}>
+                <span className={ownedWeapons.includes(selectedWeapon) ? 'text-emerald-400 font-semibold' : 'text-red-400'}>
                   {ownedWeapons.includes(selectedWeapon)
                     ? WEAPONS.find((w) => w.id === selectedWeapon)?.label
                     : '⚠ no weapon'}
                 </span>{' '}
                 · Getaway:{' '}
-                <span className={selectedCarId ? 'text-emerald-400' : 'text-red-400'}>
+                <span className={selectedCarId ? 'text-emerald-400 font-semibold' : 'text-red-400'}>
                   {cars.find((c) => c.id === selectedCarId)?.name ?? '⚠ none'}
                 </span>
               </div>
-              <div className="mt-1 text-xs">
-                <span>Bullets (0-500, required for bonus):</span>
-                <input type="range" min="0" max="500" value={bulletsUsed} onChange={e => setBulletsUsed(parseInt(e.target.value))} className="ml-2 w-32" />
-                <span className="ml-1">{bulletsUsed}</span>
+              <div className="text-xs text-zinc-400 mb-4">
+                <span className="text-zinc-500">Bullets:</span>{' '}
+                <input type="range" min="0" max="500" value={bulletsUsed} onChange={e => setBulletsUsed(parseInt(e.target.value))} className="ml-2 w-32 accent-red-600" />
+                <span className="ml-1 font-mono text-red-400 font-semibold">{bulletsUsed}</span>
               </div>
 
               <button
                 onClick={() => doHeist(h)}
                 disabled={!canDo || busy}
-                className="mt-4 w-full py-2.5 rounded-lg font-bold bg-red-700 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-2.5 rounded-lg font-bold text-sm bg-red-700 hover:bg-red-600 disabled:bg-zinc-800 disabled:text-zinc-500 disabled:cursor-not-allowed transition-colors"
               >
-                {busy ? 'Executing...' : !status.ready ? `Cooldown ${status.timeLeft}` : inJail ? 'In Jail' : 'Launch Heist'}
+                {busy ? 'Executing...' : !status.ready ? `Cooldown ${status.timeLeft}` : inJail ? 'In Jail' : 'Launch Heist 💣'}
               </button>
             </div>
           );
@@ -450,8 +460,8 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
       </div>
 
       {/* Real PvP Hits System */}
-      <div className="mt-8 card p-5 border border-purple-900/50">
-        <h3 className="font-semibold mb-2">🎯 Contract Hits (PvP)</h3>
+      <div className="bg-zinc-900 border border-red-900/40 rounded-xl p-5">
+        <h3 className="font-bold mb-2 text-sm uppercase tracking-wider text-red-400">🎯 Contract Hits (PvP)</h3>
         <p className="text-xs text-zinc-400 mb-3">
           Use your KillSkill to assassinate other players. Success steals cash + gains KillSkill. Fail = jail + heat.
         </p>
@@ -459,15 +469,15 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
         <div className="space-y-2 max-h-64 overflow-auto">
           {targets.length === 0 && <p className="text-xs text-zinc-500">Loading targets...</p>}
           {targets.map((t) => (
-            <div key={t.id} className="flex justify-between items-center bg-zinc-950 p-2 rounded text-sm">
+            <div key={t.id} className="flex justify-between items-center bg-zinc-950 border border-zinc-800 rounded-lg p-3 text-sm">
               <div>
-                <span className="font-medium">{t.username}</span> 
-                <span className="text-xs text-zinc-500 ml-2">Lvl {t.level} • PWR {t.power || 0}</span>
+                <span className="font-semibold text-white">{t.username}</span>
+                <span className="text-[10px] text-zinc-500 ml-2 uppercase tracking-wider">Lvl {t.level} • PWR {t.power || 0}</span>
               </div>
               <button
                 onClick={() => attemptHit(t.id, t.username)}
                 disabled={busy || !!inJail}
-                className="px-3 py-1 text-xs bg-purple-700 hover:bg-purple-600 rounded disabled:opacity-50"
+                className="px-3 py-1.5 text-xs bg-red-700 hover:bg-red-600 border border-red-600 rounded-lg disabled:opacity-40 transition-colors"
               >
                 Attempt Hit
               </button>
@@ -476,7 +486,7 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
         </div>
       </div>
 
-      <Link href="/dashboard" className="text-sm text-red-400">← Back to Dashboard</Link>
+      <Link href="/dashboard" className="inline-block text-sm text-amber-400 hover:text-amber-300 transition-colors">← {t('common_back')}</Link>
     </div>
   );
 }
