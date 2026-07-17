@@ -132,10 +132,10 @@ function FamilyBuffsShop({ busy, setMessage, isDonator }: { busy: boolean; setMe
   const supabase = createClient();
 
   const buffs = [
-    { id: 'power100', label: t('vip_buff_p100'), desc: t('vip_buff_p100_desc'), cash: 420000, diamonds: 140, diamondsBundle: 600, bundlePower: 2400 },
-    { id: 'power250', label: t('vip_buff_p250'), desc: t('vip_buff_p250_desc'), cash: 980000, diamonds: 320, diamondsBundle: 1250, bundlePower: 5200 },
-    { id: 'hourly', label: t('vip_buff_hourly'), desc: t('vip_buff_hourly_desc'), cash: 650000, diamonds: 210, diamondsBundle: 820, bundlePower: 3100 },
-    { id: 'war', label: t('vip_buff_war'), desc: t('vip_buff_war_desc'), cash: 1150000, diamonds: 380, diamondsBundle: 1400, bundlePower: 5800 },
+    { id: 'power100', label: t('vip_buff_p100'), desc: t('vip_buff_p100_desc'), cash: 420000, diamonds: 140, diamondsBundle: 600 },
+    { id: 'power250', label: t('vip_buff_p250'), desc: t('vip_buff_p250_desc'), cash: 980000, diamonds: 320, diamondsBundle: 1250 },
+    { id: 'hourly', label: t('vip_buff_hourly'), desc: t('vip_buff_hourly_desc'), cash: 650000, diamonds: 210, diamondsBundle: 820 },
+    { id: 'war', label: t('vip_buff_war'), desc: t('vip_buff_war_desc'), cash: 1150000, diamonds: 380, diamondsBundle: 1400 },
   ];
 
   const buyBuff = async (buff: (typeof buffs)[number], useBundle: boolean, payWith: 'cash' | 'diamonds') => {
@@ -210,7 +210,7 @@ function FamilyBuffsShop({ busy, setMessage, isDonator }: { busy: boolean; setMe
             >
               💎 {b.diamondsBundle} — {t('vip_bundle')}
               <br />
-              <span className="text-[10px]">+{b.bundlePower} {t('fam_stat_power').toLowerCase()} {!isDonator && `• ${t('vip_bundle_locked')}`}</span>
+              <span className="text-[10px]">+{Math.floor(b.diamondsBundle * 4.0)} {t('fam_stat_power').toLowerCase()} {!isDonator && `• ${t('vip_bundle_locked')}`}</span>
             </button>
           </div>
         </div>
