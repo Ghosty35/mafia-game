@@ -79,20 +79,23 @@ export default function GymBoard() {
   return (
     <div className="space-y-4">
       {/* Stamina */}
-      <div className="card p-4 border border-zinc-700 bg-zinc-900">
-        <div className="flex items-center justify-between text-sm mb-1">
-          <span className="text-zinc-300">⚡ {t('gym_stamina')}</span>
-          <span className="font-mono text-cyan-300">{stamina}/100</span>
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+        <div className="flex items-center justify-between text-sm mb-2">
+          <span className="text-zinc-300 flex items-center gap-2">
+            <span className="text-lg">⚡</span>
+            {t('gym_stamina')}
+          </span>
+          <span className="font-mono text-cyan-400 font-bold">{stamina}/100</span>
         </div>
-        <div className="h-2.5 bg-zinc-800 rounded-full overflow-hidden">
+        <div className="h-3 bg-zinc-800 rounded-full overflow-hidden">
           <div
-            className="h-2.5 bg-cyan-500 transition-all"
+            className="h-3 bg-gradient-to-r from-cyan-600 to-cyan-400 transition-all"
             style={{ width: `${Math.max(0, Math.min(100, stamina))}%` }}
           />
         </div>
-        <p className="text-[10px] text-zinc-500 mt-1.5">
+        <p className="text-[10px] text-zinc-500 mt-2">
           {t('gym_regen_note', { rate: regenPerHour })}
-          {isDonator ? ` ${t('gym_regen_donator')}` : ''}
+          {isDonator ? ` <span className="text-amber-400">${t('gym_regen_donator')}</span>` : ''}
         </p>
       </div>
 
@@ -105,16 +108,19 @@ export default function GymBoard() {
             <button
               key={d}
               onClick={() => setDiscipline(d)}
-              className={`card p-4 text-left border transition ${
-                active ? 'border-red-600 bg-red-950/20' : 'border-zinc-700 bg-zinc-900 hover:border-zinc-500'
+              className={`group border rounded-xl p-4 text-left transition-all ${
+                active
+                  ? 'border-amber-700/60 bg-amber-950/30 shadow-[0_0_15px_rgba(245,158,11,0.08)]'
+                  : 'border-zinc-800 bg-zinc-900 hover:border-zinc-700'
               }`}
             >
-              <div className="font-bold mb-1">
-                {d === 'strength' ? '💪' : '🛡️'} {t(d === 'strength' ? 'gym_strength' : 'gym_defense')}
-                {active && <span className="text-red-400"> ✓</span>}
+              <div className="font-bold mb-1 flex items-center gap-2">
+                <span className="text-xl">{d === 'strength' ? '💪' : '🛡️'}</span>
+                {t(d === 'strength' ? 'gym_strength' : 'gym_defense')}
+                {active && <span className="text-xs text-amber-400 font-semibold ml-auto">ACTIVE</span>}
               </div>
               <div className="text-xs text-zinc-400">
-                {t('gym_stat_current')}: <span className="font-mono text-amber-400">{stat}</span>
+                {t('gym_stat_current')}: <span className="font-mono text-amber-400 font-bold">{stat}</span>
               </div>
               <div className="text-[10px] text-zinc-500 mt-1">
                 {t(d === 'strength' ? 'gym_strength_effect' : 'gym_defense_effect')}
@@ -125,10 +131,10 @@ export default function GymBoard() {
       </div>
 
       {/* Train form (input field — no spam clicking) */}
-      <div className="card p-5 border border-zinc-700 bg-zinc-900 space-y-3">
-        <label className="block text-sm">
-          <span className="text-zinc-400 text-xs">{t('gym_sessions')}</span>
-          <div className="flex gap-2 mt-1">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-4">
+        <label className="block">
+          <span className="text-zinc-400 text-xs uppercase tracking-wider mb-2 block">{t('gym_sessions')}</span>
+          <div className="flex gap-2">
             <input
               type="number"
               min={1}
@@ -137,34 +143,34 @@ export default function GymBoard() {
               onChange={(e) =>
                 setSessions(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))
               }
-              className="flex-1 bg-zinc-950 border border-zinc-700 rounded px-3 py-2 font-mono"
+              className="flex-1 bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2.5 font-mono text-sm focus:outline-none focus:border-amber-700"
             />
             <button
               onClick={() => setSessions(Math.max(1, Math.min(10, Math.floor(stamina / STAMINA_PER_SESSION))))}
-              className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-xs"
+              className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-xs font-semibold transition-colors"
             >
               {t('gym_max_sessions')}
             </button>
           </div>
         </label>
 
-        <div className="text-xs text-zinc-400 space-y-0.5">
-          <div>
-            {t('gym_cost_preview', { cash: fm(totalCash), stamina: totalStamina })}
+        <div className="text-xs text-zinc-400 space-y-1.5 bg-zinc-950 rounded-lg p-3 border border-zinc-800">
+          <div className="flex justify-between">
+            <span>{t('gym_cost_preview', { cash: fm(totalCash), stamina: totalStamina })}</span>
           </div>
-          <div>
-            {t('gym_gain_preview', {
+          <div className="flex justify-between">
+            <span>{t('gym_gain_preview', {
               gained: sessions,
               discipline: t(discipline === 'strength' ? 'gym_strength' : 'gym_defense'),
               stat: currentStat + sessions,
-            })}
+            })}</span>
           </div>
         </div>
 
         <button
           onClick={train}
           disabled={busy || totalStamina > stamina || (player?.cash ?? 0) < totalCash}
-          className="w-full py-2.5 bg-red-700 hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed rounded font-semibold"
+          className="w-full py-3 bg-red-700 hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg font-bold text-sm transition-colors"
         >
           🏋️ {t('gym_train_btn')}
         </button>

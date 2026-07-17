@@ -68,27 +68,28 @@ export default function ShopPage() {
         <p className="text-xs text-zinc-400">{t('shop_subtitle')}</p>
       </div>
 
-      {message && <div className="bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2.5 text-sm">{message}</div>}
+      {message && <div className="bg-zinc-900 border border-amber-800/50 rounded-xl px-4 py-3 text-sm text-amber-300">{message}</div>}
 
       {/* VIP store teaser */}
       <Link
         href="/shop/vip"
-        className="block bg-gradient-to-r from-amber-950/70 to-zinc-900 border border-amber-800/60 rounded-xl px-5 py-4 hover:border-amber-600 transition"
+        className="group block bg-gradient-to-r from-amber-950/80 via-zinc-900 to-zinc-900 border border-amber-800/60 rounded-xl px-5 py-4 hover:border-amber-600 transition-all relative overflow-hidden"
       >
-        <div className="flex items-center justify-between gap-3">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(245,158,11,0.06),transparent_50%)]" />
+        <div className="relative flex items-center justify-between gap-3">
           <div>
-            <div className="font-bold text-amber-300">👑 {t('menu_vip_store')}</div>
+            <div className="font-bold text-amber-300 group-hover:text-amber-200 transition-colors">👑 {t('menu_vip_store')}</div>
             <div className="text-xs text-zinc-400 mt-0.5">{t('shop_vip_teaser')}</div>
           </div>
-          <span className="text-amber-400 text-lg shrink-0">→</span>
+          <span className="text-amber-400 text-lg shrink-0 group-hover:translate-x-1 transition-transform">→</span>
         </div>
       </Link>
 
       {/* Protection */}
-      <Panel title={t('shop_protection_title')} icon="🛡️">
+      <Panel title={t('shop_protection_title')} icon="🛡️" variant="default">
         <p className="text-xs text-zinc-400 mb-3">
           {t('shop_protection_desc')}
-          {isDonator && <span className="text-amber-400 ml-1">{t('shop_donator_discount')}</span>}
+          {isDonator && <span className="text-amber-400 ml-1 font-semibold">{t('shop_donator_discount')}</span>}
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {protectionItems.map((item) => {
@@ -99,24 +100,24 @@ export default function ShopPage() {
                 onClick={() => buyProtection(item.points, item.cost)}
                 disabled={busy || atProtectionCap}
                 title={atProtectionCap ? 'Maximum protection reached (50).' : undefined}
-                className="card p-5 text-left hover:border-red-700 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                className="group bg-zinc-950 border border-zinc-800 hover:border-amber-700/50 rounded-xl p-5 text-left transition-all disabled:opacity-40 disabled:cursor-not-allowed hover:shadow-[0_0_15px_rgba(245,158,11,0.06)]"
               >
-                <div className="text-3xl mb-2">{item.icon}</div>
-                <h3 className="font-bold">{item.title}</h3>
-                <p className="text-sm text-zinc-400">{item.desc}</p>
-                <div className="mt-3 text-emerald-400 font-mono text-sm">
+                <div className="text-3xl mb-3 group-hover:scale-110 transition-transform">{item.icon}</div>
+                <h3 className="font-bold text-sm mb-1">{item.title}</h3>
+                <p className="text-xs text-zinc-400 mb-3">{item.desc}</p>
+                <div className="text-emerald-400 font-mono text-sm font-semibold">
                   {fm(getDiscountedPrice(item.cost))}
-                  {isDonator && <span className="text-[10px] text-zinc-500 line-through ml-2">{fm(item.cost)}</span>}
+                  {isDonator && <span className="text-[10px] text-zinc-600 line-through ml-2">{fm(item.cost)}</span>}
                 </div>
               </button>
             );
           })}
         </div>
-        <p className="text-[11px] text-zinc-500 mt-2">{t('shop_protection_current', { value: player?.protection ?? 0 })}</p>
+        <p className="text-[11px] text-zinc-500 mt-3">{t('shop_protection_current', { value: player?.protection ?? 0 })}</p>
       </Panel>
 
       {/* Personal bodyguards (070): absorb rip/murder attempts */}
-      <Panel title={t('bg_title')} icon="💼">
+      <Panel title={t('bg_title')} icon="💼" variant="danger">
         <p className="text-xs text-zinc-400 mb-3">{t('bg_desc')}</p>
         <BodyguardCard busy={busy} setMessage={setMessage} router={router} />
       </Panel>

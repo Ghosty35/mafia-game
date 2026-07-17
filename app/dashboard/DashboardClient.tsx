@@ -113,37 +113,40 @@ export default function DashboardClient({
       {!player.username && <UsernamePrompt onClaimed={setPlayer} />}
 
       {/* Front Page - live server stats + clocks */}
-      <div className="card p-6 bg-zinc-900 border border-red-900/50">
-        <h2 className="text-2xl font-bold mb-4">🏠 {t('hub_title')}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-          <div>
-            <div className="font-semibold text-red-400 mb-2">{t('hub_server')}</div>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { label: t('status_online'), value: serverStats ? serverStats.online_people.toLocaleString() : '—', color: 'text-emerald-400' },
-                { label: t('status_registered'), value: serverStats ? serverStats.people_registered.toLocaleString() : '—', color: 'text-white' },
-                { label: t('status_families'), value: serverStats ? serverStats.total_families.toLocaleString() : '—', color: 'text-amber-400' },
-                { label: t('status_money'), value: serverStats ? fm(serverStats.total_money_circulation) : '—', color: 'text-emerald-400' },
-              ].map((s, i) => (
-                <div key={i} className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2">
-                  <div className="text-[10px] uppercase tracking-wider text-zinc-500">{s.label}</div>
-                  <div className={`font-mono font-semibold tabular-nums ${s.color}`}>{s.value}</div>
-                </div>
-              ))}
+      <div className="bg-zinc-900 border border-amber-900/40 rounded-xl p-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(245,158,11,0.04),transparent_50%)]" />
+        <div className="relative">
+          <h2 className="text-2xl font-bold mb-4 tracking-tight">🏠 {t('hub_title')}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+            <div>
+              <div className="font-semibold text-amber-400 mb-2 text-xs uppercase tracking-[3px]">{t('hub_server')}</div>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { label: t('status_online'), value: serverStats ? serverStats.online_people.toLocaleString() : '—', color: 'text-emerald-400' },
+                  { label: t('status_registered'), value: serverStats ? serverStats.people_registered.toLocaleString() : '—', color: 'text-white' },
+                  { label: t('status_families'), value: serverStats ? serverStats.total_families.toLocaleString() : '—', color: 'text-amber-400' },
+                  { label: t('status_money'), value: serverStats ? fm(serverStats.total_money_circulation) : '—', color: 'text-emerald-400' },
+                ].map((s, i) => (
+                  <div key={i} className="bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2.5">
+                    <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">{s.label}</div>
+                    <div className={`font-mono font-semibold tabular-nums ${s.color}`}>{s.value}</div>
+                  </div>
+                ))}
+              </div>
+              <Link href="/server-status" className="inline-block mt-3 text-xs text-amber-400 hover:text-amber-300 transition-colors">{t('menu_server_status')} →</Link>
             </div>
-            <Link href="/server-status" className="inline-block mt-2 text-xs text-red-400 hover:underline">{t('menu_server_status')} →</Link>
-          </div>
-          <div>
-            <div className="font-semibold text-red-400 mb-2">{t('hub_clocks')}</div>
-            <div className="font-mono mt-1">{serverTimes.europe}</div>
-            <div className="font-mono">{serverTimes.us}</div>
-            <div className="text-xs text-zinc-500 mt-2">{t('hub_clocks_note')}</div>
+            <div>
+              <div className="font-semibold text-amber-400 mb-2 text-xs uppercase tracking-[3px]">{t('hub_clocks')}</div>
+              <div className="font-mono mt-1 text-sm">{serverTimes.europe}</div>
+              <div className="font-mono text-sm">{serverTimes.us}</div>
+              <div className="text-xs text-zinc-500 mt-2">{t('hub_clocks_note')}</div>
+            </div>
           </div>
         </div>
       </div>
 
       {player.jailed_until && new Date(player.jailed_until).getTime() > now && (
-        <div className="card bg-orange-950/60 border-orange-800 p-4">
+        <div className="bg-orange-950/60 border border-orange-800/50 rounded-xl p-5">
           <div className="font-semibold text-orange-400">🚔 You are in jail</div>
           <p className="text-sm text-orange-300 mt-1">You cannot commit crimes or heists until you are released.</p>
           <button
@@ -156,7 +159,7 @@ export default function DashboardClient({
                 router.refresh();
               }
             }}
-            className="mt-3 text-sm bg-orange-600 hover:bg-orange-500 px-4 py-1.5 rounded font-semibold"
+            className="mt-3 text-sm bg-orange-700 hover:bg-orange-600 px-4 py-2 rounded-lg font-semibold transition-colors"
           >
             Attempt Breakout (costs cash)
           </button>
@@ -164,19 +167,22 @@ export default function DashboardClient({
       )}
 
       {/* Hero Welcome */}
-      <div className="text-center py-6">
-        <div className="inline-flex items-center gap-2 bg-red-950/50 text-red-400 px-4 py-1 rounded-full text-xs font-semibold tracking-widest mb-3">
+      <div className="text-center py-8 relative">
+        <div className="inline-flex items-center gap-2 bg-amber-950/40 text-amber-400 px-5 py-1.5 rounded-full text-xs font-bold tracking-[4px] mb-4 border border-amber-900/40">
           MAFIA GAME 2026
         </div>
-        <h1 className="text-4xl md:text-5xl font-black tracking-tighter mb-2">
-          Welcome back, <span className="text-white">{player.username ?? 'Boss'}</span>
+        <h1 className="text-4xl md:text-5xl font-black tracking-tighter mb-3">
+          Welcome back, <span className="text-amber-400">{player.username ?? 'Boss'}</span>
         </h1>
-        <p className="text-xl text-zinc-400 max-w-md mx-auto">
+        <p className="text-xl text-zinc-400 max-w-lg mx-auto">
           The city is yours to take. But first — get up to speed.
         </p>
-        <div className="mt-3 text-xs">
-          Heat: <span className="font-mono text-red-400">{player.heat ?? 0}</span>/100 
-          { (player.heat ?? 0) > 40 && <span className="text-orange-400 ml-1">(Police watching)</span> }
+        <div className="mt-4 flex items-center justify-center gap-4 text-xs">
+          <div className="flex items-center gap-1.5">
+            <span className="text-zinc-500">Heat:</span>
+            <span className="font-mono text-red-400 font-bold">{player.heat ?? 0}/100</span>
+          </div>
+          {(player.heat ?? 0) > 40 && <span className="text-orange-400">(Police watching)</span>}
         </div>
       </div>
 
@@ -191,8 +197,8 @@ export default function DashboardClient({
         <div>
           <MostWantedBoard limit={8} compact />
           <div className="mt-2 text-right">
-            <Link href="/most-wanted" className="text-xs text-red-400 hover:underline">
-              {t('mw_full_board')}
+            <Link href="/most-wanted" className="text-xs text-amber-400 hover:text-amber-300 transition-colors">
+              {t('mw_full_board')} →
             </Link>
           </div>
         </div>
@@ -200,144 +206,93 @@ export default function DashboardClient({
 
       {/* About the Game */}
       <section>
-        <h2 className="text-xl font-bold mb-3">🎯 About the Game</h2>
-        <div className="card p-5 text-sm leading-relaxed text-zinc-300">
-          Mafia Game is a modern take on classic browser mafia games. 
-          Rise through the ranks by committing crimes, building your reputation, and most importantly — 
-          joining or creating a powerful Family. 
-          The strongest Families don’t just survive… they rule the city.
+        <h2 className="text-xl font-bold mb-3 tracking-tight">🎯 About the Game</h2>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 text-sm leading-relaxed text-zinc-300">
+          Mafia Game is a modern take on classic browser mafia games.
+          Rise through the ranks by committing crimes, building your reputation, and most importantly —
+          joining or creating a powerful Family.
+          The strongest Families don&apos;t just survive… they rule the city.
         </div>
       </section>
 
       {/* Game Rules & Important Info */}
       <section>
-        <h2 className="text-xl font-bold mb-3">📜 Game Rules &amp; Guidelines</h2>
-        <div className="card p-5 space-y-4 text-sm">
-          <div>
-            <div className="font-semibold text-red-400 mb-1">1. Play Fair</div>
-            <p className="text-zinc-400">No multi-accounting, bots, or exploiting. We want a fair playing field for everyone.</p>
-          </div>
-          <div>
-            <div className="font-semibold text-red-400 mb-1">2. Respect Other Players</div>
-            <p className="text-zinc-400">Trash talk is part of the mafia vibe, but keep it in-game and fun. No real-life harassment or toxicity.</p>
-          </div>
-          <div>
-            <div className="font-semibold text-red-400 mb-1">3. Family First</div>
-            <p className="text-zinc-400">Be loyal to your Family. Betrayal can be fun, but only when it’s part of the game — not griefing.</p>
-          </div>
-          <div>
-            <div className="font-semibold text-red-400 mb-1">4. Help New Players</div>
-            <p className="text-zinc-400">Everyone started somewhere. Be patient and welcoming. A friendly community keeps the game alive.</p>
-          </div>
-          <div>
-            <div className="font-semibold text-red-400 mb-1">5. Have Fun &amp; Stay Cozy</div>
-            <p className="text-zinc-400">This game is meant to be enjoyable together. Celebrate wins, help each other grow, and keep the vibe gezellig.</p>
-          </div>
+        <h2 className="text-xl font-bold mb-3 tracking-tight">📜 Game Rules &amp; Guidelines</h2>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-4 text-sm">
+          {[
+            { title: '1. Play Fair', desc: 'No multi-accounting, bots, or exploiting. We want a fair playing field for everyone.', icon: '⚖️' },
+            { title: '2. Respect Other Players', desc: 'Trash talk is part of the mafia vibe, but keep it in-game and fun. No real-life harassment or toxicity.', icon: '🤝' },
+            { title: '3. Family First', desc: 'Be loyal to your Family. Betrayal can be fun, but only when it’s part of the game — not griefing.', icon: '👥' },
+            { title: '4. Help New Players', desc: 'Everyone started somewhere. Be patient and welcoming. A friendly community keeps the game alive.', icon: '🌱' },
+            { title: '5. Have Fun & Stay Cozy', desc: 'This game is meant to be enjoyable together. Celebrate wins, help each other grow.', icon: '🔥' },
+          ].map((rule, i) => (
+            <div key={i} className="flex gap-3">
+              <span className="text-lg shrink-0">{rule.icon}</span>
+              <div>
+                <div className="font-semibold text-amber-400 mb-0.5">{rule.title}</div>
+                <p className="text-zinc-400">{rule.desc}</p>
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* Quick Start */}
       <section>
-        <h2 className="text-xl font-bold mb-3">🎮 Get Started</h2>
+        <h2 className="text-xl font-bold mb-3 tracking-tight">🎮 Get Started</h2>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Link href="/crimes" className="card p-5 hover:border-red-700 transition block">
-            <div className="text-2xl mb-2">🔫</div>
-            <div className="font-semibold">Commit Crimes</div>
-            <div className="text-xs text-zinc-500 mt-1">Earn cash, XP and build your name.</div>
-          </Link>
-          <Link href="/families" className="card p-5 hover:border-red-700 transition block">
-            <div className="text-2xl mb-2">👥</div>
-            <div className="font-semibold">My Family</div>
-            <div className="text-xs text-zinc-500 mt-1">Manage your family and members.</div>
-          </Link>
-          <Link href="/families?tab=banking" className="card p-5 hover:border-red-700 transition block">
-            <div className="text-2xl mb-2">💰</div>
-            <div className="font-semibold">Family Donation Bank</div>
-            <div className="text-xs text-zinc-500 mt-1">Donate to boost family power & rank.</div>
-          </Link>
-          <Link href="/bank" className="card p-5 hover:border-red-700 transition block">
-            <div className="text-2xl mb-2">🏦</div>
-            <div className="font-semibold">Personal Banking</div>
-            <div className="text-xs text-zinc-500 mt-1">Deposit & manage your own funds.</div>
-          </Link>
+          {[
+            { href: '/crimes', icon: '🔫', title: 'Commit Crimes', desc: 'Earn cash, XP and build your name.' },
+            { href: '/families', icon: '👥', title: 'My Family', desc: 'Manage your family and members.' },
+            { href: '/families?tab=banking', icon: '💰', title: 'Family Donation Bank', desc: 'Donate to boost family power & rank.' },
+            { href: '/bank', icon: '🏦', title: 'Personal Banking', desc: 'Deposit & manage your own funds.' },
+          ].map((card, i) => (
+            <Link key={i} href={card.href} className="group bg-zinc-900 border border-zinc-800 hover:border-amber-700/50 rounded-xl p-5 transition-all hover:shadow-[0_0_20px_rgba(245,158,11,0.08)] block">
+              <div className="text-2xl mb-3 group-hover:scale-110 transition-transform">{card.icon}</div>
+              <div className="font-bold text-sm mb-1">{card.title}</div>
+              <div className="text-xs text-zinc-500">{card.desc}</div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Current Stats */}
+      <section>
+        <h2 className="text-xl font-bold mb-3 tracking-tight">📊 Current Stats</h2>
+        <div className="grid md:grid-cols-3 gap-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+            <div className="text-[10px] uppercase tracking-[3px] text-zinc-500 mb-3">Combat</div>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between"><span className="text-zinc-400">Health</span><span className="font-mono text-emerald-400">{player.health ?? 100}%</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">Heat</span><span className="font-mono text-red-400">{player.heat ?? 0}/100</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">Power</span><span className="font-mono text-amber-400">{player.power ?? 0}</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">Bullets</span><span className="font-mono text-zinc-300">{player.bullets ?? 0}</span></div>
+            </div>
+          </div>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+            <div className="text-[10px] uppercase tracking-[3px] text-zinc-500 mb-3">Economy</div>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between"><span className="text-zinc-400">Cash</span><span className="font-mono text-emerald-400">{fm(player.cash ?? 0)}</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">Bank</span><span className="font-mono text-blue-400">{fm(player.personal_bank ?? 0)}</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">Weed</span><span className="font-mono text-emerald-400">{(player.drug_storage?.Weed ?? 0)} kg</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">Coke</span><span className="font-mono text-zinc-200">{(player.drug_storage?.Coke ?? 0)} kg</span></div>
+            </div>
+          </div>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+            <div className="text-[10px] uppercase tracking-[3px] text-zinc-500 mb-3">Status</div>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between"><span className="text-zinc-400">City</span><span className="font-mono text-white">{player.current_city ?? 'New York'}</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">Properties</span><span className="font-mono text-amber-400">{(player.owned_properties || []).length}/4</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">Rank</span><span className="font-mono text-red-400">{player.money_rank ?? 'Hobo'}</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">Diamonds</span><span className="font-mono text-amber-300">💎 {player.diamonds ?? 0}</span></div>
+            </div>
+          </div>
         </div>
       </section>
 
       <div className="text-center text-xs text-zinc-600 pt-2">
         Questions? Talk to your Family or check the rules above. Have fun out there, Boss.
       </div>
-
-      {/* Additional useful info to show everything */}
-      <section>
-        <h2 className="text-xl font-bold mb-3">📊 Current Stats & Timers</h2>
-        <div className="grid md:grid-cols-3 gap-4">
-          <div className="card p-4">
-            <div className="text-sm">Health: {player.health ?? 100}%</div>
-            <div className="text-sm">Heat: {player.heat ?? 0}/100</div>
-            <div className="text-sm">KillSkill: {(player.murder_skill ?? 0).toFixed(2)}</div>
-            <div className="text-sm">Bullets: {player.bullets ?? 0}</div>
-            <div className="text-sm">Power: {player.power ?? 0}</div>
-          </div>
-          <div className="card p-4">
-            <div className="text-sm">Bank: {fm(player.personal_bank ?? 0)}</div>
-            <div className="text-sm">Weed KGs: {player.drug_storage?.Weed ?? 0}</div>
-            <div className="text-sm">Coke KGs: {player.drug_storage?.Coke ?? 0}</div>
-          </div>
-          <div className="card p-4">
-            <div className="text-sm">Current City: {player.current_city ?? 'New York'}</div>
-            <div className="text-sm">Owned Properties: {(player.owned_properties || []).length}</div>
-            <div className="text-sm">Money Rank: {player.money_rank ?? 'Hobo'}</div>
-          </div>
-        </div>
-      </section>
-
-      <section>
-        <h2 className="text-xl font-bold mb-3">📰 Updates & Upcomings (Page 1/3)</h2>
-        <div className="card p-5">
-          <ul className="text-sm space-y-1">
-            <li>• New dual sidebars (left: crimes, right: family/murder)</li>
-            <li>• Death system with 60min lock and 1% respawn</li>
-            <li>• Live trackers for cooldowns, weed, etc.</li>
-            <li>• Property management with bills and autopay</li>
-            <li>• Drug economies with profitable runs</li>
-            <li>• Weed growing with progress and raid risk</li>
-            <li>• Full murder with rank and skill thresholds</li>
-            <li>• Garage with warehouse upgrades and racing</li>
-            <li>• Marketplace with bidding and instant buy</li>
-            <li>• More coming: casino, stock market heist, tax fund</li>
-          </ul>
-        </div>
-      </section>
-
-      <section>
-        <h2 className="text-xl font-bold mb-3">📜 More Details (Page 2/3)</h2>
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="card p-4">
-            <h3 className="font-semibold">Current Cooldowns</h3>
-            <div className="text-xs">See LiveTracker above for live timers</div>
-            <div className="text-xs">Crimes: check dedicated pages</div>
-          </div>
-          <div className="card p-4">
-            <h3 className="font-semibold">Important Stats</h3>
-            <div className="text-xs">Health decreases on crimes (5-15% on fail in big jobs)</div>
-            <div className="text-xs">Use protection and hospital to recover</div>
-          </div>
-        </div>
-      </section>
-
-      <section>
-        <h2 className="text-xl font-bold mb-3">🚀 Upcomings (Page 3/3)</h2>
-        <div className="card p-5">
-          <ul className="text-sm space-y-1">
-            <li>• Casino system</li>
-            <li>• Dynamic stock market</li>
-            <li>• Tax fund heist (big payout)</li>
-            <li>• More cities and drug routes</li>
-            <li>• Full property management and passive income</li>
-            <li>• Racing with pinkslips and bets</li>
-          </ul>
-        </div>
-      </section>
     </div>
   );
 }
