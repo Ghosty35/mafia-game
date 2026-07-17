@@ -142,11 +142,10 @@ function FamilyBuffsShop({ busy, setMessage, isDonator }: { busy: boolean; setMe
     setLocalBusy(true);
     try {
       if (payWith === 'cash') {
-        // Atomic server-side: checks + deducts the player's own cash + adds family power
-        const powerGain = Math.max(5, Math.floor(buff.cash / 8000));
-        const { error } = await supabase.rpc('buy_family_buff_cash', {
+        // Server derives family power from cost_cash — power_gain is no longer
+        // caller-supplied, so the amount of power cannot be inflated.
+        const { data, error } = await supabase.rpc('buy_family_buff_cash', {
           cost_cash: buff.cash,
-          power_gain: powerGain,
         });
         if (error) {
           if (error.message.includes('NOT_ENOUGH_CASH')) setMessage(t('common_not_enough_cash'));
@@ -155,14 +154,14 @@ function FamilyBuffsShop({ busy, setMessage, isDonator }: { busy: boolean; setMe
           return;
         }
         await refreshPlayer();
-        setMessage(t('vip_buff_bought', { label: buff.label, power: powerGain }));
+        setMessage(t('vip_buff_bought', { label: buff.label, power: data?.power_gain ?? 0 }));
       } else {
-        // Diamond path — atomic server-side: checks + deducts diamonds + adds family power
+        // Diamond path — server derives family power from cost_diamonds and
+        // the bundle flag; power_gain is no longer caller-supplied.
         const costD = useBundle ? buff.diamondsBundle : buff.diamonds;
-        const powerGain = useBundle ? buff.bundlePower : Math.floor(buff.diamonds * 1.8);
-        const { error } = await supabase.rpc('buy_family_buff_diamonds', {
+        const { data, error } = await supabase.rpc('buy_family_buff_diamonds', {
           cost_diamonds: costD,
-          power_gain: powerGain,
+          p_is_bundle: useBundle,
         });
         if (error) {
           if (error.message.includes('NOT_ENOUGH_DIAMONDS')) setMessage(t('vip_err_diamonds'));
