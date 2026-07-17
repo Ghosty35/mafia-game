@@ -137,6 +137,7 @@ export const rightMenuCategories: MenuCategory[] = [
       { labelKey: 'menu_family_donations', href: '/families/donations', icon: '🎁' },
       { labelKey: 'menu_family_profile', href: '/families/profile', icon: '📋' },
       { labelKey: 'menu_territories', href: '/territories', icon: '🗺️' },
+      { labelKey: 'menu_crusher', href: '/families/crusher', icon: '🗜️' },
       { labelKey: 'menu_bounties', href: '/families/bounties', icon: '🎯' },
       { labelKey: 'menu_leave_family', href: '/families/leave', icon: '🚪' },
     ],

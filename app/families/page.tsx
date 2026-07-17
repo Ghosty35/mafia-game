@@ -141,7 +141,7 @@ export default function MyFamilyPage() {
         <Link href="/families/bank" className="card px-4 py-3 hover:border-amber-700 transition flex items-center gap-2">💰 {t('menu_family_bank')}</Link>
         <Link href="/families/donations" className="card px-4 py-3 hover:border-emerald-700 transition flex items-center gap-2">🎁 {t('menu_family_donations')}</Link>
         <Link href="/territories" className="card px-4 py-3 hover:border-red-700 transition flex items-center gap-2">🗺️ {t('menu_territories')}</Link>
-        <Link href="/families/leaderboard" className="card px-4 py-3 hover:border-zinc-500 transition flex items-center gap-2">👑 {t('menu_families_leaderboard')}</Link>
+        <Link href="/families/crusher" className="card px-4 py-3 hover:border-red-700 transition flex items-center gap-2">🗜️ {t('menu_crusher')}</Link>
       </div>
 
       {/* Territories */}
