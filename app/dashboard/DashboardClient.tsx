@@ -16,6 +16,7 @@ export default function DashboardClient({
   email,
   initialPlayer,
   familyStatus,
+  playerError,
 }: {
   email: string;
   initialPlayer: Player | null;
@@ -26,6 +27,7 @@ export default function DashboardClient({
     family_respect: number | null;
     my_role: string | null;
   } | null;
+  playerError?: { message?: string } | null;
 }) {
   const { t, fm } = useLanguage();
   const { player: contextPlayer, refreshPlayer } = usePlayer();
@@ -96,6 +98,12 @@ export default function DashboardClient({
     return (
       <div className="p-8">
         <p className="text-red-500">Could not load your player profile.</p>
+        {playerError && (
+          <pre className="mt-4 text-xs text-red-400 bg-zinc-900 p-4 rounded overflow-auto">
+            {JSON.stringify(playerError, null, 2)}
+          </pre>
+        )}
+        <p className="mt-4 text-xs text-zinc-500">Try refreshing the page or opening the browser console (F12) for more details.</p>
       </div>
     );
   }

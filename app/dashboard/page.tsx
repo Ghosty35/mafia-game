@@ -30,7 +30,7 @@ export default async function DashboardPage() {
     ]);
 
   if (playerError) {
-    // Silent in production; player will see error state
+    console.error('get_my_player error:', playerError);
   }
 
   return (
@@ -38,6 +38,7 @@ export default async function DashboardPage() {
       email={user.email ?? ''}
       initialPlayer={(player as Player) ?? null}
       familyStatus={(familyStatus as FamilyStatus) ?? null}
+      playerError={playerError}
     />
   );
 }

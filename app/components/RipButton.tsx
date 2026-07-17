@@ -4,12 +4,14 @@ import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from './PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { useRouter } from 'next/navigation';
 
 // The "poppetje" action at the end of each leaderboard row: rob (rip) a
 // player's cash-on-hand. Server-authoritative via rip_player(target).
 export default function RipButton({ targetUsername }: { targetUsername: string }) {
   const { player, refreshPlayer, showToast } = usePlayer();
   const { t, language, fm } = useLanguage();
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
 
   // Never show a rip button against yourself.
@@ -46,6 +48,7 @@ export default function RipButton({ targetUsername }: { targetUsername: string }
         showToast(t('rip_fail', { target: data?.target ?? targetUsername }), 'fail');
       }
       if (refreshPlayer) await refreshPlayer();
+      await router.refresh();
     } finally {
       setBusy(false);
     }

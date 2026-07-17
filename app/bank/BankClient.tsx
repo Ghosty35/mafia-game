@@ -7,10 +7,12 @@ import { formatCash } from '@/lib/format';
 import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
 import type { Player } from '@/lib/types';
+import { useRouter } from 'next/navigation';
 
 export default function BankClient({ initialPlayer, email }: { initialPlayer: Player | null; email: string }) {
   const { t, language, fm } = useLanguage();
   const { player: contextPlayer, updatePlayer, refreshPlayer, showToast } = usePlayer();
+  const router = useRouter();
   const [amount, setAmount] = useState(100);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'cash' | 'bank' | 'assets' | 'gov'>('cash');
@@ -70,6 +72,7 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
       updatePlayer(updated);
       setAmount(100);
       await refreshPlayer();
+      await router.refresh();
       showToast(`Deposit successful! Funds transferred to personal bank. (${fm(tax)} to Gov Tax)`, 'success');
     }
     setLoading(false);
@@ -98,6 +101,7 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
       updatePlayer(updated);
       setAmount(100);
       await refreshPlayer();
+      await router.refresh();
       showToast(`Withdraw successful! Funds transferred to cash. (${fm(tax)} to Gov Tax)`, 'success');
     }
     setLoading(false);
@@ -119,6 +123,7 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
     } else {
       setAmount(100);
       await refreshPlayer();
+      await router.refresh();
       showToast('Deposited to Gov Tax Fund. Thank you for your contribution!', 'success');
     }
     setLoading(false);

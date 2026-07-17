@@ -6,6 +6,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { usePlayer } from './PlayerContext';
 import { formatCash } from '@/lib/format';
 import type { TranslationKey } from '@/lib/i18n/translations';
+import { useRouter } from 'next/navigation';
 
 type ActiveWarSummary = {
   id: string;
@@ -80,6 +81,7 @@ function fmtCountdown(msLeft: number): string {
 export default function TerritoryBoard() {
   const { language, t } = useLanguage();
   const { player, refreshPlayer } = usePlayer();
+  const router = useRouter();
   const [territories, setTerritories] = useState<Territory[]>([]);
   const [activeWars, setActiveWars] = useState<War[]>([]);
   const [recentWars, setRecentWars] = useState<War[]>([]);
@@ -139,6 +141,7 @@ export default function TerritoryBoard() {
     else if (okMsg) setNotice(okMsg);
     await load();
     if (refreshPlayer) await refreshPlayer();
+    await router.refresh();
     setBusy(false);
   };
 

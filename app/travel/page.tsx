@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { streetEventText } from '@/lib/streetEvents';
 import { usePlayer } from '../components/PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { useRouter } from 'next/navigation';
 import Panel from '../components/Panel';
 
 type Destination = {
@@ -43,6 +44,7 @@ export const dynamic = 'force-dynamic';
 export default function TravelPage() {
   const { player, refreshPlayer } = usePlayer();
   const { t, language, fm } = useLanguage();
+  const router = useRouter();
 
   const [info, setInfo] = useState<TravelInfo | null>(null);
   const [mode, setMode] = useState<Mode>('train');
@@ -110,6 +112,7 @@ export default function TravelPage() {
 
     await refreshPlayer();
     await load();
+    await router.refresh();
 
     let text =
       data.mode === 'car'

@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from './PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import type { TranslationKey } from '@/lib/i18n/translations';
+import { useRouter } from 'next/navigation';
 
 type Channel = {
   key: string;
@@ -24,6 +25,7 @@ const CHANNEL_META: Record<string, { icon: string; labelKey: TranslationKey }> =
 export default function LaunderingBoard() {
   const { player, refreshPlayer, showToast } = usePlayer();
   const { t, language, fm } = useLanguage();
+  const router = useRouter();
   const [dirty, setDirty] = useState<number>(0);
   const [channels, setChannels] = useState<Channel[]>([]);
   const [selected, setSelected] = useState('laundromat');
@@ -98,6 +100,7 @@ export default function LaunderingBoard() {
       setAmount(0);
       await load();
       if (refreshPlayer) await refreshPlayer();
+      await router.refresh();
     } finally {
       setBusy(false);
     }

@@ -6,6 +6,7 @@ import { usePlayer } from './PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import type { TranslationKey } from '@/lib/i18n/translations';
 import { useEconomy } from '@/lib/economy';
+import { useRouter } from 'next/navigation';
 
 type Variant = 'full' | 'store' | 'laylow';
 
@@ -19,6 +20,7 @@ function heatColor(heat: number) {
 export default function HeatManager({ variant = 'full' }: { variant?: Variant }) {
   const { player, refreshPlayer, showToast } = usePlayer();
   const { t, fm } = useLanguage();
+  const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const economy = useEconomy();
 
@@ -66,6 +68,7 @@ export default function HeatManager({ variant = 'full' }: { variant?: Variant })
       }
       showToast(t('hm_toast_item', { label: data.label, heat: data.new_heat }), 'success');
       if (refreshPlayer) await refreshPlayer();
+      await router.refresh();
     } finally {
       setBusy(null);
     }
@@ -83,6 +86,7 @@ export default function HeatManager({ variant = 'full' }: { variant?: Variant })
       }
       showToast(t('hm_toast_lawyer'), 'success');
       if (refreshPlayer) await refreshPlayer();
+      await router.refresh();
     } finally {
       setBusy(null);
     }

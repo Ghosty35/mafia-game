@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { useRouter } from 'next/navigation';
 import Panel from '../components/Panel';
 
 interface PostedRace {
@@ -33,6 +34,7 @@ const BET_PRESETS = [500, 2500, 10000, 50000];
 export default function RacePage() {
   const { player, refreshPlayer } = usePlayer();
   const { t, fm } = useLanguage();
+  const router = useRouter();
   const [openRaces, setOpenRaces] = useState<PostedRace[]>([]);
   const [history, setHistory] = useState<PostedRace[]>([]);
   const [bet, setBet] = useState(500);
@@ -92,7 +94,7 @@ export default function RacePage() {
       return;
     }
     if (refreshPlayer) await refreshPlayer();
-    await loadRaces();
+    await router.refresh();
     setMessage(t('race_posted', { fee: fm(data?.entry_fee ?? 0), minutes: expireMinutes }));
   };
 
@@ -110,6 +112,7 @@ export default function RacePage() {
       return;
     }
     if (refreshPlayer) await refreshPlayer();
+    await router.refresh();
     await loadRaces();
     setMessage(t('race_joined', { poster: race.poster_name }));
   };
@@ -124,6 +127,7 @@ export default function RacePage() {
       return;
     }
     if (refreshPlayer) await refreshPlayer();
+    await router.refresh();
     await loadRaces();
     setMessage(
       data?.you_won
@@ -141,6 +145,7 @@ export default function RacePage() {
       return;
     }
     if (refreshPlayer) await refreshPlayer();
+    await router.refresh();
     await loadRaces();
     setMessage(t('race_canceled') + (data?.refunded ? ` (+${fm(data.refunded)})` : ''));
   };
