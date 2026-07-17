@@ -1,280 +1,225 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
-import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
-import type { TranslationKey } from '@/lib/i18n/translations';
+import Panel from '../components/Panel';
+import { useGarage, maxCarsFor, type GarageCar } from '../components/useGarage';
 
-// Car ids are now player_cars UUIDs; value is derived server-side (get_garage).
-type Car = {
-  id: string;
-  catalog_id?: string;
-  name: string;
-  condition: number;
-  value: number;
-  tuned: boolean;
-  speed_bonus?: number;
-  mods?: string[];
-};
+export const dynamic = 'force-dynamic';
 
-type TuningPart = {
-  partId: string;
-  nameKey: TranslationKey;
-  descKey: TranslationKey;
-  cost: number;
-  bonus: number;
-};
-
+// The garage proper: your cars, the fuel pump (075) and body repair.
+// Tuning and crushing now live on their own pages (/garage/tune-shop,
+// /garage/junkyard) per the bug-inspectie menu spec.
 export default function GaragePage() {
   const { player, refreshPlayer } = usePlayer();
   const { t, fm } = useLanguage();
   const router = useRouter();
+  const { cars, garageLevel, fuelPrice, loading, reload } = useGarage();
   const [message, setMessage] = useState('');
-  const [cars, setCars] = useState<Car[]>([]);
-  const [garageLevel, setGarageLevel] = useState(0);
+  const [busy, setBusy] = useState(false);
 
-  // Garage state is server-authoritative: cars + level come from get_garage().
-  const loadGarage = useCallback(async () => {
-    const supabase = createClient();
-    const { data, error } = await supabase.rpc('get_garage');
-    if (!error && data) {
-      setCars((data.cars as Car[]) || []);
-      setGarageLevel((data.garage_level as number) || 0);
-    }
-  }, []);
+  const supabase = createClient();
+  const maxCars = maxCarsFor(player?.owned_properties, garageLevel);
 
-  useEffect(() => {
-    loadGarage();
-  }, [loadGarage]);
-
-  const ownedProps = player?.owned_properties || [];
-  const hasHouse = ownedProps.some((p) => p.name.includes('House'));
-  const hasVilla = ownedProps.some((p) => p.name.includes('Villa'));
-  const hasMansion = ownedProps.some((p) => p.name.includes('Mansion'));
-
-  let maxCars = 0;
-  if (hasMansion) maxCars = 8 + garageLevel * 10;
-  else if (hasVilla) maxCars = 4 + garageLevel * 4;
-  else if (hasHouse) maxCars = 2;
-
-  if (!player) return <div className="p-8">{t('loading')}</div>;
-
-  // Shared helper: run a garage RPC, then reload garage + player state.
-  const afterAction = async (successMsg: string) => {
-    await loadGarage();
+  const afterAction = async (msg: string) => {
+    await reload();
     if (refreshPlayer) await refreshPlayer();
     router.refresh();
-    setMessage(successMsg);
+    setMessage(msg);
+  };
+
+  const refuel = async (car: GarageCar, litres: number) => {
+    setBusy(true);
+    const { data, error } = await supabase.rpc('garage_refuel_car', {
+      p_car_id: car.id,
+      p_litres: litres,
+    });
+    setBusy(false);
+    if (error) {
+      if (error.message.includes('NOT_ENOUGH_CASH')) setMessage(t('common_not_enough_cash'));
+      else if (error.message.includes('TANK_FULL')) setMessage(t('gr_tank_full'));
+      else if (error.message.includes('IN_JAIL')) setMessage(t('error_in_jail'));
+      else setMessage(t('garage_action_failed'));
+      return;
+    }
+    await afterAction(t('gr_refuelled', { litres: data.litres, cost: fm(data.cost), car: car.name }));
+  };
+
+  const repairCar = async (car: GarageCar) => {
+    setBusy(true);
+    const { data, error } = await supabase.rpc('garage_repair_car', { p_car_id: car.id });
+    setBusy(false);
+    if (error) {
+      setMessage(error.message.includes('NOT_ENOUGH_CASH') ? t('garage_repair_no_cash') : t('garage_action_failed'));
+      return;
+    }
+    await afterAction(t('garage_repaired', { cost: fm((data?.cost as number) ?? 0) }));
+  };
+
+  const sellCar = async (car: GarageCar) => {
+    if (!confirm(t('gr_confirm_sell', { name: car.name }))) return;
+    setBusy(true);
+    const { data, error } = await supabase.rpc('garage_sell_car', { p_car_id: car.id });
+    setBusy(false);
+    if (error) {
+      setMessage(t('garage_action_failed'));
+      return;
+    }
+    await afterAction(t('garage_sold', { price: fm((data?.sale as number) ?? 0) }));
   };
 
   const warehouseUpgrade = async () => {
-    const supabase = createClient();
+    setBusy(true);
     const { data, error } = await supabase.rpc('garage_upgrade_warehouse');
+    setBusy(false);
     if (error) {
       setMessage(
         error.message.includes('NEED_VILLA_OR_MANSION')
           ? t('garage_need_villa')
           : error.message.includes('NOT_ENOUGH_CASH')
             ? t('garage_upgrade_no_cash')
-            : error.message || t('garage_action_failed'),
+            : t('garage_action_failed'),
       );
       return;
     }
     const newLevel = (data?.garage_level as number) ?? garageLevel + 1;
-    const newMax = hasMansion ? 8 + newLevel * 10 : 4 + newLevel * 4;
-    await afterAction(t('garage_upgraded', { level: newLevel, max: newMax }));
+    await afterAction(t('garage_upgraded', { level: newLevel, max: maxCarsFor(player?.owned_properties, newLevel) }));
   };
 
-  const repairCar = async (car: Car) => {
-    const supabase = createClient();
-    const { data, error } = await supabase.rpc('garage_repair_car', { p_car_id: car.id });
-    if (error) {
-      setMessage(
-        error.message.includes('NOT_ENOUGH_CASH')
-          ? t('garage_repair_no_cash')
-          : error.message || t('garage_action_failed'),
-      );
-      return;
-    }
-    const cost = (data?.cost as number) ?? 0;
-    await afterAction(t('garage_repaired', { cost: fm(cost) }));
-  };
+  if (!player || loading) return <div className="max-w-5xl mx-auto p-6 text-zinc-400 text-sm">{t('loading')}</div>;
 
-  const tuneCar = async (car: Car) => {
-    const supabase = createClient();
-    const { error } = await supabase.rpc('garage_tune_car', { p_car_id: car.id });
-    if (error) {
-      setMessage(
-        error.message.includes('TUNE_NEEDS_REPAIR')
-          ? t('garage_tune_first')
-          : error.message.includes('NOT_ENOUGH_CASH')
-            ? t('garage_repair_no_cash')
-            : error.message || t('garage_action_failed'),
-      );
-      return;
-    }
-    await afterAction(t('garage_tuned'));
-  };
-
-  const tuningParts: TuningPart[] = [
-    { partId: 'engine', nameKey: 'garage_part_engine', descKey: 'garage_part_engine_desc', cost: 2500, bonus: 5 },
-    { partId: 'turbo', nameKey: 'garage_part_turbo', descKey: 'garage_part_turbo_desc', cost: 4000, bonus: 8 },
-    { partId: 'brakes', nameKey: 'garage_part_brakes', descKey: 'garage_part_brakes_desc', cost: 1500, bonus: 3 },
-    { partId: 'bodykit', nameKey: 'garage_part_bodykit', descKey: 'garage_part_bodykit_desc', cost: 1200, bonus: 2 },
-  ];
-
-  const buyTuningPart = async (car: Car, part: TuningPart) => {
-    const partName = t(part.nameKey);
-    const supabase = createClient();
-    const { error } = await supabase.rpc('garage_buy_part', {
-      p_car_id: car.id,
-      p_part_id: part.partId,
-    });
-    if (error) {
-      setMessage(
-        error.message.includes('NOT_ENOUGH_CASH')
-          ? t('garage_part_no_cash')
-          : error.message || t('garage_action_failed'),
-      );
-      return;
-    }
-    await afterAction(
-      t('garage_part_applied', { part: partName, car: car.name, bonus: part.bonus }),
-    );
-  };
-
-  const sellCar = async (car: Car) => {
-    const supabase = createClient();
-    const { data, error } = await supabase.rpc('garage_sell_car', { p_car_id: car.id });
-    if (error) {
-      setMessage(error.message || t('garage_action_failed'));
-      return;
-    }
-    const sale = (data?.sale as number) ?? 0;
-    await afterAction(t('garage_sold', { price: fm(sale) }));
-  };
-
-  const crushCar = async (car: Car) => {
-    const supabase = createClient();
-    const { data, error } = await supabase.rpc('garage_crush_car', { p_car_id: car.id });
-    if (error) {
-      setMessage(error.message || t('garage_action_failed'));
-      return;
-    }
-    const bullets = (data?.bullets_gained as number) ?? 15;
-    await afterAction(t('garage_crushed', { bullets }));
-  };
+  const canUpgrade = (player.owned_properties ?? []).some(
+    (p: { name: string }) => p.name.includes('Villa') || p.name.includes('Mansion'),
+  );
 
   return (
-    <div className="max-w-5xl mx-auto p-4 sm:p-6">
-      <h1 className="text-3xl font-bold mb-4">🚗 {t('garage_title')}</h1>
-      <p className="text-sm text-zinc-400 mb-6">{t('garage_desc', { max: maxCars })}</p>
+    <div className="max-w-5xl mx-auto px-4 py-6 space-y-4">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight mb-1">🚙 {t('garage_title')}</h1>
+          <p className="text-xs text-zinc-400">
+            {t('gr_slots', { used: cars.length, max: maxCars })}
+            {fuelPrice != null && (
+              <span className="ml-2 text-zinc-500">• ⛽ {t('gr_pump_price', { price: fm(fuelPrice) })}</span>
+            )}
+          </p>
+        </div>
+        <div className="flex gap-2 text-xs">
+          <Link href="/garage/tune-shop" className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg">🔧 {t('menu_tune_shop')}</Link>
+          <Link href="/garage/junkyard" className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg">🗜️ {t('menu_junkyard')}</Link>
+        </div>
+      </div>
 
-      {message && <div className="mb-4 text-sm p-3 bg-zinc-900 border border-zinc-700 rounded">{message}</div>}
+      {message && <div className="bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2.5 text-sm">{message}</div>}
 
-      {!hasHouse && !hasVilla && !hasMansion && (
-        <div className="text-red-400 mb-4">{t('garage_locked')}</div>
+      {maxCars === 0 && (
+        <div className="bg-amber-950/50 border border-amber-800 text-amber-300 rounded-xl px-4 py-3 text-sm">
+          {t('garage_locked')}{' '}
+          <Link href="/real-estate" className="text-red-400 hover:underline">{t('menu_real_estate')}</Link>
+        </div>
       )}
 
-      {(hasVilla || hasMansion) && (
-        <div className="mb-4">
-          <button onClick={warehouseUpgrade} className="px-4 py-2 bg-blue-700 rounded">
+      {/* Cars */}
+      {cars.length === 0 ? (
+        <Panel title={t('gr_your_cars')} icon="🚗">
+          <p className="text-sm text-zinc-500">{t('gr_no_cars')}</p>
+        </Panel>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {cars.map((car) => {
+            const fuelPct = car.fuel_tank > 0 ? (car.fuel / car.fuel_tank) * 100 : 0;
+            const roomLeft = car.fuel_tank - car.fuel;
+            return (
+              <Panel
+                key={car.id}
+                title={car.name}
+                icon="🚗"
+                actions={car.tuned ? <span className="text-[10px] px-2 py-px bg-blue-900/60 text-blue-300 rounded uppercase">{t('gr_tuned')}</span> : undefined}
+              >
+                {/* Condition */}
+                <div className="mb-3">
+                  <div className="flex justify-between text-[11px] text-zinc-400 mb-1">
+                    <span>🔧 {t('gr_condition')}</span>
+                    <span className="font-mono">{car.condition}%</span>
+                  </div>
+                  <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${car.condition < 25 ? 'bg-red-600' : car.condition < 60 ? 'bg-amber-500' : 'bg-emerald-500'}`}
+                      style={{ width: `${car.condition}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Fuel */}
+                <div className="mb-3">
+                  <div className="flex justify-between text-[11px] text-zinc-400 mb-1">
+                    <span>⛽ {t('tv_fuel')}</span>
+                    <span className="font-mono">{car.fuel}/{car.fuel_tank}L • {t('tv_range', { km: (car.fuel * 50).toLocaleString() })}</span>
+                  </div>
+                  <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${fuelPct < 25 ? 'bg-red-600' : 'bg-emerald-500'}`}
+                      style={{ width: `${fuelPct}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-1.5">
+                  <button
+                    onClick={() => refuel(car, roomLeft)}
+                    disabled={busy || roomLeft <= 0 || fuelPrice == null}
+                    className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 rounded-lg text-xs font-semibold disabled:opacity-40"
+                  >
+                    ⛽ {roomLeft > 0 && fuelPrice != null
+                      ? t('gr_fill_up', { litres: roomLeft, cost: fm(roomLeft * fuelPrice) })
+                      : t('gr_tank_full')}
+                  </button>
+                  <button
+                    onClick={() => refuel(car, 10)}
+                    disabled={busy || roomLeft <= 0 || fuelPrice == null}
+                    className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-xs disabled:opacity-40"
+                  >
+                    +10L
+                  </button>
+                  <button
+                    onClick={() => repairCar(car)}
+                    disabled={busy || car.condition >= 100}
+                    className="px-3 py-1.5 bg-blue-800 hover:bg-blue-700 rounded-lg text-xs disabled:opacity-40"
+                  >
+                    🔧 {t('garage_repair_button')}
+                  </button>
+                  <button
+                    onClick={() => sellCar(car)}
+                    disabled={busy}
+                    className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-xs ml-auto disabled:opacity-40"
+                  >
+                    💵 {fm(Math.floor(car.value * (car.condition / 100)))}
+                  </button>
+                </div>
+              </Panel>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Warehouse upgrade */}
+      {canUpgrade && (
+        <Panel title={t('garage_upgrade_warehouse')} icon="🏗️">
+          <p className="text-xs text-zinc-400 mb-3">{t('garage_upgrade_note')}</p>
+          <button onClick={warehouseUpgrade} disabled={busy} className="px-4 py-2 bg-blue-700 hover:bg-blue-600 rounded-lg text-sm font-semibold disabled:opacity-50">
             {t('garage_upgrade_warehouse')}
           </button>
-          <p className="text-xs">{t('garage_upgrade_note')}</p>
-        </div>
+        </Panel>
       )}
 
-      <div className="grid md:grid-cols-2 gap-4">
-        {/* Tune Shop */}
-        <div className="card p-5">
-          <h3 className="font-bold">{t('garage_tune_shop_title')}</h3>
-          <p className="text-xs">{t('garage_tune_shop_desc')}</p>
-          {cars
-            .filter((c) => c.condition === 100)
-            .map((car) => (
-              <div key={car.id} className="mt-2">
-                <button
-                  onClick={() => tuneCar(car)}
-                  className="text-sm bg-blue-600 px-2 py-1 rounded"
-                >
-                  {t('garage_basic_tune', { name: car.name })}
-                </button>
-                <div className="mt-1 text-xs">{t('garage_parts_label')}</div>
-                {tuningParts.map((part) => (
-                  <button
-                    key={part.partId}
-                    onClick={() => buyTuningPart(car, part)}
-                    className="text-xs bg-emerald-700 px-2 py-0.5 rounded mr-1 mt-1"
-                  >
-                    {t(part.nameKey)} ({fm(part.cost)}) {t(part.descKey)}
-                  </button>
-                ))}
-              </div>
-            ))}
-        </div>
-
-        {/* Body Repair */}
-        <div className="card p-5">
-          <h3 className="font-bold">{t('garage_repair_title')}</h3>
-          <p className="text-xs">{t('garage_repair_desc')}</p>
-          {cars.map((car) => (
-            <div key={car.id} className="mt-2 flex justify-between">
-              <span>
-                {car.name} ({car.condition}%)
-              </span>
-              <button onClick={() => repairCar(car)} className="text-sm bg-blue-600 px-2 py-1 rounded">
-                {t('garage_repair_button')}
-              </button>
-            </div>
-          ))}
-        </div>
-
-        {/* Owned cars: sell */}
-        <div className="card p-5">
-          <h3 className="font-bold">{t('garage_marketplace_title')}</h3>
-          <p className="text-xs">{t('garage_marketplace_desc')}</p>
-          {cars.map((car) => (
-            <div key={car.id} className="mt-2">
-              <button onClick={() => sellCar(car)} className="text-sm bg-emerald-600 px-2 py-1 rounded">
-                {t('garage_sell_button', {
-                  name: car.name,
-                  price: fm(Math.floor(car.value * (car.condition / 100))),
-                })}
-              </button>
-            </div>
-          ))}
-        </div>
-
-        {/* Junkyard */}
-        <div className="card p-5">
-          <h3 className="font-bold">{t('garage_junkyard_title')}</h3>
-          <p className="text-xs">{t('garage_junkyard_desc')}</p>
-          {cars.map((car) => (
-            <div key={car.id} className="mt-2">
-              <button onClick={() => crushCar(car)} className="text-sm bg-red-600 px-2 py-1 rounded">
-                {t('garage_crush_button', { name: car.name })}
-              </button>
-            </div>
-          ))}
-        </div>
+      <div className="flex gap-3 text-xs">
+        <Link href="/race" className="text-red-400 hover:underline">🏁 {t('menu_race')}</Link>
+        <Link href="/travel" className="text-red-400 hover:underline">🧭 {t('menu_travel')}</Link>
       </div>
-
-      {/* Racing now lives on the dedicated /race page (server-authoritative). */}
-      <div className="mt-6 card p-5">
-        <h3 className="font-bold">{t('garage_racing_title')}</h3>
-        <p className="text-sm text-zinc-400">{t('garage_racing_desc')}</p>
-        <Link href="/race" className="mt-2 inline-block px-3 py-1 bg-red-700 rounded text-sm">
-          {t('garage_race_button')}
-        </Link>
-      </div>
-
-      <Link href="/dashboard" className="mt-4 inline-block text-sm text-red-400">
-        ← {t('common_back')}
-      </Link>
     </div>
   );
 }

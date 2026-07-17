@@ -52,10 +52,12 @@ export const leftMenuCategories: MenuCategory[] = [
   {
     titleKey: 'side_city_services',
     items: [
-      { labelKey: 'menu_travel', href: '/travel', icon: '✈️' },
+      { labelKey: 'menu_travel', href: '/travel', icon: '🧭' },
       { labelKey: 'menu_hospital', href: '/hospital', icon: '🏥' },
       { labelKey: 'menu_jail', href: '/jail', icon: '🔒' },
       { labelKey: 'menu_garage', href: '/garage', icon: '🚙' },
+      { labelKey: 'menu_tune_shop', href: '/garage/tune-shop', icon: '🔧' },
+      { labelKey: 'menu_junkyard', href: '/garage/junkyard', icon: '🗜️' },
       { labelKey: 'menu_gym', href: '/gym', icon: '🏋️' },
       { labelKey: 'menu_wait_times', href: '/wachttijden', icon: '⏱️' },
     ],
