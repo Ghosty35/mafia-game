@@ -1,4 +1,5 @@
 'use client';
+import { useRouter } from 'next/navigation';
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -33,6 +34,7 @@ export const dynamic = 'force-dynamic';
 export default function CrusherPage() {
   const { player, refreshPlayer } = usePlayer();
   const { t, fm } = useLanguage();
+  const router = useRouter();
 
   const [data, setData] = useState<Crusher | null>(null);
   const [carId, setCarId] = useState('');
@@ -84,6 +86,7 @@ export default function CrusherPage() {
     if (err) return fail(err.message || '');
     setMessage(ok(res));
     await refreshPlayer();
+    await router.refresh();
     await load();
   };
 

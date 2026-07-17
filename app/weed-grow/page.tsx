@@ -1,4 +1,5 @@
 'use client';
+import { useRouter } from 'next/navigation';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -9,6 +10,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 export default function WeedGrowPage() {
   const { player, refreshPlayer, showToast } = usePlayer();
   const { t } = useLanguage();
+  const router = useRouter();
   const [weedProgress, setWeedProgress] = useState(0);
   const [harvestPercent, setHarvestPercent] = useState(100);
   const [busy, setBusy] = useState(false);
@@ -71,7 +73,7 @@ export default function WeedGrowPage() {
 
     setHarvestPercent(data.new_percent);
     setWeedProgress(data.new_progress);
-    if (refreshPlayer) await refreshPlayer();
+    if (refreshPlayer) await refreshPlayer(); await router.refresh();
 
     showToast(
       data.success
@@ -107,7 +109,7 @@ export default function WeedGrowPage() {
     const res = data as { destroyed?: boolean; kg?: number; quality?: number };
     setWeedProgress(0);
     setHarvestPercent(100);
-    if (refreshPlayer) await refreshPlayer();
+    if (refreshPlayer) await refreshPlayer(); await router.refresh();
 
     if (res?.destroyed) {
       showToast(t('weed_destroyed'), 'fail');

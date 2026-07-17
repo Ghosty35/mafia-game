@@ -1,4 +1,5 @@
 'use client';
+import { useRouter } from 'next/navigation';
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -30,6 +31,7 @@ export const dynamic = 'force-dynamic';
 export default function BlackjackPage() {
   const { player, refreshPlayer } = usePlayer();
   const { t, fm } = useLanguage();
+  const router = useRouter();
 
   const [hand, setHand] = useState<Hand | null>(null);
   const [bet, setBet] = useState(1000);
@@ -77,6 +79,7 @@ export default function BlackjackPage() {
     }
     setHand(data as Hand);
     await refreshPlayer();
+    await router.refresh();
     return data;
   };
 

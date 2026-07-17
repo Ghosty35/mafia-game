@@ -1,4 +1,5 @@
 'use client';
+import { useRouter } from 'next/navigation';
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -22,6 +23,7 @@ type TradeResult = {
 export default function StocksPage() {
   const { player, updatePlayer, refreshPlayer } = usePlayer();
   const { t, fm, currency } = useLanguage();
+  const router = useRouter();
   const [stocks, setStocks] = useState<Stock[]>([]);
   const [holdings, setHoldings] = useState<Record<string, number>>({});
   const [busy, setBusy] = useState(false);
@@ -75,6 +77,7 @@ export default function StocksPage() {
       if (error) throw error;
       updatePlayer((data as TradeResult).player);
       await refreshPlayer();
+      await router.refresh();
       setMsg(t('stocks_bought', { shares, ticker }));
       await loadMarket();
     } catch (e) {
@@ -92,6 +95,7 @@ export default function StocksPage() {
       if (error) throw error;
       updatePlayer((data as TradeResult).player);
       await refreshPlayer();
+      await router.refresh();
       setMsg(t('stocks_sold', { shares, ticker }));
       await loadMarket();
     } catch (e) {

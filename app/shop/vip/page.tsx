@@ -1,4 +1,5 @@
 'use client';
+import { useRouter } from 'next/navigation';
 
 import Link from 'next/link';
 import { useState } from 'react';
@@ -13,6 +14,7 @@ import Panel from '../../components/Panel';
 // status here); only the bundle deals stay donator-exclusive.
 export default function VipStorePage() {
   const { t, fm } = useLanguage();
+  const router = useRouter();
   const { player, refreshPlayer } = usePlayer();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -33,6 +35,7 @@ export default function VipStorePage() {
       else setMessage(t('vip_err_activate'));
     } else {
       await refreshPlayer();
+      await router.refresh();
       setMessage(t('vip_welcome'));
     }
     setBusy(false);
@@ -128,6 +131,7 @@ export default function VipStorePage() {
 function FamilyBuffsShop({ busy, setMessage, isDonator }: { busy: boolean; setMessage: (m: string) => void; isDonator: boolean }) {
   const [localBusy, setLocalBusy] = useState(false);
   const { t, fm } = useLanguage();
+  const router = useRouter();
   const { refreshPlayer } = usePlayer();
   const supabase = createClient();
 
@@ -154,6 +158,7 @@ function FamilyBuffsShop({ busy, setMessage, isDonator }: { busy: boolean; setMe
           return;
         }
         await refreshPlayer();
+        await router.refresh();
         setMessage(t('vip_buff_bought', { label: buff.label, power: data?.power_gain ?? 0 }));
       } else {
         // Diamond path — server derives family power from cost_diamonds and
@@ -170,6 +175,7 @@ function FamilyBuffsShop({ busy, setMessage, isDonator }: { busy: boolean; setMe
           return;
         }
         await refreshPlayer();
+        await router.refresh();
         setMessage(t('vip_buff_bought', { label: buff.label, power: data?.power_gain ?? 0 }));
       }
     } finally {

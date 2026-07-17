@@ -1,4 +1,5 @@
 'use client';
+import { useRouter } from 'next/navigation';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -22,6 +23,7 @@ const DRUG_CAPS: Record<typeof DRUGS[number], number> = {
 export default function StreetDealerPage() {
   const { player, refreshPlayer, canPerformAction, recordAction, showToast } = usePlayer();
   const { t, fm } = useLanguage();
+  const router = useRouter();
   const [prices, setPrices] = useState<DrugPrices>({ Coke: 0, Weed: 0, Meth: 0, Pills: 0 });
   const [city, setCity] = useState<City>('New York');
   const [drugStorage, setDrugStorage] = useState<Record<string, number>>({});
@@ -102,7 +104,7 @@ export default function StreetDealerPage() {
     }
     const res = data as { total: number; storage: Record<string, number> };
     if (res?.storage) setDrugStorage(res.storage);
-    if (refreshPlayer) await refreshPlayer();
+    if (refreshPlayer) await refreshPlayer(); await router.refresh();
     showToast(t('dealer_bought', { amount, drug, total: fm(res?.total ?? 0) }), 'success');
   };
 
@@ -122,7 +124,7 @@ export default function StreetDealerPage() {
     }
     const res = data as { revenue: number; storage: Record<string, number> };
     if (res?.storage) setDrugStorage(res.storage);
-    if (refreshPlayer) await refreshPlayer();
+    if (refreshPlayer) await refreshPlayer(); await router.refresh();
     showToast(t('dealer_sold', { qty, drug, revenue: fm(res?.revenue ?? 0) }), 'success');
   };
 

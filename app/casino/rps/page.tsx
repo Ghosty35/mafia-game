@@ -1,4 +1,5 @@
 'use client';
+import { useRouter } from 'next/navigation';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -30,6 +31,7 @@ export const dynamic = 'force-dynamic';
 export default function RpsPage() {
   const { player, refreshPlayer } = usePlayer();
   const { t, fm } = useLanguage();
+  const router = useRouter();
 
   const [bet, setBet] = useState(1000);
   const [last, setLast] = useState<Result | null>(null);
@@ -56,6 +58,7 @@ export default function RpsPage() {
     setLast(r);
     setStreak((s) => [r, ...s].slice(0, 10));
     await refreshPlayer();
+    await router.refresh();
   };
 
   const emojiFor = (key: string) => HANDS.find((h) => h.key === key)?.emoji ?? '?';

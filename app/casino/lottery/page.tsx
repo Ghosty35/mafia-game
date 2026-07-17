@@ -1,4 +1,5 @@
 'use client';
+import { useRouter } from 'next/navigation';
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -30,6 +31,7 @@ export const dynamic = 'force-dynamic';
 export default function LotteryPage() {
   const { player, refreshPlayer } = usePlayer();
   const { t, fm } = useLanguage();
+  const router = useRouter();
 
   const [info, setInfo] = useState<LotteryInfo | null>(null);
   const [message, setMessage] = useState('');
@@ -65,7 +67,7 @@ export default function LotteryPage() {
       else setMessage(t('lottery_entry_failed'));
       return;
     }
-    if (refreshPlayer) await refreshPlayer();
+    if (refreshPlayer) await refreshPlayer(); await router.refresh();
     await load();
     setMessage(data?.won ? t('lot_won', { prize: fm(data.prize || 0) }) : t('lot_lost', { cost: fm(data?.ticket_cost || 5000) }));
   };

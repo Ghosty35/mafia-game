@@ -1,4 +1,5 @@
 'use client';
+import { useRouter } from 'next/navigation';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -28,6 +29,7 @@ export const dynamic = 'force-dynamic';
 export default function RoulettePage() {
   const { player, refreshPlayer } = usePlayer();
   const { t, fm } = useLanguage();
+  const router = useRouter();
 
   const [bet, setBet] = useState(1000);
   const [betType, setBetType] = useState<string>('red');
@@ -61,6 +63,7 @@ export default function RoulettePage() {
     setLast(s);
     setHistory((h) => [s, ...h].slice(0, 12));
     await refreshPlayer();
+    await router.refresh();
   };
 
   const outside: Array<{ key: string; label: string; pays: string }> = [

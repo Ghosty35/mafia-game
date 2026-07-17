@@ -31,7 +31,6 @@ export default function DashboardClient({
   const { player: contextPlayer, refreshPlayer } = usePlayer();
   const router = useRouter();
   const [player, setPlayer] = useState<Player | null>(initialPlayer);
-  const [serverTimes, setServerTimes] = useState({ europe: '', us: '' });
   const [serverStats, setServerStats] = useState<{
     online_people: number;
     total_families: number;
@@ -39,6 +38,16 @@ export default function DashboardClient({
     total_money_circulation: number;
   } | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  const [serverTimes, setServerTimes] = useState({ europe: '', us: '' });
+
+  // Keep the local player state in sync with the live PlayerContext. The
+  // context auto-refreshes every ~15s, so this makes the dashboard reflect
+  // real server values after actions taken elsewhere (crimes, heists, etc.)
+  // instead of the frozen SSR snapshot. Local setPlayer() calls (username
+  // claim, breakout) still apply; they are superseded once context catches up.
+  useEffect(() => {
+    if (contextPlayer) setPlayer(contextPlayer);
+  }, [contextPlayer]);
 
   // Real, live server stats for the hub (there is no season/round system — the
   // old panel showed a hardcoded 2026 progress bar that meant nothing).

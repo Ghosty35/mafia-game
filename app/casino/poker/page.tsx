@@ -1,4 +1,5 @@
 'use client';
+import { useRouter } from 'next/navigation';
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -33,6 +34,7 @@ export const dynamic = 'force-dynamic';
 export default function PokerPage() {
   const { player, refreshPlayer } = usePlayer();
   const { t, fm } = useLanguage();
+  const router = useRouter();
 
   const [cards, setCards] = useState<number[] | null>(null);
   const [holds, setHolds] = useState<number[]>([]);
@@ -78,6 +80,7 @@ export default function PokerPage() {
     setHolds([]);
     setPhase('draw');
     await refreshPlayer();
+    await router.refresh();
   };
 
   const draw = async () => {
@@ -91,6 +94,7 @@ export default function PokerPage() {
     setResult(d);
     setPhase('done');
     await refreshPlayer();
+    await router.refresh();
   };
 
   const toggleHold = (i: number) => {
