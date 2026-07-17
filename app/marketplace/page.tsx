@@ -7,6 +7,7 @@ import { usePlayer } from '../components/PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import type { TranslationKey } from '@/lib/i18n/translations';
 import Panel from '../components/Panel';
+import { useRouter } from 'next/navigation';
 
 type Listing = {
   id: string;
@@ -109,6 +110,7 @@ export default function MarketplacePage() {
     if (err) return fail(err.message || '');
     setMessage(okMsg);
     await refreshPlayer();
+    await router.refresh();
     await load();
   };
 
