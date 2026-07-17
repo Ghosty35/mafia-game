@@ -25,11 +25,10 @@ interface Property {
 }
 
 export default function RealEstatePage() {
-  const { player, refreshPlayer } = usePlayer();
-  const { t } = useLanguage();
+  const { player, refreshPlayer, showToast } = usePlayer();
+  const { t, fm } = useLanguage();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState('');
   const [billAmount, setBillAmount] = useState(0);
   const [autopay, setAutopay] = useState(false);
 
@@ -68,109 +67,49 @@ export default function RealEstatePage() {
   const agencyProperties = cityProperties.filter((p) => p.type === 'agency');
 
   const buyProperty = async (prop: Property) => {
-    if (!player || player.cash < prop.price) {
-      setMessage(t('common_not_enough_cash'));
-      return;
-    }
+    if (!player) return;
 
-    const owned = player.owned_properties || [];
-    const mansions = owned.filter((o) => o.name.toLowerCase().includes('mansion')).length;
-    const villas = owned.filter((o) => o.name.toLowerCase().includes('villa')).length;
-    const houses = owned.filter((o) => o.name.toLowerCase().includes('house')).length;
-
-    const isMansion = prop.name.toLowerCase().includes('mansion');
-    const isVilla = prop.name.toLowerCase().includes('villa');
-    const isHouse = prop.name.toLowerCase().includes('house');
-
-    if (isMansion && mansions >= 1) {
-      setMessage(t('re_max_mansion'));
+    // Quick client-side cash check for instant feedback; the server is the
+    // source of truth (price/tax/limits enforced in purchase_property).
+    const tax = Math.floor(prop.price * 0.1);
+    if (player.cash < prop.price + tax) {
+      showToast(t('re_no_cash_tax'));
       return;
-    }
-    if (isVilla && villas >= 2) {
-      setMessage(t('re_max_villas'));
-      return;
-    }
-    if (
-      isVilla &&
-      villas > 0 &&
-      owned.some((o) => o.name.toLowerCase().includes('villa') && o.city === prop.city)
-    ) {
-      setMessage(t('re_villa_diff_city'));
-      return;
-    }
-    if (isHouse) {
-      const housesInCity = owned.filter(
-        (o) => o.name.toLowerCase().includes('house') && o.city === prop.city,
-      ).length;
-      if (housesInCity >= 1) {
-        setMessage(t('re_house_in_city'));
-        return;
-      }
-      if (houses >= 4) {
-        setMessage(t('re_max_houses'));
-        return;
-      }
-    }
-    if (owned.length >= 4) {
-      setMessage(t('re_total_limit'));
-      return;
-    }
-
-    // Warning for multiple properties - generated message
-    const houseCount = isHouse ? houses + 1 : houses;
-    if (houseCount > 1) {
-      const warnings = [t('re_warning_1'), t('re_warning_2'), t('re_warning_3')];
-      setMessage(warnings[Math.floor(Math.random() * warnings.length)]);
     }
 
     setBusy(true);
 
-    // Prompt for custom name
+    // Custom name is display-only; the server derives price/type/income from
+    // the property_catalog by id — the client can no longer forge them.
     const customName = prompt(t('re_prompt_name'), prop.name) || prop.name;
 
-    // Tax on purchase (calibrated 10% for properties)
-    const tax = Math.floor(prop.price * 0.1);
-    const totalCost = prop.price + tax;
-
-    if (player.cash < totalCost) {
-      setMessage(t('re_no_cash_tax'));
-      setBusy(false);
-      return;
-    }
-
-    // Server-side purchase: deducts cash + tax atomically and appends the property
-    const newProp = {
-      id: prop.id,
-      name: customName,
-      type: prop.type,
-      city: prop.city,
-      purchase_date: new Date().toISOString(),
-      bank_balance: 0,
-      maintenance_due: Math.floor(prop.income * 0.12),
-      autopay: false,
-      shed_level: 1,
-      earnings_week: 0,
-      last_earned: new Date().toISOString(),
-    };
-
     const supabase = createClient();
-    const { error } = await supabase.rpc('purchase_property', { prop: newProp, price: prop.price });
+    const { data, error } = await supabase.rpc('purchase_property', {
+      p_catalog_id: prop.id,
+      p_custom_name: customName,
+    });
     if (error) {
-      if (error.message.includes('NOT_ENOUGH_CASH')) setMessage(t('re_no_cash_tax'));
-      else if (error.message.includes('PROPERTY_LIMIT_REACHED')) setMessage(t('re_total_limit'));
-      else setMessage(error.message || t('re_purchase_failed'));
+      const m = error.message || '';
+      if (m.includes('NOT_ENOUGH_CASH')) showToast(t('re_no_cash_tax'));
+      else if (m.includes('PROPERTY_LIMIT_REACHED')) showToast(t('re_total_limit'));
+      else if (m.includes('ALREADY_OWNED')) showToast(t('re_house_in_city'));
+      else if (m.includes('MAX_MANSION')) showToast(t('re_max_mansion'));
+      else if (m.includes('MAX_VILLAS')) showToast(t('re_max_villas'));
+      else if (m.includes('MAX_HOUSES')) showToast(t('re_max_houses'));
+      else if (m.includes('WRONG_CITY')) showToast(t('re_city_only', { city: prop.city }));
+      else showToast(m || t('re_purchase_failed'));
       setBusy(false);
       return;
     }
 
     if (refreshPlayer) await refreshPlayer();
     router.refresh();
-    setMessage(
+    showToast(
       t('re_bought', {
         name: customName,
         city: prop.city,
-        price: `$${prop.price}`,
-        tax: `$${tax}`,
+        price: fm(prop.price),
+        tax: fm(data?.tax ?? tax),
       }),
     );
     setBusy(false);
@@ -189,7 +128,7 @@ export default function RealEstatePage() {
 
     if (
       !confirm(
-        t('re_confirm_pay', { amount: `$${pay}`, method }) +
+        t('re_confirm_pay', { amount: fm(pay), method }) +
           (method === 'bank' ? t('re_bank_extra') : ''),
       )
     ) {
@@ -204,17 +143,17 @@ export default function RealEstatePage() {
       method,
     });
     if (error) {
-      if (error.message.includes('NOT_ENOUGH_CASH')) setMessage(t('common_not_enough_cash'));
-      else if (error.message.includes('NOT_ENOUGH_IN_BANK')) setMessage(t('re_no_bank'));
-      else setMessage(error.message || t('re_payment_failed'));
+      if (error.message.includes('NOT_ENOUGH_CASH')) showToast(t('common_not_enough_cash'));
+      else if (error.message.includes('NOT_ENOUGH_IN_BANK')) showToast(t('re_no_bank'));
+      else showToast(error.message || t('re_payment_failed'));
       return;
     }
 
     const newDebt = totalDebt - pay;
     if (refreshPlayer) await refreshPlayer();
     router.refresh();
-    setMessage(
-      `${t('re_paid', { amount: `$${pay}`, method, debt: `$${newDebt}` })} ${
+    showToast(
+      `${t('re_paid', { amount: fm(pay), method, debt: fm(newDebt) })} ${
         newDebt > 0 ? t('re_pay_more') : t('re_all_clear')
       }`,
     );
@@ -228,12 +167,12 @@ export default function RealEstatePage() {
     const supabase = createClient();
     const { error } = await supabase.rpc('set_property_autopay', { prop_id: propId, enable });
     if (error) {
-      setMessage(error.message || t('re_autopay_failed'));
+      showToast(error.message || t('re_autopay_failed'));
       return;
     }
     if (refreshPlayer) await refreshPlayer();
     router.refresh();
-    setMessage(enable ? t('re_autopay_on_msg') : t('re_autopay_off_msg'));
+    showToast(enable ? t('re_autopay_on_msg') : t('re_autopay_off_msg'));
   };
 
   // Calculate maintenance suitable prices (avg ~12-15% of income, adjusted for risk)
@@ -285,7 +224,7 @@ export default function RealEstatePage() {
 
               <div className="my-2 text-sm">
                 <div>
-                  {t('re_purchase')} <span className="font-mono">${prop.price.toLocaleString()}</span>
+                  {t('re_purchase')} <span className="font-mono">{fm(prop.price)}</span>
                 </div>
                 <div>
                   {t('re_avg_income')}{' '}
@@ -349,114 +288,16 @@ export default function RealEstatePage() {
         })}
       </div>
 
-      {/* Advanced Professional Billing Menu */}
-      <h2 className="text-xl font-semibold mb-3">{t('re_billing_title')}</h2>
-      <div className="card p-6 mb-6">
-        <div className="mb-4 flex items-center gap-4">
-          <label className="flex items-center gap-2">
-            <input type="checkbox" checked={autopay} onChange={(e) => setAutopay(e.target.checked)} />
-            {t('re_autopay_label')}
-          </label>
+      {/* Billing moved to its own Economy submenu: the Post Office. */}
+      <div className="card p-5 mb-6 flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <div className="font-semibold">📮 {t('po_title')}</div>
+          <div className="text-xs text-zinc-400">{t('re_billing_moved')}</div>
         </div>
-
-        {owned.length === 0 && <p className="text-zinc-500">{t('re_no_properties')}</p>}
-
-        {owned.map((prop, idx) => {
-          const debt = prop.maintenance_due || 850;
-          const purchaseDate = prop.purchase_date
-            ? new Date(prop.purchase_date).toLocaleDateString()
-            : 'N/A';
-          const ownedDays = prop.purchase_date
-            ? Math.floor((Date.now() - new Date(prop.purchase_date).getTime()) / (1000 * 3600 * 24))
-            : 0;
-          const maintCost = Math.floor((prop.income || 50) * 0.12); // suitable ~12%
-          const avgProfit = (prop.income || 50) - maintCost;
-
-          return (
-            <div key={idx} className="mb-6 border border-zinc-700 rounded p-4">
-              <div className="flex flex-col sm:flex-row justify-between items-start gap-2 mb-2">
-                <div>
-                  <div className="font-bold text-lg">{t('re_property', { name: prop.name })}</div>
-                  <div className="text-xs text-zinc-400">
-                    {t('re_purchased_on', { date: purchaseDate, days: ownedDays })}
-                  </div>
-                  <div className="text-xs">
-                    {t('re_city_type', {
-                      city: prop.city,
-                      type: prop.type,
-                      spots: prop.spots || 'N/A',
-                    })}
-                  </div>
-                </div>
-                <div className="text-right text-sm">
-                  <div>
-                    {t('re_current_debt')} <span className="font-mono text-red-400">${debt}</span>
-                  </div>
-                  <div>
-                    {t('re_avg_maint_short')} <span className="font-mono">-${maintCost}/hr</span>
-                  </div>
-                  <div>
-                    {t('re_avg_profit')}{' '}
-                    <span className="font-mono text-emerald-400">+${avgProfit}/hr</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="text-xs mb-3">
-                {t('re_prop_bank', { amount: `$${prop.bank_balance || 0}` })}
-              </div>
-
-              <div className="mb-3">
-                <label className="block text-sm mb-1">{t('re_pay_amount')}</label>
-                <div className="flex flex-wrap gap-2">
-                  <input
-                    type="number"
-                    value={billAmount}
-                    onChange={(e) => setBillAmount(parseInt(e.target.value) || 0)}
-                    className="bg-zinc-900 border border-zinc-700 px-3 py-1 rounded w-32"
-                    placeholder={t('common_amount')}
-                  />
-                  <button
-                    onClick={() => payBill(prop.id, billAmount, 'cash')}
-                    className="px-4 py-1 bg-emerald-700 rounded text-sm"
-                  >
-                    {t('re_pay_cash')}
-                  </button>
-                  <button
-                    onClick={() => payBill(prop.id, billAmount, 'bank')}
-                    className="px-4 py-1 bg-emerald-700 rounded text-sm"
-                  >
-                    {t('re_pay_bank')}
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => payBill(prop.id, debt, 'cash')}
-                  className="px-4 py-1 bg-emerald-700 rounded text-sm"
-                >
-                  {t('re_full_pay')}
-                </button>
-                <button
-                  onClick={() => payBill(prop.id, Math.floor(debt / 2), 'bank')}
-                  className="px-4 py-1 bg-emerald-700 rounded text-sm"
-                >
-                  {t('re_payment_plan')}
-                </button>
-                <button
-                  onClick={() => setAutopayForProp(prop.id, !prop.autopay)}
-                  className="px-4 py-1 bg-blue-700 rounded text-sm"
-                >
-                  {prop.autopay ? t('re_autopay_disable') : t('re_autopay_enable')}
-                </button>
-              </div>
-            </div>
-          );
-        })}
+        <Link href="/post-office" className="px-4 py-2 bg-red-700 hover:bg-red-600 rounded-lg text-sm font-semibold shrink-0">
+          {t('re_billing_go')}
+        </Link>
       </div>
-
-      {message && <div className="mt-4 p-3 bg-zinc-900 border border-zinc-700 rounded">{message}</div>}
 
       <Link href="/dashboard" className="mt-6 inline-block text-sm text-red-400">
         ← {t('common_back')}

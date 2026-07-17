@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { formatCash, formatSeconds } from '@/lib/format';
+import { streetEventText } from '@/lib/streetEvents';
 import { usePlayer } from '../components/PlayerContext';
 import { useRouter } from 'next/navigation';
 import type { Crime, Player } from '@/lib/types';
@@ -79,6 +80,7 @@ export default function SingleCrimeView({ crimeKey }: { crimeKey: string }) {
       if (error.message.includes('ON_COOLDOWN')) text = t('error_on_cooldown');
       else if (error.message.includes('IN_JAIL')) text = t('error_in_jail');
       else if (error.message.includes('LEVEL_TOO_LOW')) text = t('error_level_too_low');
+      else if (error.message.includes('NOT_ENOUGH_STAMINA')) text = t('error_no_stamina');
       setResult({ kind: 'error', text });
       return;
     }
@@ -122,6 +124,10 @@ export default function SingleCrimeView({ crimeKey }: { crimeKey: string }) {
     if (res.in_family && res.family_respect_gained) {
       baseText += ` • +${res.family_respect_gained} Family Respect`;
     }
+
+    // Random street event (071)
+    const evText = streetEventText(res.event, t, language);
+    if (evText) baseText += ` • ${evText}`;
     // Dynamic message for pickpocket already, extend for other crimes if needed (deep dive: vary per action)
 
     if (res.leveled_up) {
@@ -176,6 +182,8 @@ export default function SingleCrimeView({ crimeKey }: { crimeKey: string }) {
           Your stats: {crimeStats.tries} tries ({crimeStats.wins} wins / {crimeStats.tries - crimeStats.wins} losses, {winRate}% ) • Earned: {formatCash(crimeStats.earnings, language)}
         </div>
 
+        {result && <p className={`mb-3 text-sm p-3 rounded border ${bannerStyles[result.kind]}`}>{result.text}</p>}
+
         {!locked && (
           <button
             onClick={doCrime}
@@ -188,9 +196,7 @@ export default function SingleCrimeView({ crimeKey }: { crimeKey: string }) {
 
         {coolingDown && <div className="mt-2 text-xs text-zinc-500">Cooldown: {formatSeconds(secondsLeft)} left ({cooldownPercent}%)</div>}
 
-        {result && <p className={`mt-3 text-sm p-3 rounded border ${bannerStyles[result.kind]}`}>{result.text}</p>}
-
-        {inJail && <p className="mt-2 text-sm text-orange-300">🚔 In jail: {formatSeconds(Math.max(0, Math.ceil((new Date(player.jailed_until!).getTime() - now) / 1000)))}</p>}
+        {inJail &&<p className="mt-2 text-sm text-orange-300">🚔 In jail: {formatSeconds(Math.max(0, Math.ceil((new Date(player.jailed_until!).getTime() - now) / 1000)))}</p>}
       </div>
     </div>
   );

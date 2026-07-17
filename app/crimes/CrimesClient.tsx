@@ -6,9 +6,8 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { usePlayer } from '../components/PlayerContext';
 import type { TranslationKey } from '@/lib/i18n/translations';
 import { formatCash, formatSeconds } from '@/lib/format';
-import { getRank, getNextRank, GODFATHER_LEVEL } from '@/lib/ranks';
 import type { CooldownRow, Crime, Player } from '@/lib/types';
-import RebirthPanel from '../dashboard/RebirthPanel';
+import { createClient } from '@/lib/supabase/client';
 
 export default function CrimesClient({
   initialPlayer,
@@ -30,8 +29,8 @@ export default function CrimesClient({
   hideHeader?: boolean;
 }) {
   const { t, language } = useLanguage();
-  const { player: contextPlayer, updatePlayer } = usePlayer();
-  const [localPlayer, setLocalPlayer] = useState<Player | null>(initialPlayer);
+  const { player: contextPlayer } = usePlayer();
+  const [localPlayer] = useState<Player | null>(initialPlayer);
   const player = contextPlayer || localPlayer;
   const [cooldowns, setCooldowns] = useState<Record<string, number>>(() =>
     Object.fromEntries(
@@ -39,11 +38,29 @@ export default function CrimesClient({
     )
   );
   const [now, setNow] = useState(() => Date.now());
-  const [rebornMessage, setRebornMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const sync = async () => {
+      const supabase = createClient();
+      const { data } = await supabase.rpc('get_my_cooldowns');
+      if (Array.isArray(data)) {
+        setCooldowns((prev) => {
+          const next = { ...prev };
+          (data as Array<{ key: string; available_at: string | null }>).forEach((row) => {
+            if (row.available_at) next[row.key] = Date.parse(row.available_at);
+          });
+          return next;
+        });
+      }
+    };
+    sync();
+    const poll = setInterval(sync, 10000);
+    return () => clearInterval(poll);
   }, []);
 
   if (!player) {
@@ -66,33 +83,6 @@ export default function CrimesClient({
         <p className="text-zinc-500">Commit crimes to build your empire.</p>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="card p-5">
-          <div className="text-xs text-zinc-500">CASH</div>
-          <div className="text-3xl font-bold tabular-nums mt-1">{formatCash(player.cash, language)}</div>
-        </div>
-
-        <div className="card p-5">
-          <div className="text-xs text-zinc-500">LEVEL</div>
-          <div className="text-3xl font-bold text-red-500 mt-1">{player.level}</div>
-          <div className="text-sm text-zinc-400">{t(getRank(player.level).key)}</div>
-        </div>
-
-        <div className="card p-5">
-          <div className="text-xs text-zinc-500">FAMILY</div>
-          {familyStatus?.family_name ? (
-            <Link href="/families" className="text-xl font-bold text-red-400 hover:underline">
-              {familyStatus.family_tag} — {familyStatus.family_name}
-            </Link>
-          ) : (
-            <Link href="/families" className="text-sm text-zinc-400 hover:text-red-400">
-              Join a Family →
-            </Link>
-          )}
-        </div>
-      </div>
-
       {(!hideHeader || crimes.length > 1) && inJail && (
         <div className="card bg-orange-950/60 border border-orange-800 px-4 py-3 flex items-center justify-between text-sm">
           <p className="font-semibold text-orange-300">🚔 {t('jail_banner')}</p>
@@ -100,14 +90,6 @@ export default function CrimesClient({
             {t('jail_release_in')} {formatSeconds(jailSecondsLeft)}
           </p>
         </div>
-      )}
-
-      {(!hideHeader || crimes.length > 1) && player.level >= GODFATHER_LEVEL && (
-        <RebirthPanel
-          player={player}
-          onPlayerUpdate={setLocalPlayer}
-          onReborn={setRebornMessage}
-        />
       )}
 
       {/* Crime Status / Info only - NO commit buttons here.

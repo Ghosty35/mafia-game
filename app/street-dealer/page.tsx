@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
 import { CITIES, City } from '@/lib/cities';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import HeatManager from '../components/HeatManager';
 
 const DRUGS = ['Coke', 'Weed', 'Meth', 'Pills'] as const;
 
@@ -19,11 +20,10 @@ const DRUG_CAPS: Record<typeof DRUGS[number], number> = {
 };
 
 export default function StreetDealerPage() {
-  const { player, refreshPlayer, canPerformAction, recordAction } = usePlayer();
-  const { t } = useLanguage();
-  const [prices, setPrices] = useState<DrugPrices>({ Coke: 120, Weed: 80, Meth: 200, Pills: 50 });
+  const { player, refreshPlayer, canPerformAction, recordAction, showToast } = usePlayer();
+  const { t, fm } = useLanguage();
+  const [prices, setPrices] = useState<DrugPrices>({ Coke: 0, Weed: 0, Meth: 0, Pills: 0 });
   const [city, setCity] = useState<City>('New York');
-  const [message, setMessage] = useState('');
   const [drugStorage, setDrugStorage] = useState<Record<string, number>>({});
   const [cooldowns, setCooldowns] = useState<Record<string, number>>({}); // for timers like murder, grow
   const [buyQty, setBuyQty] = useState(1);
@@ -48,6 +48,23 @@ export default function StreetDealerPage() {
     loadData();
   }, [player]);
 
+  // Load server-authoritative prices (identical for all players in the
+  // current 4h window) so the UI shows exactly what the server will charge.
+  useEffect(() => {
+    const loadPrices = async () => {
+      const supabase = createClient();
+      const { data } = await supabase.rpc('get_drug_prices', { p_city: currentCity });
+      if (data) {
+        const { Coke, Weed, Meth, Pills } = data as DrugPrices & { city: string };
+        setPrices({ Coke, Weed, Meth, Pills });
+      }
+    };
+    loadPrices();
+    // Refresh once an hour so the 4h window rollover is picked up.
+    const iv = setInterval(loadPrices, 60 * 60 * 1000);
+    return () => clearInterval(iv);
+  }, [currentCity]);
+
   // Live countdown for cooldowns
   useEffect(() => {
     const iv = setInterval(() => {
@@ -62,90 +79,51 @@ export default function StreetDealerPage() {
     return () => clearInterval(iv);
   }, []);
 
-  // Dynamic prices designed for profitable drug runs (buy low in one city, sell high in another)
-  // Prices shift every 4 hours. Different cities have advantages.
-  useEffect(() => {
-    const getCityMultipliers = (c: City) => {
-      // Base multipliers to create buy-low-sell-high opportunities
-      switch (c) {
-        case 'New York': return { Coke: 0.7, Weed: 1.3, Meth: 1.1, Pills: 0.9 };
-        case 'Chicago': return { Coke: 1.4, Weed: 0.8, Meth: 0.9, Pills: 1.2 };
-        case 'Los Angeles': return { Coke: 1.1, Weed: 0.6, Meth: 1.4, Pills: 0.8 };
-        case 'Miami': return { Coke: 0.9, Weed: 1.2, Meth: 0.7, Pills: 1.5 };
-        case 'Las Vegas': return { Coke: 1.3, Weed: 1.0, Meth: 1.2, Pills: 0.7 };
-        default: return { Coke: 1, Weed: 1, Meth: 1, Pills: 1 };
-      }
-    };
-
-    const updatePrices = () => {
-      const mult = getCityMultipliers(currentCity);
-      const newPrices: DrugPrices = {
-        Coke: Math.floor(90 * mult.Coke + Math.random() * 40),
-        Weed: Math.floor(55 * mult.Weed + Math.random() * 30),
-        Meth: Math.floor(160 * mult.Meth + Math.random() * 60),
-        Pills: Math.floor(35 * mult.Pills + Math.random() * 25),
-      };
-      setPrices(newPrices);
-      setMessage(t('dealer_prices_updated', { city: currentCity }));
-    };
-
-    updatePrices();
-
-    const interval = setInterval(updatePrices, 4 * 60 * 60 * 1000); // 4 hours
-    return () => clearInterval(interval);
-  }, [currentCity]);
-
-  const buyDrug = (drug: typeof DRUGS[number], qty?: number) => {
+  const buyDrug = async (drug: typeof DRUGS[number], qty?: number) => {
     const amount = qty || buyQty;
     if (!player || amount < 1) return;
     if (!canPerformAction()) {
-      setMessage(t('dealer_wait'));
+      showToast(t('dealer_wait'), 'error');
       return;
     }
     recordAction();
-    const cost = prices[drug] * amount;
-    const tax = Math.floor(cost * 0.015); // 1.5% tax to Community Tax Fund
-    const total = cost + tax;
-    if (player.cash < total) {
-      setMessage(t('dealer_no_cash_tax'));
-      return;
-    }
-    const current = drugStorage[drug] || 0;
-    if (current + amount > DRUG_CAPS[drug]) {
-      setMessage(t('dealer_cap_reached', { drug, cap: DRUG_CAPS[drug] }));
-      return;
-    }
-    const newStorage = { ...drugStorage, [drug]: current + amount };
+    // Server computes price, tax and cap — client can no longer fake them.
     const supabase = createClient();
-    supabase.rpc('apply_action', { cash_delta: -total, patch: { drug_storage: newStorage } }).then(async ({ error }) => {
-      if (error) {
-        setMessage(error.message.includes('NOT_ENOUGH_CASH') ? t('dealer_no_cash_tax') : (error.message || t('dealer_purchase_failed')));
-        return;
-      }
-      setDrugStorage(newStorage);
-      if (refreshPlayer) await refreshPlayer();
-      setMessage(t('dealer_bought', { amount, drug, total: `$${total}` }));
-    });
+    const { data, error } = await supabase.rpc('buy_drug', { p_drug: drug, p_qty: amount });
+    if (error) {
+      const msg = error.message || '';
+      showToast(
+        msg.includes('NOT_ENOUGH_CASH') ? t('dealer_no_cash_tax')
+          : msg.includes('CAP_REACHED') ? t('dealer_cap_reached', { drug, cap: DRUG_CAPS[drug] })
+          : (msg || t('dealer_purchase_failed')),
+        'error',
+      );
+      return;
+    }
+    const res = data as { total: number; storage: Record<string, number> };
+    if (res?.storage) setDrugStorage(res.storage);
+    if (refreshPlayer) await refreshPlayer();
+    showToast(t('dealer_bought', { amount, drug, total: fm(res?.total ?? 0) }), 'success');
   };
 
-  const sellDrug = (drug: typeof DRUGS[number], qty: number) => {
-    const current = drugStorage[drug] || 0;
-    if (current < qty) {
-      setMessage(t('dealer_not_enough_shed'));
+  const sellDrug = async (drug: typeof DRUGS[number], qty: number) => {
+    if (!player || qty < 1) return;
+    if ((drugStorage[drug] || 0) < qty) {
+      showToast(t('dealer_not_enough_shed'), 'error');
       return;
     }
-    const revenue = Math.floor(prices[drug] * qty);
-    const newStorage = { ...drugStorage, [drug]: current - qty };
+    // Server computes revenue at the authoritative price.
     const supabase = createClient();
-    supabase.rpc('apply_action', { cash_delta: revenue, patch: { drug_storage: newStorage } }).then(async ({ error }) => {
-      if (error) {
-        setMessage(error.message || t('dealer_sale_failed'));
-        return;
-      }
-      setDrugStorage(newStorage);
-      if (refreshPlayer) await refreshPlayer();
-      setMessage(t('dealer_sold', { qty, drug, revenue: `$${revenue}` }));
-    });
+    const { data, error } = await supabase.rpc('sell_drug', { p_drug: drug, p_qty: qty });
+    if (error) {
+      const msg = error.message || '';
+      showToast(msg.includes('NOT_ENOUGH_STOCK') ? t('dealer_not_enough_shed') : (msg || t('dealer_sale_failed')), 'error');
+      return;
+    }
+    const res = data as { revenue: number; storage: Record<string, number> };
+    if (res?.storage) setDrugStorage(res.storage);
+    if (refreshPlayer) await refreshPlayer();
+    showToast(t('dealer_sold', { qty, drug, revenue: fm(res?.revenue ?? 0) }), 'success');
   };
 
   if (!player) return <div>{t('loading')}</div>;
@@ -155,6 +133,9 @@ export default function StreetDealerPage() {
       <img src="https://picsum.photos/id/201/800/120" alt="Street Dealer" className="w-full h-24 object-cover rounded mb-4" />
       <h1 className="text-3xl font-bold mb-2">💊 {t('dealer_title', { city: currentCity })}</h1>
       <p className="text-sm text-zinc-400 mb-4">{t('dealer_desc')}</p>
+
+      {/* Heat-reduction items (also sold here on the street) */}
+      <HeatManager variant="store" />
 
       {/* Live Drug Storage Tracker */}
       <div className="mb-4 p-3 bg-zinc-900 border border-zinc-700 rounded">
@@ -166,6 +147,30 @@ export default function StreetDealerPage() {
         </div>
       </div>
 
+      {/* Quantity controls — bulk buy/sell instead of spam-clicking */}
+      <div className="mb-4 grid grid-cols-2 gap-3">
+        <label className="flex items-center gap-2 text-sm">
+          <span className="text-zinc-400 w-16">Buy qty</span>
+          <input
+            type="number"
+            min={1}
+            value={buyQty}
+            onChange={(e) => setBuyQty(Math.max(1, parseInt(e.target.value) || 1))}
+            className="w-full bg-zinc-800 border border-zinc-700 rounded px-2 py-1 font-mono"
+          />
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <span className="text-zinc-400 w-16">Sell qty</span>
+          <input
+            type="number"
+            min={1}
+            value={sellQty}
+            onChange={(e) => setSellQty(Math.max(1, parseInt(e.target.value) || 1))}
+            className="w-full bg-zinc-800 border border-zinc-700 rounded px-2 py-1 font-mono"
+          />
+        </label>
+      </div>
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {DRUGS.map(drug => (
           <div key={drug} className="card p-4">
@@ -174,7 +179,7 @@ export default function StreetDealerPage() {
             {drug === 'Meth' && <img src="https://picsum.photos/id/251/300/80" alt="Meth" className="w-full h-16 object-cover rounded mb-2" />}
             {drug === 'Pills' && <img src="https://picsum.photos/id/180/300/80" alt="Pills" className="w-full h-16 object-cover rounded mb-2" />}
             <h3 className="font-bold">{drug}</h3>
-            <div className="text-2xl font-mono text-emerald-400 my-2">${prices[drug]}</div>
+            <div className="text-2xl font-mono text-emerald-400 my-2">{fm(prices[drug])}</div>
             <div className="flex gap-2">
               <button onClick={() => buyDrug(drug)} className="flex-1 py-1 bg-red-700 rounded text-xs">{t('dealer_buy', { qty: buyQty })}</button>
               <button onClick={() => sellDrug(drug, sellQty)} className="flex-1 py-1 bg-emerald-700 rounded text-xs">{t('dealer_sell', { qty: sellQty })}</button>
@@ -182,8 +187,6 @@ export default function StreetDealerPage() {
           </div>
         ))}
       </div>
-
-      {message && <div className="mt-4 p-3 bg-zinc-900 border border-zinc-700 rounded text-sm">{message}</div>}
 
       <Link href="/dashboard" className="mt-4 inline-block text-sm text-red-400">← {t('common_back')}</Link>
     </div>

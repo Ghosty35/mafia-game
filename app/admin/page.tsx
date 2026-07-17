@@ -7,7 +7,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function AdminPage() {
   const { player, updatePlayer, refreshPlayer } = usePlayer();
-  const { t } = useLanguage();
+  const { t, fm } = useLanguage();
   const [logs, setLogs] = useState<any[]>([]);
   const [allPlayers, setAllPlayers] = useState<any[]>([]);
   const [loadingPlayers, setLoadingPlayers] = useState(false);
@@ -66,7 +66,7 @@ export default function AdminPage() {
       addLog('ERROR', error.message.includes('PLAYER_NOT_FOUND') ? `Player ${username} not found` : error.message);
       return;
     }
-    addLog('GIVE', `Gave $${amt.toLocaleString()} to ${data?.username || username}. New cash: $${(data?.new_cash || 0).toLocaleString()}`);
+    addLog('GIVE', `Gave ${fm(amt)} to ${data?.username || username}. New cash: ${fm(data?.new_cash || 0)}`);
     if (username.toLowerCase() === (player?.username || '').toLowerCase()) {
       await refreshPlayer();
     }
@@ -114,7 +114,7 @@ export default function AdminPage() {
     // Economy stimulus: +amt to top 10 richest, server-side
     const { data, error } = await supabase.rpc('admin_stimulus', { amount: amt });
     if (error) { addLog('ERROR', error.message); return; }
-    addLog('STIM', `Stimulus: +$${amt} to top ${data?.players_affected || 10} richest (economy boost)`);
+    addLog('STIM', `Stimulus: +${fm(amt)} to top ${data?.players_affected || 10} richest (economy boost)`);
     fetchPlayers();
   };
 
@@ -144,12 +144,12 @@ export default function AdminPage() {
           <h2 className="font-bold mb-2">{t('admin_economy_title')}</h2>
           <div className="grid grid-cols-2 gap-x-6 text-sm">
             <div>
-              <div>{t('admin_money_circ')} <span className="font-mono text-emerald-400">${(economy?.total_money_circulation || 0).toLocaleString()}</span></div>
+              <div>{t('admin_money_circ')} <span className="font-mono text-emerald-400">{fm(economy?.total_money_circulation || 0)}</span></div>
               <div>{t('admin_players_families', { players: economy?.people_registered || '?', families: economy?.total_families || '?' })}</div>
               <div>{t('admin_online_week', { online: economy?.online_people || '?', week: economy?.logged_in_this_week || '?' })}</div>
             </div>
             <div>
-              {pools && <div>{t('admin_pools_line', { bj: `$${(pools.blackjack||0).toLocaleString()}`, rou: `$${(pools.roulette||0).toLocaleString()}` })}</div>}
+              {pools && <div>{t('admin_pools_line', { bj: fm(pools.blackjack||0), rou: fm(pools.roulette||0) })}</div>}
               <div className="text-xs text-zinc-400 mt-1">{t('admin_tax_note')}</div>
             </div>
           </div>
@@ -211,7 +211,7 @@ export default function AdminPage() {
                     <td>
                       <input type="number" defaultValue={p.cash} className="bg-black w-24 px-1 border text-xs" onBlur={(e) => updateFieldDirect(p.id, 'cash', e.target.value)} />
                     </td>
-                    <td className="tabular-nums text-emerald-400">${(p.personal_bank || 0).toLocaleString()}</td>
+                    <td className="tabular-nums text-emerald-400">{fm(p.personal_bank || 0)}</td>
                     <td>
                       <input type="number" defaultValue={p.level} className="bg-black w-12 px-1 border text-xs" onBlur={e => updateFieldDirect(p.id, 'level', e.target.value)} />
                     </td>

@@ -1,64 +1,92 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { usePlayer } from './PlayerContext';
+import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 
+type GameEvent = {
+  id: number;
+  created_at: string;
+  username: string;
+  event_type: string;
+  message: string;
+};
+
+// Map an event type to an icon for the ticker (falls back to a generic dot).
+const EVENT_ICON: Record<string, string> = {
+  heist: '💣',
+  promotion: '⭐',
+  family: '👥',
+  race: '🏁',
+  murder: '🔫',
+  crime: '🚔',
+  war: '⚔️',
+  territory: '🗺️',
+  rip: '🥷',
+  bust: '🚨',
+};
+
+function timeAgo(iso: string): string {
+  const secs = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+  if (secs < 60) return `${secs}s`;
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return `${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h`;
+  return `${Math.floor(hrs / 24)}d`;
+}
+
 export default function LiveLogs() {
-  const { player } = usePlayer();
   const { t } = useLanguage();
-  const [logs, setLogs] = useState(() => [
-    { time: new Date().toLocaleTimeString(), msg: t('logs_server_started') },
-  ]);
+  const [events, setEvents] = useState<GameEvent[]>([]);
+  const [, force] = useState(0); // re-render so relative times tick
 
-  // Keep the username in a ref so the ticker interval below never has to
-  // restart when the player object refreshes. This keeps the news widget
-  // fully standalone: clicking buttons elsewhere no longer re-triggers it.
-  const usernameRef = useRef<string>('Player');
-  useEffect(() => {
-    if (player?.username) usernameRef.current = player.username;
-  }, [player?.username]);
-
-  // Keep t in a ref for the same reason: the interval survives language
-  // switches, but new events use the latest language.
-  const tRef = useRef(t);
-  useEffect(() => {
-    tRef.current = t;
-  }, [t]);
+  // Keep the supabase client stable so the poll interval never restarts.
+  const supabaseRef = useRef(createClient());
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      // Simulate live game activity
-      const tr = tRef.current;
-      const events = [
-        tr('logs_event_promoted', { name: usernameRef.current }),
-        tr('logs_event_heist'),
-        tr('logs_event_kill'),
-        tr('logs_event_war'),
-        tr('logs_event_joined'),
-      ];
-      if (Math.random() > 0.7) {
-        const newLog = {
-          time: new Date().toLocaleTimeString(),
-          msg: events[Math.floor(Math.random() * events.length)],
-        };
-        setLogs((prev) => [newLog, ...prev].slice(0, 10));
-      }
-    }, 15000);
-    return () => clearInterval(interval);
+    const load = async () => {
+      const { data } = await supabaseRef.current.rpc('get_recent_events', { limit_count: 20 });
+      if (Array.isArray(data)) setEvents(data as GameEvent[]);
+    };
+    load();
+    const poll = setInterval(load, 12000);
+    const tick = setInterval(() => force((n) => n + 1), 30000); // refresh "Xs ago"
+    return () => {
+      clearInterval(poll);
+      clearInterval(tick);
+    };
   }, []);
 
   return (
-    <div className="card p-4 mb-4 bg-zinc-900 border border-zinc-700">
-      <h3 className="font-bold mb-2">{t('logs_title')}</h3>
-      <div className="max-h-40 overflow-auto text-xs font-mono space-y-1">
-        {logs.map((log, i) => (
-          <div key={i}>
-            [{log.time}] {log.msg}
-          </div>
-        ))}
+    <div className="card p-4 bg-zinc-900 border border-zinc-700">
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="font-bold flex items-center gap-2">
+          📡 {t('logs_title')}
+          <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+        </h3>
+        <span className="text-[10px] text-zinc-500">{t('feed_live')}</span>
       </div>
-      <p className="text-[10px] text-zinc-500 mt-1">{t('logs_footer')}</p>
+      <div className="max-h-56 overflow-auto pr-1 space-y-1">
+        {events.length === 0 ? (
+          <div className="text-xs text-zinc-500 py-4 text-center">{t('feed_empty')}</div>
+        ) : (
+          events.map((e) => (
+            <div
+              key={e.id}
+              className="flex items-start gap-2 text-xs border-b border-zinc-800/60 pb-1 last:border-0"
+            >
+              <span className="mt-px">{EVENT_ICON[e.event_type] ?? '•'}</span>
+              <span className="flex-1 leading-snug">
+                <span className="font-semibold text-red-400">{e.username}</span>{' '}
+                <span className="text-zinc-300">{e.message}</span>
+              </span>
+              <span className="text-[10px] text-zinc-500 font-mono whitespace-nowrap">{timeAgo(e.created_at)}</span>
+            </div>
+          ))
+        )}
+      </div>
+      <p className="text-[10px] text-zinc-500 mt-2">{t('logs_footer')}</p>
     </div>
   );
 }

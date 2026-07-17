@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function HospitalPage() {
-  const { t } = useLanguage();
+  const { t, fm } = useLanguage();
   const [currentHealth, setCurrentHealth] = useState(100);
   const [amount, setAmount] = useState(10);
   const [busy, setBusy] = useState(false);
@@ -62,7 +62,7 @@ export default function HospitalPage() {
       const newHealth = Math.min(100, currentHealth + healed);
       setCurrentHealth(newHealth);
       setAmount(Math.max(1, 100 - newHealth));
-      setMessage(t('hospital_bought', { healed, cost: `$${data?.cost || totalCost}` }));
+      setMessage(t('hospital_bought', { healed, cost: fm(data?.cost || totalCost) }));
     }
 
     setBusy(false);
@@ -74,6 +74,12 @@ export default function HospitalPage() {
         <h1 className="text-3xl font-bold tracking-tight">🏥 {t('hospital_title')}</h1>
         <p className="text-sm text-zinc-400">{t('hospital_desc')}</p>
       </div>
+
+      {message && (
+        <div className="mb-4 p-3 rounded bg-zinc-900 border border-zinc-700 text-sm text-center">
+          {message}
+        </div>
+      )}
 
       {/* Current Health */}
       <div className="card p-5 mb-6">
@@ -133,7 +139,7 @@ export default function HospitalPage() {
           </div>
           <div className="flex justify-between text-sm mt-1">
             <span className="text-zinc-400">{t('hospital_price')}</span>
-            <span className="font-mono text-emerald-400">${totalCost}</span>
+            <span className="font-mono text-emerald-400">{fm(totalCost)}</span>
           </div>
           <div className="flex justify-between text-sm mt-1 pt-1 border-t border-zinc-800">
             <span className="text-zinc-400">{t('hospital_after_purchase')}</span>
@@ -148,14 +154,8 @@ export default function HospitalPage() {
         >
           {busy
             ? t('hospital_buying')
-            : t('hospital_buy_button', { amount, cost: `$${totalCost}` })}
+            : t('hospital_buy_button', { amount, cost: fm(totalCost) })}
         </button>
-
-        {message && (
-          <div className="mt-4 p-3 rounded bg-zinc-900 border border-zinc-700 text-sm text-center">
-            {message}
-          </div>
-        )}
       </div>
 
       <div className="mt-6 text-xs text-zinc-500">{t('hospital_price_note')}</div>

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { usePlayer } from './PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
-import { leftMenuCategories, adminCategory, isMenuItemActive } from './menuData';
+import { buildLeftMenu, isMenuItemActive } from './menuData';
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -13,7 +13,7 @@ export default function Sidebar() {
   const { t } = useLanguage();
 
   const isAdmin = player?.username === 'YGhosty';
-  const categories = isAdmin ? [...leftMenuCategories, adminCategory] : leftMenuCategories;
+  const categories = buildLeftMenu(isAdmin);
   const search = searchParams.toString();
 
   return (

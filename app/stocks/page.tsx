@@ -21,7 +21,7 @@ type TradeResult = {
 
 export default function StocksPage() {
   const { player, updatePlayer, refreshPlayer } = usePlayer();
-  const { t } = useLanguage();
+  const { t, fm, currency } = useLanguage();
   const [stocks, setStocks] = useState<Stock[]>([]);
   const [holdings, setHoldings] = useState<Record<string, number>>({});
   const [busy, setBusy] = useState(false);
@@ -43,27 +43,11 @@ export default function StocksPage() {
       const { data: d2 } = await supabase.rpc('get_stock_market');
       if (d2) setStocks(d2 as Stock[]);
     } catch (e) {
+      // Market is live server-side; if it can't load, say so honestly rather
+      // than showing invented prices someone might try to trade on.
       setMigrationMissing(true);
+      setStocks([]);
       setMsg(`${t('stocks_migration_error')} ${e instanceof Error ? e.message : ''}`);
-      // Fallback demo data so page isn't empty
-      if (stocks.length === 0) {
-        setStocks([
-          {
-            ticker: 'GOTHAM',
-            name: 'Gotham Realty Trust',
-            current_price: 142.5,
-            prev_price: 140.0,
-            volatility: 0.025,
-          },
-          {
-            ticker: 'PHARMA',
-            name: 'Street Pharma Co.',
-            current_price: 67.8,
-            prev_price: 71.2,
-            volatility: 0.06,
-          },
-        ]);
-      }
     }
   };
 
@@ -146,18 +130,24 @@ export default function StocksPage() {
       <h1 className="text-3xl font-bold mb-1">📈 {t('stocks_title')}</h1>
       <p className="text-sm text-zinc-400 mb-4">{t('stocks_desc')}</p>
 
+      {msg && <div className="mb-4 p-3 bg-zinc-900 border rounded text-sm">{msg}</div>}
+
       <div className="mb-4 card p-4">
         <div className="text-xs">
           {t('stocks_portfolio_value')}{' '}
-          <span className="font-mono text-emerald-400">${portfolioValue().toLocaleString()}</span>
+          <span className="font-mono text-emerald-400">{fm(portfolioValue())}</span>
         </div>
         <div className="text-xs text-zinc-500">{t('stocks_portfolio_note')}</div>
         {migrationMissing && (
           <div className="mt-2 text-amber-400 text-xs border border-amber-700 p-2 rounded">
-            {t('stocks_demo_warning')}
+            {t('stocks_unavailable')}
           </div>
         )}
       </div>
+
+      {migrationMissing && stocks.length === 0 && (
+        <div className="card p-8 text-center text-sm text-zinc-500">{t('stocks_unavailable')}</div>
+      )}
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {stocks.map((s) => {
@@ -172,7 +162,7 @@ export default function StocksPage() {
                   <div className="font-bold">
                     {s.name} <span className="font-mono text-xs text-zinc-500">({s.ticker})</span>
                   </div>
-                  <div className="text-3xl font-mono mt-1">${s.current_price.toFixed(2)}</div>
+                  <div className="text-3xl font-mono mt-1">{currency}{s.current_price.toFixed(2)}</div>
                 </div>
                 <div className={`text-right ${change >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                   {change >= 0 ? '+' : ''}
@@ -214,8 +204,6 @@ export default function StocksPage() {
           );
         })}
       </div>
-
-      {msg && <div className="mt-4 p-3 bg-zinc-900 border rounded text-sm">{msg}</div>}
 
       <div className="mt-6 text-xs text-zinc-500">
         {t('stocks_footer_1')}

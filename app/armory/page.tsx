@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { usePlayer } from '../components/PlayerContext';
+import { useRouter } from 'next/navigation';
 import type { TranslationKey } from '@/lib/i18n/translations';
 
 const powerPacks: { power: number; price: number; labelKey: TranslationKey }[] = [
@@ -14,7 +16,9 @@ const powerPacks: { power: number; price: number; labelKey: TranslationKey }[] =
 ];
 
 export default function ArmoryPage() {
-  const { t } = useLanguage();
+  const { t, fm } = useLanguage();
+  const { refreshPlayer } = usePlayer();
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -35,7 +39,9 @@ export default function ArmoryPage() {
           : t('armory_purchase_failed'),
       );
     } else {
-      setMessage(t('armory_bought', { power, price: `$${price}` }));
+      setMessage(t('armory_bought', { power, price: fm(price) }));
+      if (refreshPlayer) await refreshPlayer();
+      router.refresh();
     }
     setBusy(false);
   };
@@ -47,6 +53,10 @@ export default function ArmoryPage() {
         <p className="text-sm text-zinc-400">{t('armory_desc')}</p>
       </div>
 
+      {message && (
+        <div className="mb-4 p-3 bg-zinc-900 border border-zinc-700 rounded text-sm">{message}</div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {powerPacks.map((pack, i) => (
           <div key={i} className="card p-5">
@@ -56,7 +66,7 @@ export default function ArmoryPage() {
               {t('armory_power', { power: pack.power })}
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-lg font-mono">${pack.price}</span>
+              <span className="text-lg font-mono">{fm(pack.price)}</span>
               <button
                 onClick={() => buyPower(pack.power, pack.price)}
                 disabled={busy}
@@ -68,10 +78,6 @@ export default function ArmoryPage() {
           </div>
         ))}
       </div>
-
-      {message && (
-        <div className="mt-4 p-3 bg-zinc-900 border border-zinc-700 rounded text-sm">{message}</div>
-      )}
 
       <div className="mt-6 text-xs text-zinc-500">{t('armory_footer')}</div>
 

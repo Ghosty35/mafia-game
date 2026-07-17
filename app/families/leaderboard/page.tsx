@@ -64,7 +64,9 @@ export default function FamiliesLeaderboardPage() {
               </div>
 
               <div className="col-span-4 font-medium truncate">
-                {family.name}
+                <Link href={`/families/profile?id=${family.id}`} className="hover:text-red-400">
+                  {family.name}
+                </Link>
               </div>
 
               <div className="col-span-2 text-center">

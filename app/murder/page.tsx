@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { useRouter } from 'next/navigation';
 import type { TranslationKey } from '@/lib/i18n/translations';
 
 const WEAPONS: { name: string; labelKey: TranslationKey; descKey: TranslationKey; price: number; bonus: number }[] = [
@@ -14,13 +16,23 @@ const WEAPONS: { name: string; labelKey: TranslationKey; descKey: TranslationKey
 ];
 
 export default function MurderPage() {
-  const { player, updatePlayer } = usePlayer();
-  const { t } = useLanguage();
-  const [targetName, setTargetName] = useState('');
+  return (
+    <Suspense fallback={<div className="max-w-4xl mx-auto p-6 text-zinc-400 text-sm" />}>
+      <MurderContent />
+    </Suspense>
+  );
+}
+
+function MurderContent() {
+  const { player, updatePlayer, refreshPlayer, showToast } = usePlayer();
+  const { t, fm } = useLanguage();
+  const router = useRouter();
+  // The detective's "act now" link hands the target over (076).
+  const searchParams = useSearchParams();
+  const [targetName, setTargetName] = useState(searchParams.get('target') ?? '');
   const [selectedWeapon, setSelectedWeapon] = useState(WEAPONS[0].name);
   const [bulletsUsed, setBulletsUsed] = useState(50);
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<any>(null);
   const [cooldown, setCooldown] = useState(0); // seconds left
 
   // Cooldown timer - MUST be declared before any early returns (Rules of Hooks)
@@ -60,7 +72,6 @@ export default function MurderPage() {
     }
 
     setBusy(true);
-    setResult(null);
 
     try {
       const supabase = createClient();
@@ -72,13 +83,29 @@ export default function MurderPage() {
       });
 
       if (error) {
-        setResult({ success: false, message: error.message });
+        let text = error.message;
+        if (error.message.includes('ON_MURDER_COOLDOWN')) text = t('murder_on_cooldown');
+        else if (error.message.includes('MURDER_LOCKED')) text = t('murder_locked_alert');
+        else if (error.message.includes('TARGET_NOT_FOUND')) text = t('murder_invalid_input');
+        else if (error.message.includes('NOT_ENOUGH_STAMINA')) text = t('error_no_stamina');
+        // 076: a hit needs fresh intel from the detective, in the right city
+        else if (error.message.includes('NO_INTEL')) text = t('murder_no_intel');
+        else if (error.message.includes('TARGET_MOVED')) text = t('murder_target_moved');
+        else if (error.message.includes('IN_JAIL')) text = t('error_in_jail');
+        showToast(text, 'error');
       } else {
         updatePlayer(data.player);
-        setResult(data);
+        const message = data.blocked
+          ? t('murder_blocked')
+          : data.success
+            ? `Hit successful! Stole ${fm(data.stolen || 0)} and gained ${data.skill_gained} KillSkill.`
+            : `The hit failed — target got away. Heat increased.`;
+        showToast(message, data.success ? 'success' : 'fail');
+        if (refreshPlayer) await refreshPlayer();
+        router.refresh();
       }
     } catch (e: any) {
-      setResult({ success: false, message: e.message || t('common_error') });
+      showToast(e.message || t('common_error'), 'error');
     }
 
     setBusy(false);
@@ -98,6 +125,13 @@ export default function MurderPage() {
         </div>
       )}
       <p className="text-sm text-zinc-400 mb-6">{t('murder_desc')}</p>
+
+      {/* 076: murder needs a warm detective tip — say so up front. */}
+      <div className="mb-4 p-3 bg-zinc-900 border border-zinc-800 rounded text-xs text-zinc-400">
+        🕵️ {t('murder_intel_required')}{' '}
+        <Link href="/detective" className="text-red-400 hover:underline">{t('menu_detective')}</Link>
+      </div>
+
       {cooldown > 0 && (
         <div className="mb-4 p-2 bg-orange-900 text-orange-200 rounded text-sm">
           {t('murder_cooldown', { minutes: Math.floor(cooldown / 60), seconds: cooldown % 60 })}
@@ -126,7 +160,7 @@ export default function MurderPage() {
                 className={`flex-1 p-3 rounded text-sm ${selectedWeapon === w.name ? 'bg-red-700' : 'bg-zinc-800'}`}
               >
                 {t(w.labelKey)} (+{w.bonus}%)<br />
-                <span className="text-xs">${w.price}</span>
+                <span className="text-xs">{fm(w.price)}</span>
               </button>
             ))}
           </div>
@@ -159,12 +193,6 @@ export default function MurderPage() {
           {busy ? t('murder_attempting') : cooldown > 0 ? t('murder_on_cooldown') : !isUnlocked ? t('murder_locked_button') : t('murder_attempt_button', { weapon: t(currentWeapon.labelKey), bullets: bulletsUsed })}
         </button>
       </div>
-
-      {result && (
-        <div className={`card p-4 ${result.success ? 'border-green-700' : 'border-red-700'}`}>
-          {result.message}
-        </div>
-      )}
 
       <Link href="/dashboard" className="mt-6 inline-block text-sm text-red-400">← {t('common_back')}</Link>
     </div>

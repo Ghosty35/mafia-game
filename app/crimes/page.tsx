@@ -21,11 +21,12 @@ export default async function CrimesPage() {
     redirect('/login');
   }
 
-  const [{ data: player, error: playerError }, { data: crimes }, { data: cooldowns }] =
+  const [{ data: player, error: playerError }, { data: crimes }, { data: cooldowns }, { data: familyStatus }] =
     await Promise.all([
       supabase.rpc('get_my_player'),
       supabase.from('crimes').select('*').order('sort_order'),
       supabase.from('crime_cooldowns').select('*'),
+      supabase.rpc('get_my_family_status'),
     ]);
 
   if (playerError) {
@@ -37,7 +38,7 @@ export default async function CrimesPage() {
       initialPlayer={(player as Player) ?? null}
       crimes={(crimes as Crime[]) ?? []}
       initialCooldowns={(cooldowns as CooldownRow[]) ?? []}
-      familyStatus={null}
+      familyStatus={familyStatus ?? null}
     />
   );
 }

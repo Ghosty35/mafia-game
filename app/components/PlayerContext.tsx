@@ -4,6 +4,13 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { createClient } from '@/lib/supabase/client';
 import type { Player } from '@/lib/types';
 
+export type ToastKind = 'success' | 'fail' | 'error' | 'info' | 'levelup';
+export interface Toast {
+  id: number;
+  text: string;
+  kind: ToastKind;
+}
+
 interface PlayerContextType {
   player: Player | null;
   refreshPlayer: () => Promise<void>;
@@ -11,6 +18,9 @@ interface PlayerContextType {
   canPerformAction: () => boolean;
   recordAction: () => void;
   lastActionTime: number;
+  toast: Toast | null;
+  showToast: (text: string, kind?: ToastKind) => void;
+  dismissToast: () => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -18,6 +28,12 @@ const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const [player, setPlayer] = useState<Player | null>(null);
   const [lastActionTime, setLastActionTime] = useState(0);
+  const [toast, setToast] = useState<Toast | null>(null);
+
+  const showToast = (text: string, kind: ToastKind = 'info') => {
+    setToast({ id: Date.now(), text, kind });
+  };
+  const dismissToast = () => setToast(null);
 
   const refreshPlayer = async () => {
     const supabase = createClient();
@@ -61,7 +77,19 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <PlayerContext.Provider value={{ player, refreshPlayer, updatePlayer, canPerformAction, recordAction, lastActionTime }}>
+    <PlayerContext.Provider
+      value={{
+        player,
+        refreshPlayer,
+        updatePlayer,
+        canPerformAction,
+        recordAction,
+        lastActionTime,
+        toast,
+        showToast,
+        dismissToast,
+      }}
+    >
       {children}
     </PlayerContext.Provider>
   );

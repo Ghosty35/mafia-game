@@ -1,9 +1,11 @@
 import type { Language } from './i18n/translations';
 
+// Display-only currency localization: same numeric value, different symbol.
+// EN shows dollars, NL shows euros (no exchange rate by design).
 export function formatCash(amount: number, language: Language = 'en') {
   return new Intl.NumberFormat(language === 'nl' ? 'nl-NL' : 'en-US', {
     style: 'currency',
-    currency: 'USD',
+    currency: language === 'nl' ? 'EUR' : 'USD',
     maximumFractionDigits: 0,
   }).format(amount);
 }
