@@ -76,10 +76,26 @@ export const leftMenuCategories: MenuCategory[] = [
   },
 ];
 
-export const adminCategory: MenuCategory = {
-  titleKey: 'side_admin',
-  items: [{ labelKey: 'menu_admin_tools', href: '/admin', icon: '🛠' }],
-};
+// Administration (bug-inspectie): Support / Report / Tickets are for every
+// player; only Admin Tools is admin-only, and it sits in the same category.
+const administrationItems: MenuItem[] = [
+  { labelKey: 'menu_support', href: '/support', icon: '🛟' },
+  { labelKey: 'menu_report', href: '/report', icon: '🚩' },
+  { labelKey: 'menu_tickets', href: '/tickets', icon: '🎫' },
+];
+
+const adminToolsItem: MenuItem = { labelKey: 'menu_admin_tools', href: '/admin', icon: '🛠' };
+
+/** Left sidebar for this player. Admins get the extra tools entry. */
+export function buildLeftMenu(isAdmin: boolean): MenuCategory[] {
+  return [
+    ...leftMenuCategories,
+    {
+      titleKey: 'side_admin',
+      items: isAdmin ? [...administrationItems, adminToolsItem] : administrationItems,
+    },
+  ];
+}
 
 export const rightMenuCategories: MenuCategory[] = [
   {

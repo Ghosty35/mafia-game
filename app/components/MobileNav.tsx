@@ -7,9 +7,8 @@ import { usePlayer } from './PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import LanguageSwitcher from './LanguageSwitcher';
 import {
-  leftMenuCategories,
+  buildLeftMenu,
   rightMenuCategories,
-  adminCategory,
   isMenuItemActive,
   type MenuCategory,
 } from './menuData';
@@ -41,9 +40,7 @@ export default function MobileNav() {
   }, [open]);
 
   const isAdmin = player?.username === 'YGhosty';
-  const gameCategories: MenuCategory[] = isAdmin
-    ? [...leftMenuCategories, adminCategory]
-    : leftMenuCategories;
+  const gameCategories: MenuCategory[] = buildLeftMenu(isAdmin);
   const categories = tab === 'game' ? gameCategories : rightMenuCategories;
 
   // Top-level pages that live in the (md+) top bar; on mobile they are only
