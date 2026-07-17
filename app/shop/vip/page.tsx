@@ -51,59 +51,76 @@ export default function VipStorePage() {
 
   return (
     <main className="flex-1 px-4 py-6 max-w-5xl mx-auto w-full space-y-4">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight mb-1">
-            👑 {t('menu_vip_store')}
-            {isDonator && <span className="ml-2 text-xs px-2 py-0.5 bg-amber-500 text-black rounded-full font-bold align-middle">{t('vip_badge')}</span>}
-          </h1>
-          <p className="text-xs text-zinc-400">{t('vip_subtitle')}</p>
-        </div>
-        <div className="text-right text-sm">
-          <div className="text-[10px] uppercase tracking-wider text-zinc-500">{t('vip_your_diamonds')}</div>
-          <div className="font-mono text-yellow-400 font-bold tabular-nums">{diamonds.toLocaleString()} 💎</div>
+      {/* Premium Header */}
+      <div className="relative bg-gradient-to-r from-amber-950/80 via-zinc-900 to-zinc-900 border border-amber-800/50 rounded-xl p-6 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(245,158,11,0.08),transparent_60%)]" />
+        <div className="relative flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight mb-1 flex items-center gap-2">
+              👑 {t('menu_vip_store')}
+              {isDonator && <span className="text-xs px-2.5 py-1 bg-amber-500 text-black rounded-full font-bold align-middle shadow-[0_0_10px_rgba(245,158,11,0.3)]">{t('vip_badge')}</span>}
+            </h1>
+            <p className="text-xs text-zinc-400">{t('vip_subtitle')}</p>
+          </div>
+          <div className="text-right">
+            <div className="text-[10px] uppercase tracking-[3px] text-zinc-500 mb-1">{t('vip_your_diamonds')}</div>
+            <div className="font-mono text-amber-400 font-bold text-xl tabular-nums flex items-center gap-1.5 justify-end">
+              <span className="text-2xl">💎</span>
+              {diamonds.toLocaleString()}
+            </div>
+          </div>
         </div>
       </div>
 
-      {message && <div className="bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2.5 text-sm">{message}</div>}
+      {message && <div className="bg-zinc-900 border border-amber-800/50 rounded-lg px-4 py-2.5 text-sm text-amber-300">{message}</div>}
 
       {/* Donator status — the flagship item, visible to everyone */}
       {!isDonator ? (
-        <div className="bg-gradient-to-br from-yellow-950/60 to-zinc-900 border border-yellow-700 rounded-xl p-5">
-          <div className="font-bold text-lg text-amber-300 mb-1">👑 {t('vip_donator_title')}</div>
-          <p className="text-sm text-zinc-300 mb-4">{t('vip_donator_pitch')}</p>
-          <div className="grid md:grid-cols-2 gap-4 items-center">
-            <div className="p-4 bg-zinc-950 rounded-lg">
-              <div className="font-semibold mb-1 text-sm">{t('vip_donator_item')}</div>
-              <div className="text-xs text-zinc-400">{t('vip_donator_item_desc')}</div>
-              <div className="mt-3 text-yellow-400 font-mono text-lg">500 💎</div>
-            </div>
-            <div>
-              <button
-                onClick={() => purchaseDonatorStatus(500)}
-                disabled={busy}
-                className="w-full py-3 bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-500 rounded-xl font-bold disabled:opacity-50"
-              >
-                {busy ? t('vip_activating') : t('vip_become_donator')}
-              </button>
-              <p className="text-[10px] text-center text-zinc-500 mt-1">{t('vip_permanent_note')}</p>
+        <div className="bg-gradient-to-br from-amber-950/60 via-zinc-900 to-zinc-900 border border-amber-700/60 rounded-xl p-6 relative overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(245,158,11,0.06),transparent_60%)]" />
+          <div className="relative">
+            <div className="font-bold text-lg text-amber-300 mb-1">👑 {t('vip_donator_title')}</div>
+            <p className="text-sm text-zinc-300 mb-4">{t('vip_donator_pitch')}</p>
+            <div className="grid md:grid-cols-2 gap-4 items-center">
+              <div className="p-4 bg-zinc-950/80 rounded-lg border border-amber-900/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-2xl">👑</span>
+                  <div className="font-semibold text-sm">{t('vip_donator_item')}</div>
+                </div>
+                <div className="text-xs text-zinc-400 mb-3">{t('vip_donator_item_desc')}</div>
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">💎</span>
+                  <span className="text-yellow-400 font-mono text-xl font-bold">500</span>
+                </div>
+              </div>
+              <div>
+                <button
+                  onClick={() => purchaseDonatorStatus(500)}
+                  disabled={busy}
+                  className="w-full py-3.5 bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-500 hover:to-amber-500 rounded-xl font-bold text-sm tracking-wide disabled:opacity-50 shadow-[0_0_20px_rgba(245,158,11,0.2)] transition-all"
+                >
+                  {busy ? t('vip_activating') : t('vip_become_donator')}
+                </button>
+                <p className="text-[10px] text-center text-zinc-500 mt-2">{t('vip_permanent_note')}</p>
+              </div>
             </div>
           </div>
         </div>
       ) : (
-        <div className="bg-emerald-950/40 border border-emerald-800 rounded-xl px-4 py-3 text-sm text-emerald-300">
-          ✅ {t('vip_thanks')}
+        <div className="bg-emerald-950/40 border border-emerald-800 rounded-xl px-4 py-3 text-sm text-emerald-300 flex items-center gap-2">
+          <span className="text-lg">✅</span>
+          {t('vip_thanks')}
         </div>
       )}
 
       {/* Donator perks overview */}
-      <Panel title={t('vip_perks_title')} icon="✨">
+      <Panel title={t('vip_perks_title')} icon="✨" variant="premium">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           {perks.map((p, i) => (
-            <div key={i} className={`card p-4 ${isDonator ? 'border-amber-700/60' : ''}`}>
-              <div className="text-2xl mb-1.5">{p.icon}</div>
-              <div className="font-bold text-sm">{p.title}</div>
-              <div className="text-xs text-zinc-400 mt-1">{p.desc}</div>
+            <div key={i} className={`p-4 rounded-lg border ${isDonator ? 'bg-amber-950/20 border-amber-800/40' : 'bg-zinc-950 border-zinc-800'}`}>
+              <div className="text-2xl mb-2">{p.icon}</div>
+              <div className="font-bold text-sm mb-1">{p.title}</div>
+              <div className="text-xs text-zinc-400">{p.desc}</div>
             </div>
           ))}
         </div>
@@ -113,7 +130,8 @@ export default function VipStorePage() {
       <Panel
         title={t('vip_buffs_title')}
         icon="⚔️"
-        actions={<span className="text-[10px] px-2 py-px bg-amber-900/40 text-amber-400 rounded uppercase">{t('vip_buffs_family_only')}</span>}
+        variant="premium"
+        actions={<span className="text-[10px] px-2 py-px bg-amber-900/40 text-amber-400 rounded uppercase tracking-wider">{t('vip_buffs_family_only')}</span>}
       >
         <p className="text-xs text-zinc-400 mb-3">{t('vip_buffs_desc')}</p>
         <FamilyBuffsShop busy={busy} setMessage={setMessage} isDonator={isDonator} />
@@ -121,7 +139,7 @@ export default function VipStorePage() {
 
       <div className="text-[11px] text-zinc-500 text-center">
         {t('vip_footer')}{' '}
-        <Link href="/shop" className="text-red-400 hover:underline">🛒 {t('nav_shop')}</Link>
+        <Link href="/shop" className="text-amber-400 hover:text-amber-300 transition-colors">🛒 {t('nav_shop')}</Link>
       </div>
     </main>
   );
@@ -188,37 +206,54 @@ function FamilyBuffsShop({ busy, setMessage, isDonator }: { busy: boolean; setMe
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
       {buffs.map((b) => (
-        <div key={b.id} className="card p-4 border border-amber-900/40">
-          <div className="font-bold mb-0.5 text-sm">{b.label}</div>
+        <div key={b.id} className="bg-zinc-950 border border-amber-900/30 rounded-xl p-4 hover:border-amber-800/50 transition-all">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-lg">⚔️</span>
+            <div className="font-bold text-sm">{b.label}</div>
+          </div>
           <div className="text-xs text-zinc-400 mb-3">{b.desc}</div>
           <div className="flex flex-wrap gap-2">
             <button
               disabled={localBusy || busy}
               onClick={() => buyBuff(b, false, 'cash')}
-              className="flex-1 text-left px-3 py-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs border border-zinc-700 disabled:opacity-50"
+              className="flex-1 text-left px-3 py-2.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-xs border border-zinc-700 hover:border-zinc-600 disabled:opacity-50 transition-all"
             >
-              💵 {fm(b.cash)}
-              <br />
-              <span className="text-[10px] text-emerald-400">{t('vip_pay_cash')}</span>
+              <div className="flex items-center gap-1 mb-1">
+                <span>💵</span>
+                <span className="font-mono font-bold text-emerald-400">{fm(b.cash)}</span>
+              </div>
+              <span className="text-[10px] text-zinc-500">{t('vip_pay_cash')}</span>
             </button>
             <button
               disabled={localBusy || busy}
               onClick={() => buyBuff(b, false, 'diamonds')}
-              className="flex-1 text-left px-3 py-2 rounded-lg bg-yellow-900/40 hover:bg-yellow-900/60 text-xs border border-yellow-800 disabled:opacity-50"
+              className="flex-1 text-left px-3 py-2.5 rounded-lg bg-amber-950/40 hover:bg-amber-950/60 text-xs border border-amber-800/50 hover:border-amber-700 disabled:opacity-50 transition-all"
             >
-              💎 {b.diamonds}
-              <br />
-              <span className="text-[10px] text-amber-300">{t('vip_pay_single')}</span>
+              <div className="flex items-center gap-1 mb-1">
+                <span>💎</span>
+                <span className="font-mono font-bold text-amber-400">{b.diamonds}</span>
+              </div>
+              <span className="text-[10px] text-amber-500">{t('vip_pay_single')}</span>
             </button>
             <button
               disabled={localBusy || busy || !isDonator}
               onClick={() => buyBuff(b, true, 'diamonds')}
               title={!isDonator ? t('vip_bundle_locked') : undefined}
-              className="flex-1 text-left px-3 py-2 rounded-lg bg-yellow-700 hover:bg-yellow-600 text-xs font-medium border border-yellow-500 disabled:opacity-40 disabled:cursor-not-allowed"
+              className={`flex-1 text-left px-3 py-2.5 rounded-lg text-xs font-medium border disabled:opacity-40 disabled:cursor-not-allowed transition-all ${
+                isDonator
+                  ? 'bg-gradient-to-br from-amber-700 to-yellow-700 hover:from-amber-600 hover:to-yellow-600 border-amber-500 text-white shadow-[0_0_15px_rgba(245,158,11,0.15)]'
+                  : 'bg-zinc-900 border-zinc-700 text-zinc-500'
+              }`}
             >
-              💎 {b.diamondsBundle} — {t('vip_bundle')}
-              <br />
-              <span className="text-[10px]">+{Math.floor(b.diamondsBundle * (economy?.family_buff?.diamond_bundle_rate ?? 4.0))} {t('fam_stat_power').toLowerCase()} {!isDonator && `• ${t('vip_bundle_locked')}`}</span>
+              <div className="flex items-center gap-1 mb-1">
+                <span>💎</span>
+                <span className="font-mono font-bold">{b.diamondsBundle}</span>
+                <span className="text-[10px] opacity-80">• {t('vip_bundle')}</span>
+              </div>
+              <span className="text-[10px]">
+                +{Math.floor(b.diamondsBundle * (economy?.family_buff?.diamond_bundle_rate ?? 4.0))} {t('fam_stat_power').toLowerCase()}
+                {!isDonator && ` • ${t('vip_bundle_locked')}`}
+              </span>
             </button>
           </div>
         </div>

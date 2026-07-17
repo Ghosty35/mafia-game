@@ -55,10 +55,10 @@ export default function GameNav() {
 
           <Link
             href="/dashboard"
-            className="font-black text-lg tracking-[-1px] whitespace-nowrap flex items-center gap-1"
+            className="font-black text-lg tracking-[-1px] whitespace-nowrap flex items-center gap-1.5 group"
           >
-            <span className="text-red-600">HUSTLER&apos;S</span>
-            <span className="text-white/90">WAY</span>
+            <span className="text-amber-500 group-hover:text-amber-400 transition-colors">HUSTLER&apos;S</span>
+            <span className="text-zinc-300 group-hover:text-white transition-colors">WAY</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-1 overflow-x-auto pl-2 border-l border-zinc-800">
@@ -70,7 +70,7 @@ export default function GameNav() {
                   href={href}
                   className={`px-3.5 py-1.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
                     isActive
-                      ? 'bg-red-950 text-red-400 border border-red-900/60'
+                      ? 'bg-amber-950/50 text-amber-400 border border-amber-800/50 shadow-[0_0_10px_rgba(245,158,11,0.1)]'
                       : 'text-zinc-300 hover:bg-zinc-900 hover:text-white border border-transparent'
                   }`}
                 >

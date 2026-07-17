@@ -21,7 +21,7 @@ export default function Sidebar() {
       <div className="p-4">
         {categories.map((category) => (
           <div key={category.titleKey} className="mb-6">
-            <div className="px-3 mb-2 text-xs font-bold uppercase tracking-widest text-red-500/70">
+            <div className="px-3 mb-2 text-[10px] font-bold uppercase tracking-[3px] text-amber-500/60">
               {t(category.titleKey)}
             </div>
             <div className="space-y-0.5">
@@ -31,14 +31,14 @@ export default function Sidebar() {
                   <Link
                     key={item.href + item.labelKey}
                     href={item.href}
-                    className={`flex items-center gap-3 px-3 py-1.5 rounded-lg text-sm transition-all ${
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${
                       active
-                        ? 'bg-red-950 text-red-400 border border-red-900/50 font-medium'
-                        : 'text-zinc-300 hover:bg-zinc-900 hover:text-white'
+                        ? 'bg-amber-950/40 text-amber-400 border border-amber-900/40 font-medium shadow-[0_0_8px_rgba(245,158,11,0.06)]'
+                        : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200'
                     }`}
                   >
-                    <span className="text-base w-5">{item.icon}</span>
-                    <span>{t(item.labelKey)}</span>
+                    <span className="text-base w-5 text-center">{item.icon}</span>
+                    <span className="truncate">{t(item.labelKey)}</span>
                   </Link>
                 );
               })}
