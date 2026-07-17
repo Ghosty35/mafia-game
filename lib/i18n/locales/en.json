@@ -665,6 +665,7 @@
   "factory_busted": "Police caught you! Fined {fine}, +30 heat, bullets confiscated. 5 min jail risk.",
   "factory_bought": "Bought {bullets} bullets for {cost}.",
   "factory_purchase_failed": "Purchase failed.",
+  "factory_bullet_cap": "Bullet storage full (max 10,000). Sell or use some first.",
   "factory_current": "Current bullets: {bullets}. Use in PvP kills.",
   "dead_title": "You Have Been Killed",
   "dead_killed_by": "Killed by:",

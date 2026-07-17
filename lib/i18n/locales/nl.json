@@ -665,6 +665,7 @@
   "factory_busted": "De politie heeft je gepakt! Boete {fine}, +30 heat, kogels in beslag genomen. 5 min celrisico.",
   "factory_bought": "{bullets} kogels gekocht voor {cost}.",
   "factory_purchase_failed": "Aankoop mislukt.",
+  "factory_bullet_cap": "Kogelopslag vol (max 10.000). Verkoop of gebruik er eerst wat.",
   "factory_current": "Huidige kogels: {bullets}. Gebruik ze bij PvP-kills.",
   "dead_title": "Je Bent Vermoord",
   "dead_killed_by": "Vermoord door:",

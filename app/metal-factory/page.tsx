@@ -53,6 +53,7 @@ export default function MetalFactoryPage() {
     if (error) {
       if (error.message.includes('NOT_ENOUGH_CASH')) setMessage(t('common_not_enough_cash'));
       else if (error.message.includes('FACTORY_EMPTY')) setMessage(t('factory_empty'));
+      else if (error.message.includes('BULLET_CAP_REACHED')) setMessage(t('factory_bullet_cap'));
       else if (error.message.includes('IN_JAIL')) setMessage(t('error_in_jail'));
       else setMessage(error.message || t('factory_purchase_failed'));
     } else if (data?.busted) {
