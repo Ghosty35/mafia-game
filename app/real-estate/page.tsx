@@ -288,111 +288,15 @@ export default function RealEstatePage() {
         })}
       </div>
 
-      {/* Advanced Professional Billing Menu */}
-      <h2 className="text-xl font-semibold mb-3">{t('re_billing_title')}</h2>
-      <div className="card p-6 mb-6">
-        <div className="mb-4 flex items-center gap-4">
-          <label className="flex items-center gap-2">
-            <input type="checkbox" checked={autopay} onChange={(e) => setAutopay(e.target.checked)} />
-            {t('re_autopay_label')}
-          </label>
+      {/* Billing moved to its own Economy submenu: the Post Office. */}
+      <div className="card p-5 mb-6 flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <div className="font-semibold">📮 {t('po_title')}</div>
+          <div className="text-xs text-zinc-400">{t('re_billing_moved')}</div>
         </div>
-
-        {owned.length === 0 && <p className="text-zinc-500">{t('re_no_properties')}</p>}
-
-        {owned.map((prop, idx) => {
-          const debt = prop.maintenance_due || 850;
-          const purchaseDate = prop.purchase_date
-            ? new Date(prop.purchase_date).toLocaleDateString()
-            : 'N/A';
-          const ownedDays = prop.purchase_date
-            ? Math.floor((Date.now() - new Date(prop.purchase_date).getTime()) / (1000 * 3600 * 24))
-            : 0;
-          const maintCost = Math.floor((prop.income || 50) * 0.12); // suitable ~12%
-          const avgProfit = (prop.income || 50) - maintCost;
-
-          return (
-            <div key={idx} className="mb-6 border border-zinc-700 rounded p-4">
-              <div className="flex flex-col sm:flex-row justify-between items-start gap-2 mb-2">
-                <div>
-                  <div className="font-bold text-lg">{t('re_property', { name: prop.name })}</div>
-                  <div className="text-xs text-zinc-400">
-                    {t('re_purchased_on', { date: purchaseDate, days: ownedDays })}
-                  </div>
-                  <div className="text-xs">
-                    {t('re_city_type', {
-                      city: prop.city,
-                      type: prop.type,
-                      spots: prop.spots || 'N/A',
-                    })}
-                  </div>
-                </div>
-                <div className="text-right text-sm">
-                  <div>
-                    {t('re_current_debt')} <span className="font-mono text-red-400">{fm(debt)}</span>
-                  </div>
-                  <div>
-                    {t('re_avg_maint_short')} <span className="font-mono">-${maintCost}/hr</span>
-                  </div>
-                  <div>
-                    {t('re_avg_profit')}{' '}
-                    <span className="font-mono text-emerald-400">+${avgProfit}/hr</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="text-xs mb-3">
-                {t('re_prop_bank', { amount: fm(prop.bank_balance || 0) })}
-              </div>
-
-              <div className="mb-3">
-                <label className="block text-sm mb-1">{t('re_pay_amount')}</label>
-                <div className="flex flex-wrap gap-2">
-                  <input
-                    type="number"
-                    value={billAmount}
-                    onChange={(e) => setBillAmount(parseInt(e.target.value) || 0)}
-                    className="bg-zinc-900 border border-zinc-700 px-3 py-1 rounded w-32"
-                    placeholder={t('common_amount')}
-                  />
-                  <button
-                    onClick={() => payBill(prop.id, billAmount, 'cash')}
-                    className="px-4 py-1 bg-emerald-700 rounded text-sm"
-                  >
-                    {t('re_pay_cash')}
-                  </button>
-                  <button
-                    onClick={() => payBill(prop.id, billAmount, 'bank')}
-                    className="px-4 py-1 bg-emerald-700 rounded text-sm"
-                  >
-                    {t('re_pay_bank')}
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => payBill(prop.id, debt, 'cash')}
-                  className="px-4 py-1 bg-emerald-700 rounded text-sm"
-                >
-                  {t('re_full_pay')}
-                </button>
-                <button
-                  onClick={() => payBill(prop.id, Math.floor(debt / 2), 'bank')}
-                  className="px-4 py-1 bg-emerald-700 rounded text-sm"
-                >
-                  {t('re_payment_plan')}
-                </button>
-                <button
-                  onClick={() => setAutopayForProp(prop.id, !prop.autopay)}
-                  className="px-4 py-1 bg-blue-700 rounded text-sm"
-                >
-                  {prop.autopay ? t('re_autopay_disable') : t('re_autopay_enable')}
-                </button>
-              </div>
-            </div>
-          );
-        })}
+        <Link href="/post-office" className="px-4 py-2 bg-red-700 hover:bg-red-600 rounded-lg text-sm font-semibold shrink-0">
+          {t('re_billing_go')}
+        </Link>
       </div>
 
       <Link href="/dashboard" className="mt-6 inline-block text-sm text-red-400">

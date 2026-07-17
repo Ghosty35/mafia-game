@@ -43,6 +43,7 @@ export const leftMenuCategories: MenuCategory[] = [
       { labelKey: 'menu_bank', href: '/bank', icon: '🏦' },
       { labelKey: 'menu_laundering', href: '/laundering', icon: '🧼' },
       { labelKey: 'menu_real_estate', href: '/real-estate', icon: '🏠' },
+      { labelKey: 'menu_post_office', href: '/post-office', icon: '📮' },
       { labelKey: 'menu_stocks', href: '/stocks', icon: '📈' },
       { labelKey: 'menu_marketplace', href: '/marketplace', icon: '🏛️' },
       { labelKey: 'menu_shop', href: '/shop', icon: '🛒' },
@@ -126,6 +127,7 @@ export const rightMenuCategories: MenuCategory[] = [
       { labelKey: 'menu_leaderboard', href: '/leaderboard', icon: '🏆' },
       { labelKey: 'menu_most_wanted', href: '/most-wanted', icon: '🚨' },
       { labelKey: 'menu_families_leaderboard', href: '/families/leaderboard', icon: '👑' },
+      { labelKey: 'menu_tax_bank', href: '/reputations/tax-bank', icon: '🏛️' },
     ],
   },
 ];
