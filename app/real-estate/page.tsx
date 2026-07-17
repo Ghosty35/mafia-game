@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { usePlayer } from '../components/PlayerContext';
@@ -8,21 +8,38 @@ import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import type { TranslationKey, TranslationParams } from '@/lib/i18n/translations';
 
-interface Property {
+// Display-only metadata for the catalog. Economic values come from the server.
+const PROPERTY_META: Record<string, { nameKey: TranslationKey; riskKey?: TranslationKey; riskParams?: TranslationParams; image: string }> = {
+  ts1:        { nameKey: 're_name_train_station', riskKey: 're_risk_low', image: 'https://picsum.photos/id/1015/300/150' },
+  house1:     { nameKey: 're_name_house', riskKey: 're_risk_house_65', image: 'https://picsum.photos/id/29/300/150' },
+  mf1:        { nameKey: 're_name_metal_factory', riskKey: 're_risk_medium', image: 'https://picsum.photos/id/160/300/150' },
+  villa1:     { nameKey: 're_name_villa', riskKey: 're_risk_villa_30', image: 'https://picsum.photos/id/160/300/150' },
+  da1:        { nameKey: 're_name_detective', riskKey: 're_risk_low', image: 'https://picsum.photos/id/201/300/150' },
+  house_la:   { nameKey: 're_name_house', riskKey: 're_risk_raid', riskParams: { pct: 62 }, image: 'https://picsum.photos/id/29/300/150' },
+  h1:         { nameKey: 're_name_hospital', riskKey: 're_risk_medium', image: 'https://picsum.photos/id/251/300/150' },
+  villa_mi:   { nameKey: 're_name_villa', riskKey: 're_risk_raid', riskParams: { pct: 28 }, image: 'https://picsum.photos/id/160/300/150' },
+  gb1:        { nameKey: 're_name_bank', riskKey: 're_risk_high', image: 'https://picsum.photos/id/180/300/150' },
+  mansion1:   { nameKey: 're_name_mansion', riskKey: 're_risk_none_ultimate', image: 'https://picsum.photos/id/251/300/150' },
+  house_chi:  { nameKey: 're_name_house', riskKey: 're_risk_raid', riskParams: { pct: 64 }, image: 'https://picsum.photos/id/29/300/150' },
+  mansion_la: { nameKey: 're_name_mansion', riskKey: 're_risk_none_ever', image: 'https://picsum.photos/id/251/300/150' },
+  house_mi:   { nameKey: 're_name_house', riskKey: 're_risk_raid', riskParams: { pct: 63 }, image: 'https://picsum.photos/id/29/300/150' },
+  villa_lv:   { nameKey: 're_name_villa', riskKey: 're_risk_raid', riskParams: { pct: 25 }, image: 'https://picsum.photos/id/160/300/150' },
+};
+
+type Property = {
   id: string;
-  // NOTE: name stays English — game logic and the DB parse it
-  // (includes('mansion') etc). Display uses nameKey/riskKey.
   name: string;
-  nameKey: TranslationKey;
+  ptype: string;
   type: string;
   city: string;
   price: number;
   income: number;
   spots: number;
+  nameKey: TranslationKey;
   riskKey?: TranslationKey;
   riskParams?: TranslationParams;
   image: string;
-}
+};
 
 export default function RealEstatePage() {
   const { player, refreshPlayer, showToast } = usePlayer();
@@ -31,38 +48,32 @@ export default function RealEstatePage() {
   const [busy, setBusy] = useState(false);
   const [billAmount, setBillAmount] = useState(0);
   const [autopay, setAutopay] = useState(false);
+  const [catalog, setCatalog] = useState<Property[]>([]);
+  const [loadingCatalog, setLoadingCatalog] = useState(true);
+
+  useEffect(() => {
+    const loadCatalog = async () => {
+      const supabase = createClient();
+      const { data } = await supabase.rpc('get_property_catalog');
+      if (Array.isArray(data)) {
+        setCatalog(
+          data.map((row: any) => {
+            const meta = PROPERTY_META[row.id] || { nameKey: 're_name_house' as TranslationKey, image: '' };
+            return { ...row, ...meta };
+          }),
+        );
+      }
+      setLoadingCatalog(false);
+    };
+    loadCatalog();
+  }, []);
 
   if (!player) return <div className="p-6">{t('loading')}</div>;
 
   const currentCity = player.current_city || 'New York';
 
-  // Properties are city-specific. You only see (and can buy) properties in the city you are currently in.
-  // Travel to other cities to view and purchase their real estate.
-  const allProperties: Property[] = [
-    // New York
-    { id: 'ts1', type: 'agency', name: 'Train Station', nameKey: 're_name_train_station', city: 'New York', price: 25000, income: 100, spots: 0, image: 'https://picsum.photos/id/1015/300/150', riskKey: 're_risk_low' },
-    { id: 'house1', type: 'residential', name: 'House (Weed/Safehouse)', nameKey: 're_name_house', city: 'New York', price: 15000, income: 40, spots: 2, image: 'https://picsum.photos/id/29/300/150', riskKey: 're_risk_house_65' },
-    // Chicago
-    { id: 'mf1', type: 'agency', name: 'Metal Factory', nameKey: 're_name_metal_factory', city: 'Chicago', price: 45000, income: 240, spots: 0, image: 'https://picsum.photos/id/160/300/150', riskKey: 're_risk_medium' },
-    { id: 'villa1', type: 'residential', name: 'Villa (Weed/Safehouse)', nameKey: 're_name_villa', city: 'Chicago', price: 75000, income: 120, spots: 4, image: 'https://picsum.photos/id/160/300/150', riskKey: 're_risk_villa_30' },
-    // Los Angeles
-    { id: 'da1', type: 'agency', name: 'Detective Agency', nameKey: 're_name_detective', city: 'Los Angeles', price: 30000, income: 160, spots: 0, image: 'https://picsum.photos/id/201/300/150', riskKey: 're_risk_low' },
-    { id: 'house_la', type: 'residential', name: 'House (Weed/Safehouse)', nameKey: 're_name_house', city: 'Los Angeles', price: 16000, income: 42, spots: 2, image: 'https://picsum.photos/id/29/300/150', riskKey: 're_risk_raid', riskParams: { pct: 62 } },
-    // Miami
-    { id: 'h1', type: 'agency', name: 'Hospital', nameKey: 're_name_hospital', city: 'Miami', price: 35000, income: 180, spots: 0, image: 'https://picsum.photos/id/251/300/150', riskKey: 're_risk_medium' },
-    { id: 'villa_mi', type: 'residential', name: 'Villa (Weed/Safehouse)', nameKey: 're_name_villa', city: 'Miami', price: 78000, income: 125, spots: 4, image: 'https://picsum.photos/id/160/300/150', riskKey: 're_risk_raid', riskParams: { pct: 28 } },
-    // Las Vegas
-    { id: 'gb1', type: 'agency', name: 'General Bank', nameKey: 're_name_bank', city: 'Las Vegas', price: 80000, income: 400, spots: 0, image: 'https://picsum.photos/id/180/300/150', riskKey: 're_risk_high' },
-    { id: 'mansion1', type: 'residential', name: 'Mansion (Weed/Safehouse)', nameKey: 're_name_mansion', city: 'Las Vegas', price: 1500000, income: 300, spots: 8, image: 'https://picsum.photos/id/251/300/150', riskKey: 're_risk_none_ultimate' },
-    // Extra residential options per city for variety
-    { id: 'house_chi', type: 'residential', name: 'House (Weed/Safehouse)', nameKey: 're_name_house', city: 'Chicago', price: 15500, income: 41, spots: 2, image: 'https://picsum.photos/id/29/300/150', riskKey: 're_risk_raid', riskParams: { pct: 64 } },
-    { id: 'mansion_la', type: 'residential', name: 'Mansion (Weed/Safehouse)', nameKey: 're_name_mansion', city: 'Los Angeles', price: 1550000, income: 295, spots: 8, image: 'https://picsum.photos/id/251/300/150', riskKey: 're_risk_none_ever' },
-    { id: 'house_mi', type: 'residential', name: 'House (Weed/Safehouse)', nameKey: 're_name_house', city: 'Miami', price: 15200, income: 39, spots: 2, image: 'https://picsum.photos/id/29/300/150', riskKey: 're_risk_raid', riskParams: { pct: 63 } },
-    { id: 'villa_lv', type: 'residential', name: 'Villa (Weed/Safehouse)', nameKey: 're_name_villa', city: 'Las Vegas', price: 82000, income: 130, spots: 4, image: 'https://picsum.photos/id/160/300/150', riskKey: 're_risk_raid', riskParams: { pct: 25 } },
-  ];
-
   // IMPORTANT: Only show properties of the CURRENT city. Travel to see others.
-  const cityProperties = allProperties.filter((p) => p.city === currentCity);
+  const cityProperties = catalog.filter((p) => p.city === currentCity);
   const buyableProperties = cityProperties.filter((p) => p.type === 'residential');
   const agencyProperties = cityProperties.filter((p) => p.type === 'agency');
 
@@ -199,6 +210,10 @@ export default function RealEstatePage() {
       </div>
 
       <p className="text-xs text-zinc-500 mb-6">{t('re_dev_note')}</p>
+
+      {loadingCatalog && (
+        <div className="text-sm text-zinc-500 mb-4">{t('loading')}</div>
+      )}
 
       {/* Buyable Residential Only - filtered to current city */}
       <h2 className="text-xl font-semibold mb-3">{t('re_buyable_title', { city: currentCity })}</h2>

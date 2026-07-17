@@ -28,7 +28,7 @@ export default function DashboardClient({
   } | null;
 }) {
   const { t, fm } = useLanguage();
-  const { player: contextPlayer, updatePlayer, refreshPlayer } = usePlayer();
+  const { player: contextPlayer, refreshPlayer } = usePlayer();
   const router = useRouter();
   const [player, setPlayer] = useState<Player | null>(initialPlayer);
   const [serverTimes, setServerTimes] = useState({ europe: '', us: '' });
@@ -38,6 +38,7 @@ export default function DashboardClient({
     people_registered: number;
     total_money_circulation: number;
   } | null>(null);
+  const [now, setNow] = useState(() => Date.now());
 
   // Real, live server stats for the hub (there is no season/round system — the
   // old panel showed a hardcoded 2026 progress bar that meant nothing).
@@ -51,6 +52,11 @@ export default function DashboardClient({
     load();
     const iv = setInterval(load, 30000);
     return () => { alive = false; clearInterval(iv); };
+  }, []);
+
+  useEffect(() => {
+    const tick = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(tick);
   }, []);
 
   // Live server clocks in two timezones
@@ -119,7 +125,7 @@ export default function DashboardClient({
         </div>
       </div>
 
-      {player.jailed_until && new Date(player.jailed_until).getTime() > Date.now() && (
+      {player.jailed_until && new Date(player.jailed_until).getTime() > now && (
         <div className="card bg-orange-950/60 border-orange-800 p-4">
           <div className="font-semibold text-orange-400">🚔 You are in jail</div>
           <p className="text-sm text-orange-300 mt-1">You cannot commit crimes or heists until you are released.</p>

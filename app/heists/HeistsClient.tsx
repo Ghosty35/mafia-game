@@ -65,6 +65,7 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
   const [targets, setTargets] = useState<any[]>([]);
   const [cars, setCars] = useState<Array<{ id: string; name: string; condition: number }>>([]);
   const [selectedCarId, setSelectedCarId] = useState('');
+  const [now, setNow] = useState(() => Date.now());
 
   const supabase = createClient();
 
@@ -152,15 +153,19 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
     loadData();
   }, [player?.id]);
 
+  useEffect(() => {
+    const tick = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(tick);
+  }, []);
+
   if (!player) return <div className="p-8">Loading...</div>;
 
-  const inJail = player.jailed_until && new Date(player.jailed_until).getTime() > Date.now();
+  const inJail = player.jailed_until && new Date(player.jailed_until).getTime() > now;
   const currentHeat = player.heat || 0;
 
   const getHeistStatus = (heist: Heist) => {
     const cd = cooldowns[heist.key];
     if (!cd) return { ready: true, timeLeft: '' };
-    const now = Date.now();
     if (cd <= now) return { ready: true, timeLeft: '' };
     const secs = Math.floor((cd - now) / 1000);
     const h = Math.floor(secs / 3600);
