@@ -114,26 +114,26 @@ export default function BlackjackPage() {
           <h1 className="text-2xl font-bold tracking-tight mb-1">🃏 {t('bj_title')}</h1>
           <p className="text-xs text-zinc-400">{t('bj_subtitle')}</p>
         </div>
-        <Link href="/casino" className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-xs">🎰 {t('menu_casino_floor')}</Link>
+        <Link href="/casino" className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-zinc-600 rounded-lg text-xs transition-all">🎰 {t('menu_casino_floor')}</Link>
       </div>
 
-      {error && <div className="bg-red-950/60 border border-red-800 text-red-300 px-4 py-2.5 rounded-lg text-sm">{error}</div>}
+      {error && <div className="bg-red-950/60 border border-red-800/50 rounded-xl px-4 py-3 text-sm text-red-300">{error}</div>}
 
       {/* Table */}
-      <Panel title={t('bj_table')} icon="🃏">
+      <Panel title={t('bj_table')} icon="🃏" variant="default">
         {!hand ? (
-          <p className="text-sm text-zinc-500 py-6 text-center">{t('bj_place_bet')}</p>
+          <p className="text-sm text-zinc-500 py-8 text-center">{t('bj_place_bet')}</p>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {/* Dealer */}
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] uppercase tracking-wider text-zinc-500">{t('bj_dealer')}</span>
-                <span className="font-mono text-sm text-zinc-300">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] uppercase tracking-[3px] text-zinc-500">{t('bj_dealer')}</span>
+                <span className="font-mono text-sm text-zinc-300 font-semibold">
                   {hand.dealer_value ?? '?'}
                 </span>
               </div>
-              <div className="flex gap-1.5">
+              <div className="flex gap-2 flex-wrap">
                 {hand.dealer_cards.map((c, i) => <Card key={i} n={c} />)}
                 {active && <Card faceDown />}
               </div>
@@ -143,13 +143,13 @@ export default function BlackjackPage() {
 
             {/* Player */}
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] uppercase tracking-wider text-zinc-500">{t('bj_you')}</span>
-                <span className={`font-mono text-sm ${hand.player_value > 21 ? 'text-red-400' : 'text-white'}`}>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] uppercase tracking-[3px] text-zinc-500">{t('bj_you')}</span>
+                <span className={`font-mono text-sm font-semibold ${hand.player_value > 21 ? 'text-red-400' : 'text-white'}`}>
                   {hand.player_value}
                 </span>
               </div>
-              <div className="flex gap-1.5 flex-wrap">
+              <div className="flex gap-2 flex-wrap">
                 {hand.player_cards.map((c, i) => <Card key={i} n={c} />)}
               </div>
             </div>
@@ -164,36 +164,36 @@ export default function BlackjackPage() {
 
       {/* Controls */}
       {active ? (
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <button
             onClick={() => run('bj_hit')}
             disabled={busy}
-            className="flex-1 py-3 bg-red-700 hover:bg-red-600 rounded-xl font-bold text-sm disabled:opacity-50"
+            className="flex-1 py-3 bg-red-700 hover:bg-red-600 border border-red-600 rounded-xl font-bold text-sm disabled:opacity-50 transition-colors"
           >
             {t('bj_hit')}
           </button>
           <button
             onClick={() => run('bj_stand')}
             disabled={busy}
-            className="flex-1 py-3 bg-emerald-700 hover:bg-emerald-600 rounded-xl font-bold text-sm disabled:opacity-50"
+            className="flex-1 py-3 bg-emerald-700 hover:bg-emerald-600 border border-emerald-600 rounded-xl font-bold text-sm disabled:opacity-50 transition-colors"
           >
             {t('bj_stand')}
           </button>
         </div>
       ) : (
-        <Panel title={t('cas_place_bet')} icon="💰">
+        <Panel title={t('cas_place_bet')} icon="💰" variant="premium">
           <BetInput bet={bet} setBet={setBet} disabled={busy} max={player.cash} />
           <button
             onClick={() => run('bj_deal', { p_bet: bet })}
             disabled={busy || (player.cash ?? 0) < bet}
-            className="w-full mt-3 py-3 bg-red-700 hover:bg-red-600 rounded-xl font-bold text-sm disabled:opacity-50"
+            className="w-full mt-3 py-3 bg-red-700 hover:bg-red-600 border border-red-600 rounded-xl font-bold text-sm disabled:opacity-50 transition-colors"
           >
             {busy ? t('cas_dealing') : t('bj_deal_button', { bet: fm(bet) })}
           </button>
         </Panel>
       )}
 
-      <div className="text-[11px] text-zinc-500">{t('bj_rules')}</div>
+      <div className="text-[10px] text-zinc-600 text-center">{t('bj_rules')}</div>
     </div>
   );
 }
