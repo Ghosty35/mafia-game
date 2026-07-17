@@ -46,8 +46,13 @@ function FamilyProfileContent() {
   const [profile, setProfile] = useState<FamilyProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [now, setNow] = useState(() => Date.now());
 
   const familyId = idParam || myFam?.family?.id || null;
+
+  useEffect(() => {
+    setNow(Date.now());
+  }, [profile?.id]);
 
   useEffect(() => {
     if (famLoading) return;
@@ -103,7 +108,7 @@ function FamilyProfileContent() {
     );
   }
 
-  const ageDays = Math.max(0, Math.floor((Date.now() - new Date(profile.created_at).getTime()) / 86400000));
+  const ageDays = Math.max(0, Math.floor((now - new Date(profile.created_at).getTime()) / 86400000));
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">

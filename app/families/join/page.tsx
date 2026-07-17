@@ -66,6 +66,7 @@ export default function JoinFamilyPage() {
       return;
     }
     await load();
+    if (refreshPlayer) await refreshPlayer();
     router.refresh();
   };
 
@@ -79,6 +80,8 @@ export default function JoinFamilyPage() {
       return;
     }
     await load();
+    if (refreshPlayer) await refreshPlayer();
+    router.refresh();
   };
 
   const createFamily = async (e: React.FormEvent) => {

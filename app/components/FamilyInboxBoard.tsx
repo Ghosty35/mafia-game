@@ -43,8 +43,8 @@ const ERROR_KEYS: Record<string, TranslationKey> = {
   TARGET_ALREADY_IN_FAMILY: 'fi_err_target_taken',
 };
 
-function timeAgo(iso: string): string {
-  const secs = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+function timeAgo(iso: string, now: number): string {
+  const secs = Math.max(0, Math.floor((now - new Date(iso).getTime()) / 1000));
   if (secs < 60) return `${secs}s`;
   const mins = Math.floor(secs / 60);
   if (mins < 60) return `${mins}m`;
@@ -62,6 +62,7 @@ export default function FamilyInboxBoard() {
   const [error, setError] = useState<string | null>(null);
   const [body, setBody] = useState('');
   const [audience, setAudience] = useState<'all' | 'higherups'>('all');
+  const [now, setNow] = useState(() => Date.now());
   const listRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
@@ -81,6 +82,11 @@ export default function FamilyInboxBoard() {
     const poll = setInterval(load, 10000);
     return () => clearInterval(poll);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const tick = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(tick);
   }, []);
 
   // keep the newest message in view
@@ -165,7 +171,7 @@ export default function FamilyInboxBoard() {
                 <Link href={`/profile?user=${r.username}`} className="font-semibold text-red-400 hover:underline">
                   {r.username}
                 </Link>{' '}
-                <span className="text-xs text-zinc-500">Lvl {r.level} · {timeAgo(r.created_at)}</span>
+                <span className="text-xs text-zinc-500">Lvl {r.level} · {timeAgo(r.created_at, now)}</span>
                 {r.message && <p className="text-xs text-zinc-400 italic truncate">"{r.message}"</p>}
               </div>
               <button
@@ -217,7 +223,7 @@ export default function FamilyInboxBoard() {
                       📢 {t('fi_ch_all')}
                     </span>
                   )}
-                  <span className="text-zinc-600 ml-auto shrink-0">{timeAgo(m.created_at)}</span>
+                  <span className="text-zinc-600 ml-auto shrink-0">{timeAgo(m.created_at, now)}</span>
                 </div>
                 <p className="text-zinc-200 mt-0.5 break-words whitespace-pre-wrap">{m.body}</p>
               </div>
