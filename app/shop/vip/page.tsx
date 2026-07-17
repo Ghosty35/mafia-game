@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { usePlayer } from '../../components/PlayerContext';
+import { useEconomy } from '@/lib/economy';
 import Panel from '../../components/Panel';
 
 // VIP Store (bug-inspectie shop split): everything VIP/donator/diamond in
@@ -133,6 +134,7 @@ function FamilyBuffsShop({ busy, setMessage, isDonator }: { busy: boolean; setMe
   const { t, fm } = useLanguage();
   const router = useRouter();
   const { refreshPlayer } = usePlayer();
+  const economy = useEconomy();
   const supabase = createClient();
 
   const buffs = [
@@ -216,7 +218,7 @@ function FamilyBuffsShop({ busy, setMessage, isDonator }: { busy: boolean; setMe
             >
               💎 {b.diamondsBundle} — {t('vip_bundle')}
               <br />
-              <span className="text-[10px]">+{Math.floor(b.diamondsBundle * 4.0)} {t('fam_stat_power').toLowerCase()} {!isDonator && `• ${t('vip_bundle_locked')}`}</span>
+              <span className="text-[10px]">+{Math.floor(b.diamondsBundle * (economy?.family_buff?.diamond_bundle_rate ?? 4.0))} {t('fam_stat_power').toLowerCase()} {!isDonator && `• ${t('vip_bundle_locked')}`}</span>
             </button>
           </div>
         </div>

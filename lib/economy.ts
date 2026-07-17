@@ -27,6 +27,12 @@ export type EconomyConfig = {
     max_level: number;
   };
   piggy_fee_pct: number;
+  family_buff: {
+    cash_per_power: number;
+    diamond_rate: number;
+    diamond_bundle_rate: number;
+    min_power: number;
+  };
 };
 
 // Module-level cache: one RPC call shared by every component that mounts.
