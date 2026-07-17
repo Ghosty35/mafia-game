@@ -46,6 +46,7 @@ export const leftMenuCategories: MenuCategory[] = [
       { labelKey: 'menu_stocks', href: '/stocks', icon: '📈' },
       { labelKey: 'menu_marketplace', href: '/marketplace', icon: '🏛️' },
       { labelKey: 'menu_shop', href: '/shop', icon: '🛒' },
+      { labelKey: 'menu_vip_store', href: '/shop/vip', icon: '👑' },
     ],
   },
   {
@@ -107,10 +108,11 @@ export const rightMenuCategories: MenuCategory[] = [
     titleKey: 'side_family',
     items: [
       { labelKey: 'menu_my_family', href: '/families', icon: '👥' },
+      { labelKey: 'menu_family_join', href: '/families/join', icon: '🤝' },
       { labelKey: 'menu_family_inbox', href: '/families/inbox', icon: '📥' },
-      { labelKey: 'menu_family_bank', href: '/families?tab=banking', icon: '💰' },
-      { labelKey: 'menu_family_donations', href: '/families?tab=donations', icon: '🏦' },
-      { labelKey: 'menu_family_profile', href: '/families?tab=profile', icon: '📋' },
+      { labelKey: 'menu_family_bank', href: '/families/bank', icon: '💰' },
+      { labelKey: 'menu_family_donations', href: '/families/donations', icon: '🎁' },
+      { labelKey: 'menu_family_profile', href: '/families/profile', icon: '📋' },
       { labelKey: 'menu_territories', href: '/territories', icon: '🗺️' },
     ],
   },
