@@ -23,6 +23,32 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
+/* Mobile safety: never allow accidental horizontal scroll on small screens */
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+img,
+svg,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Respect notches / safe areas on phones */
+main,
+nav,
+aside {
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
 /* Richer mafia-style background with subtle vignette */
 body::before {
   content: '';
