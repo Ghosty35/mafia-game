@@ -2,11 +2,21 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { usePlayer } from '../components/PlayerContext';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
-import { CITIES, City } from '@/lib/cities';
+import { CITIES } from '@/lib/cities';
+
+type CatalogProperty = {
+  id: string;
+  name: string;
+  ptype: string;
+  type: string;
+  city: string;
+  price: number;
+  income: number;
+  spots: number;
+};
 
 const CITY_COLORS: Record<string, { accent: string; bg: string }> = {
   'New York':     { accent: 'text-blue-400', bg: 'bg-blue-950/20' },
@@ -17,18 +27,15 @@ const CITY_COLORS: Record<string, { accent: string; bg: string }> = {
 };
 
 export default function RealEstatePage() {
-  const { player, refreshPlayer, showToast } = usePlayer();
-  const { t, fm } = useLanguage();
-  const router = useRouter();
-  const [catalog, setCatalog] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { player } = usePlayer();
+  const { t } = useLanguage();
+  const [catalog, setCatalog] = useState<CatalogProperty[]>([]);
 
   useEffect(() => {
     const load = async () => {
       const supabase = createClient();
       const { data } = await supabase.rpc('get_property_catalog');
-      if (Array.isArray(data)) setCatalog(data);
-      setLoading(false);
+      if (Array.isArray(data)) setCatalog(data as CatalogProperty[]);
     };
     load();
   }, []);
@@ -39,7 +46,7 @@ export default function RealEstatePage() {
   const owned = player.owned_properties || [];
 
   // Group properties by city
-  const byCity = catalog.reduce<Record<string, any[]>>((acc, p) => {
+  const byCity = catalog.reduce<Record<string, CatalogProperty[]>>((acc, p) => {
     if (!acc[p.city]) acc[p.city] = [];
     acc[p.city].push(p);
     return acc;
