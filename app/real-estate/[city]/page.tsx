@@ -60,19 +60,24 @@ export default function CityRealEstatePage() {
   const router = useRouter();
   const [catalog, setCatalog] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     const load = async () => {
+      setLoadError(null);
       const supabase = createClient();
-      const { data } = await supabase.rpc('get_property_catalog', { p_city: city });
-      if (Array.isArray(data)) {
+      const { data, error } = await supabase.rpc('get_property_catalog', { p_city: city });
+      if (error) {
+        console.error(`Failed to load properties for ${city}:`, error);
+        setLoadError(error.message || t('re_load_failed'));
+      } else if (Array.isArray(data)) {
         setCatalog(data as Property[]);
       }
       setLoading(false);
     };
     load();
-  }, [city]);
+  }, [city, showToast, t]);
 
   // Keyboard shortcut: Esc returns to the city overview
   useEffect(() => {
@@ -140,18 +145,20 @@ export default function CityRealEstatePage() {
   const ownedIds = new Set(owned.map((p) => p?.catalog_id || p?.id));
   const isAtTotalCap = owned.length >= 4;
   const isPtypeMaxed = (ptype: string) => {
-    const count = owned.filter((p) => (p?.ptype || p?.name || '').toLowerCase() === ptype).length;
-    if (ptype === 'mansion') return count >= 1;
-    if (ptype === 'villa') return count >= 2;
-    if (ptype === 'house') return count >= 4;
+    const target = ptype.toLowerCase();
+    const count = owned.filter((p) => (p?.ptype || p?.name || '').toLowerCase() === target).length;
+    if (target === 'mansion') return count >= 1;
+    if (target === 'villa') return count >= 2;
+    if (target === 'house') return count >= 4;
     return false;
   };
 
   if (!player) return <div className="p-6 text-zinc-400">{t('loading')}</div>;
 
   const categoryOf = (ptype: string) => {
-    if (ptype === 'house' || ptype === 'villa' || ptype === 'mansion') return 'residential';
-    if (ptype === 'agency' || ptype === 'airport' || ptype === 'casino' || ptype === 'tuneshop' || ptype === 'redlight')
+    const p = ptype.toLowerCase();
+    if (p === 'house' || p === 'villa' || p === 'mansion') return 'residential';
+    if (p === 'agency' || p === 'airport' || p === 'casino' || p === 'tuneshop' || p === 'redlight')
       return 'business';
     return 'other';
   };
@@ -178,6 +185,8 @@ export default function CityRealEstatePage() {
 
       {loading ? (
         <div className="text-sm text-zinc-500">{t('loading')}</div>
+      ) : loadError ? (
+        <div className="text-sm text-red-400 bg-red-950/30 border border-red-900 rounded-xl p-4">{loadError}</div>
       ) : catalog.length === 0 ? (
         <div className="text-sm text-amber-400">{t('re_none', { city })}</div>
       ) : (
@@ -195,8 +204,8 @@ export default function CityRealEstatePage() {
                   const tax = getTax(prop);
                   const maint = getMaintenance(prop);
                   const profit = getProfit(prop);
-                  const owned = ownedIds.has(prop.id);
-                  const blocked = owned || isAtTotalCap || isPtypeMaxed(prop.ptype);
+                  const isOwned = ownedIds.has(prop.id) || owned.some(o => o.name === prop.name && o.city === prop.city);
+                  const blocked = isOwned || isAtTotalCap || isPtypeMaxed(prop.ptype);
                   const cantAfford = player.cash < prop.price + tax;
 
                   return (
@@ -238,10 +247,10 @@ export default function CityRealEstatePage() {
                       </div>
 
                       <button
-                        onClick={() => owned ? sellProperty(prop) : buyProperty(prop)}
-                        disabled={busy || (owned ? false : (blocked || cantAfford))}
+                        onClick={() => isOwned ? sellProperty(prop) : buyProperty(prop)}
+                        disabled={busy || (isOwned ? false : (blocked || cantAfford))}
                         className={`w-full py-2 rounded-lg text-xs font-semibold transition-all ${
-                          owned
+                          isOwned
                             ? 'bg-zinc-700 hover:bg-zinc-600 text-zinc-200'
                             : blocked
                               ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
@@ -250,7 +259,7 @@ export default function CityRealEstatePage() {
                                 : 'bg-red-700 hover:bg-red-600 text-white'
                         }`}
                       >
-                        {owned
+                        {isOwned
                           ? t('common_sell')
                           : isAtTotalCap
                             ? t('re_total_limit')

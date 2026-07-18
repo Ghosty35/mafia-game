@@ -1,0 +1,217 @@
+'use client';
+
+export const dynamic = 'force-dynamic';
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { createClient } from '@/lib/supabase/client';
+import { usePlayer } from '../components/PlayerContext';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { useRouter } from 'next/navigation';
+import { CITIES } from '@/lib/cities';
+
+type Lab = {
+  id: string;
+  city: string;
+  drug_type: string;
+  level: number;
+  pending: number;
+  rate: number;
+  last_collected: string;
+};
+
+type LabsData = {
+  labs: Lab[];
+  count: number;
+  limit: number;
+};
+
+const DRUG_ICONS: Record<string, { icon: string; color: string; bg: string; label: string }> = {
+  Coke:  { icon: '💎', color: 'text-zinc-200',   bg: 'bg-zinc-800/50',   label: 'Cocaine' },
+  Meth:  { icon: '🧪', color: 'text-sky-300',    bg: 'bg-sky-950/30',    label: 'Meth' },
+  Pills: { icon: '💊', color: 'text-fuchsia-300', bg: 'bg-fuchsia-950/30', label: 'Pills' },
+  Weed:  { icon: '🌿', color: 'text-emerald-300', bg: 'bg-emerald-950/30', label: 'Weed' },
+};
+
+export default function DrugLabPage() {
+  const { player, refreshPlayer } = usePlayer();
+  const { t, language, fm } = useLanguage();
+  const router = useRouter();
+
+  const [data, setData] = useState<LabsData | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const [buyCity, setBuyCity] = useState<string>(CITIES[0]);
+  const [buyDrug, setBuyDrug] = useState<string>('Coke');
+  const [upgradeId, setUpgradeId] = useState<string>('');
+
+  const fmt = (n: number) =>
+    new Intl.NumberFormat(language === 'nl' ? 'nl-NL' : 'en-US').format(Math.floor(n));
+  const drugStash = (type: string) => Math.floor(player?.drug_storage?.[type] ?? 0);
+
+  const load = async () => {
+    const supabase = createClient();
+    const { data: d } = await supabase.rpc('get_my_druglabs');
+    if (d) setData(d as LabsData);
+  };
+
+  useEffect(() => {
+    load();
+    const poll = setInterval(load, 15000);
+    return () => clearInterval(poll);
+  }, []);
+
+  const run = async (fn: () => PromiseLike<any>, okMsg?: (d: any) => string) => {
+    setBusy(true);
+    setMessage('');
+    const { error, data: d } = await fn();
+    if (error) {
+      const m = error.message;
+      if (m.includes('NOT_ENOUGH_CASH')) setMessage(t('dl_err_no_cash'));
+      else if (m.includes('IN_JAIL')) setMessage(t('dl_err_in_jail'));
+      else if (m.includes('DEAD')) setMessage(t('dl_err_dead'));
+      else if (m.includes('LAB_LIMIT')) setMessage(t('dl_err_limit'));
+      else if (m.includes('LAB_NOT_FOUND')) setMessage(t('dl_err_not_found'));
+      else if (m.includes('NOTHING_TO_COLLECT')) setMessage(t('dl_err_nothing'));
+      else if (m.includes('LAB_MAX_LEVEL')) setMessage(t('dl_err_max_level'));
+      else setMessage(m);
+    } else if (okMsg && d) {
+      setMessage(okMsg(d));
+    }
+    await load();
+    if (refreshPlayer) await refreshPlayer();
+    await router.refresh();
+    setBusy(false);
+  };
+
+  if (!player) return <div className="p-6 text-zinc-400">{t('loading')}</div>;
+
+  const limit = data?.limit ?? 5;
+  const upgradeCost = (level: number) => 150000 * level;
+
+  return (
+    <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight mb-1">🧪 {t('dl_title')}</h1>
+        <p className="text-sm text-zinc-400">{t('dl_desc')}</p>
+      </div>
+
+      {message && (
+        <div className="p-3 bg-zinc-900 border border-zinc-700 rounded text-sm">{message}</div>
+      )}
+
+      {/* Summary */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+          <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">{t('dl_labs')}</div>
+          <div className="font-mono text-lg text-amber-400">{data?.count ?? 0}<span className="text-zinc-500 text-sm">/{limit}</span></div>
+        </div>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+          <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">{t('dl_coke')}</div>
+          <div className="font-mono text-lg text-zinc-200">{drugStash('Coke')} kg</div>
+        </div>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+          <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">{t('dl_meth')}</div>
+          <div className="font-mono text-lg text-sky-300">{drugStash('Meth')} kg</div>
+        </div>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+          <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">{t('dl_pills')}</div>
+          <div className="font-mono text-lg text-fuchsia-300">{drugStash('Pills')} kg</div>
+        </div>
+      </div>
+
+      {/* Buy */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-3">
+        <h2 className="font-bold text-lg">🏗️ {t('dl_buy')}</h2>
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="min-w-[160px]">
+            <label className="block text-xs text-zinc-400 mb-1">{t('dl_buy_city')}</label>
+            <select value={buyCity} onChange={(e) => setBuyCity(e.target.value)}
+              className="bg-zinc-800 border border-zinc-700 rounded px-3 py-2 w-full text-sm">
+              {CITIES.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div className="min-w-[160px]">
+            <label className="block text-xs text-zinc-400 mb-1">{t('dl_buy_drug')}</label>
+            <select value={buyDrug} onChange={(e) => setBuyDrug(e.target.value)}
+              className="bg-zinc-800 border border-zinc-700 rounded px-3 py-2 w-full text-sm">
+              {Object.entries(DRUG_ICONS).map(([key, d]) => <option key={key} value={key}>{d.icon} {d.label}</option>)}
+            </select>
+          </div>
+          <button
+            onClick={() => run(
+              () => createClient().rpc('buy_druglab', { p_city: buyCity, p_drug_type: buyDrug }),
+              (d) => t('dl_bought', { city: buyCity, drug: DRUG_ICONS[buyDrug]?.label ?? buyDrug, cost: fm(200000) })
+            )}
+            disabled={busy || (data?.count ?? 0) >= limit}
+            className="px-5 py-2 bg-emerald-700 hover:bg-emerald-600 disabled:opacity-40 rounded font-bold text-sm whitespace-nowrap"
+          >
+            {busy ? t('dl_buying') : `${t('dl_buy')} (${fm(200000)})`}
+          </button>
+        </div>
+        <div className="text-[11px] text-zinc-500">
+          {t('dl_buy_tax')}: 2% → Gov Tax Bank
+        </div>
+      </div>
+
+      {/* Lab List */}
+      <div>
+        <h2 className="font-bold text-lg mb-3">🧪 {t('dl_labs')}</h2>
+        {!data || data.labs.length === 0 ? (
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 text-center text-zinc-500 text-sm">
+            {t('dl_none')}
+          </div>
+        ) : (
+          <div className="grid gap-3">
+            {data.labs.map((lab) => {
+              const meta = DRUG_ICONS[lab.drug_type] ?? DRUG_ICONS['Coke'];
+              const pending = lab.pending ?? 0;
+              const canUpgrade = lab.level < 10;
+              const upgCost = upgradeCost(lab.level);
+              return (
+                <div key={lab.id} className={`${meta.bg} border border-zinc-800 rounded-xl p-4`}>
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div>
+                      <div className="font-bold">
+                        {meta.icon} {lab.city} — {meta.label}
+                        <span className="ml-2 text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300">Lv {lab.level}</span>
+                      </div>
+                      <div className="text-[11px] text-zinc-500">{t('dl_rate')} {lab.rate}/hr · {t('dl_pending')} {fmt(pending)} kg</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => run(
+                          () => createClient().rpc('collect_druglab', { p_lab_id: lab.id }),
+                          (d) => t('dl_collected', { drug: meta.label, amount: fmt(Number(d.collected)) })
+                        )}
+                        disabled={busy || pending <= 0}
+                        className="px-3 py-1.5 rounded bg-emerald-700 hover:bg-emerald-600 disabled:opacity-40 text-xs font-bold"
+                      >
+                        {t('dl_collect')}
+                      </button>
+                      {canUpgrade && (
+                        <button
+                          onClick={() => run(
+                            () => createClient().rpc('upgrade_druglab', { p_lab_id: lab.id }),
+                            (d) => t('dl_upgraded', { level: Number(d.new_level), cost: fmt(Number(d.cost)) })
+                          )}
+                          disabled={busy || player.cash < upgCost}
+                          className="px-3 py-1.5 rounded bg-amber-700 hover:bg-amber-600 disabled:opacity-40 text-xs font-bold"
+                        >
+                          {t('dl_upgrade')} ({fmt(upgCost)})
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <Link href="/dashboard" className="inline-block text-sm text-red-400">← {t('dl_back')}</Link>
+    </div>
+  );
+}

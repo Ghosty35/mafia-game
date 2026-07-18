@@ -34,7 +34,11 @@ export default function RealEstatePage() {
   useEffect(() => {
     const load = async () => {
       const supabase = createClient();
-      const { data } = await supabase.rpc('get_property_catalog');
+      const { data, error } = await supabase.rpc('get_property_catalog');
+      if (error) {
+        console.error('Failed to load property catalog:', error);
+        return;
+      }
       if (Array.isArray(data)) setCatalog(data as CatalogProperty[]);
     };
     load();
