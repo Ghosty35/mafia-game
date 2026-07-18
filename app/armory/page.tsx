@@ -15,7 +15,8 @@ const powerPacks: { power: number; price: number; labelKey: TranslationKey }[] =
   { power: 1000, price: 18000, labelKey: 'armory_pack_warlord' },
 ];
 
-const MAX_POWER = 10000;
+// Visual reference point for the power meter only — buying is uncapped.
+const POWER_DISPLAY_REF = 10000;
 
 export default function ArmoryPage() {
   const { t, fm } = useLanguage();
@@ -25,13 +26,8 @@ export default function ArmoryPage() {
   const [message, setMessage] = useState<string | null>(null);
 
   const currentPower = player?.power ?? 0;
-  const atPowerCap = currentPower >= MAX_POWER;
 
   const buyPower = async (power: number, price: number) => {
-    if (atPowerCap) {
-      setMessage(t('armory_cap_reached') || 'Maximum power reached.');
-      return;
-    }
     setBusy(true);
     setMessage(null);
     const supabase = createClient();
@@ -42,9 +38,7 @@ export default function ArmoryPage() {
     });
 
     if (error) {
-      if (error.message.includes('POWER_CAP_REACHED')) {
-        setMessage(t('armory_cap_reached') || 'Maximum power reached.');
-      } else if (error.message.includes('NOT_ENOUGH_CASH')) {
+      if (error.message.includes('NOT_ENOUGH_CASH')) {
         setMessage(t('common_not_enough_cash'));
       } else {
         setMessage(t('armory_purchase_failed'));
@@ -64,23 +58,21 @@ export default function ArmoryPage() {
         <p className="text-sm text-zinc-400">{t('armory_desc')}</p>
       </div>
 
-      {/* Power meter */}
+      {/* Power meter (uncapped — more power is better) */}
       <div className="card p-5 mb-6">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs uppercase tracking-wider text-zinc-400">{t('armory_your_power')}</span>
           <span className="font-mono text-sm text-orange-400">
-            {currentPower.toLocaleString()} / {MAX_POWER.toLocaleString()}
+            {currentPower.toLocaleString()}
           </span>
         </div>
         <div className="h-3 rounded-full bg-zinc-800 overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-orange-600 to-amber-400 transition-all"
-            style={{ width: `${Math.min(100, (currentPower / MAX_POWER) * 100)}%` }}
+            style={{ width: `${Math.min(100, (currentPower / POWER_DISPLAY_REF) * 100)}%` }}
           />
         </div>
-        {atPowerCap && (
-          <p className="text-xs text-amber-400 mt-2">⚠️ {t('armory_cap_reached')}</p>
-        )}
+        <p className="text-xs text-zinc-500 mt-2">{t('armory_no_cap')}</p>
       </div>
 
       {message && (
@@ -99,11 +91,10 @@ export default function ArmoryPage() {
               <span className="text-lg font-mono">{fm(pack.price)}</span>
               <button
                 onClick={() => buyPower(pack.power, pack.price)}
-                disabled={busy || atPowerCap}
-                title={atPowerCap ? t('armory_cap_reached') : undefined}
+                disabled={busy}
                 className="px-4 py-2 bg-red-700 hover:bg-red-600 rounded text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                {atPowerCap ? 'MAX' : t('armory_buy')}
+                {t('armory_buy')}
               </button>
             </div>
           </div>
