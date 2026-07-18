@@ -8,6 +8,7 @@ import { usePlayer } from '../components/PlayerContext';
 import { CITIES, City } from '@/lib/cities';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import HeatManager from '../components/HeatManager';
+import DrugMarketBoard from '../components/DrugMarketBoard';
 import { useEconomy } from '@/lib/economy';
 
 const DRUGS = ['Coke', 'Weed', 'Meth', 'Pills'] as const;
@@ -139,6 +140,9 @@ export default function StreetDealerPage() {
         <h1 className="text-2xl font-bold tracking-tight mb-1">💊 {t('dealer_title', { city: currentCity })}</h1>
         <p className="text-xs text-zinc-400">{t('dealer_desc')}</p>
       </div>
+
+      {/* Dynamic market: prices rotate between cities every 4h */}
+      <DrugMarketBoard currentCity={currentCity} />
 
       {/* Heat-reduction items (also sold here on the street) */}
       <HeatManager variant="store" />
