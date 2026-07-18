@@ -75,6 +75,7 @@ export default function WeedGrowPage() {
 
     setHarvestPercent(data.new_percent);
     setWeedProgress(data.new_progress);
+    setCooldown(3600);
     if (refreshPlayer) await refreshPlayer(); await router.refresh();
 
     showToast(
