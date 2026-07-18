@@ -95,7 +95,7 @@ export default function GymBoard() {
         </div>
         <p className="text-[10px] text-zinc-500 mt-2">
           {t('gym_regen_note', { rate: regenPerHour })}
-          {isDonator ? ` <span className="text-amber-400">${t('gym_regen_donator')}</span>` : ''}
+          {isDonator && <span className="text-amber-400"> {t('gym_regen_donator')}</span>}
         </p>
       </div>
 
