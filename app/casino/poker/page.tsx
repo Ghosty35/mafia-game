@@ -111,37 +111,37 @@ export default function PokerPage() {
           <h1 className="text-2xl font-bold tracking-tight mb-1">🎴 {t('vp_title')}</h1>
           <p className="text-xs text-zinc-400">{t('vp_subtitle')}</p>
         </div>
-        <Link href="/casino" className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-xs">🎰 {t('menu_casino_floor')}</Link>
+        <Link href="/casino" className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-zinc-600 rounded-lg text-xs transition-all">🎰 {t('menu_casino_floor')}</Link>
       </div>
 
-      {error && <div className="bg-red-950/60 border border-red-800 text-red-300 px-4 py-2.5 rounded-lg text-sm">{error}</div>}
+      {error && <div className="bg-red-950/60 border border-red-800/50 rounded-xl px-4 py-3 text-sm text-red-300">{error}</div>}
 
       {/* Paytable */}
-      <Panel title={t('vp_paytable')} icon="📋" bodyClassName="p-0">
+      <Panel title={t('vp_paytable')} icon="📋" variant="premium" bodyClassName="p-0">
         {PAYTABLE.map((row) => (
           <div
             key={row.key}
-            className={`flex items-center justify-between px-4 py-1.5 border-t first:border-t-0 border-zinc-800 text-xs ${
-              result?.hand === row.key ? 'bg-emerald-950/40 text-emerald-300 font-semibold' : ''
+            className={`flex items-center justify-between px-4 py-2 border-t first:border-t-0 border-zinc-800 text-xs ${
+              result?.hand === row.key ? 'bg-amber-950/40 text-amber-300 font-semibold' : 'text-zinc-400'
             }`}
           >
             <span>{t(row.labelKey)}</span>
-            <span className="font-mono text-amber-400">{row.mult}× — {fm(bet * row.mult)}</span>
+            <span className="font-mono text-amber-400 font-semibold">{row.mult}× — {fm(bet * row.mult)}</span>
           </div>
         ))}
       </Panel>
 
       {/* Hand */}
-      <Panel title={t('vp_your_hand')} icon="🎴">
+      <Panel title={t('vp_your_hand')} icon="🎴" variant="default">
         {!cards ? (
-          <p className="text-sm text-zinc-500 py-6 text-center">{t('vp_place_bet')}</p>
+          <p className="text-sm text-zinc-500 py-8 text-center">{t('vp_place_bet')}</p>
         ) : (
           <>
-            <div className="flex gap-2 justify-center mb-3">
+            <div className="flex gap-3 justify-center mb-4 flex-wrap">
               {cards.map((c, i) => (
-                <div key={i} className="flex flex-col items-center gap-1">
+                <div key={i} className="flex flex-col items-center gap-1.5">
                   <Card n={c} selected={holds.includes(i + 1)} onClick={phase === 'draw' ? () => toggleHold(i) : undefined} />
-                  <span className={`text-[9px] uppercase tracking-wider font-bold ${holds.includes(i + 1) ? 'text-emerald-400' : 'text-zinc-700'}`}>
+                  <span className={`text-[9px] uppercase tracking-wider font-bold ${holds.includes(i + 1) ? 'text-amber-400' : 'text-zinc-700'}`}>
                     {holds.includes(i + 1) ? t('vp_held') : ' '}
                   </span>
                 </div>
@@ -177,24 +177,24 @@ export default function PokerPage() {
         <button
           onClick={draw}
           disabled={busy}
-          className="w-full py-3 bg-emerald-700 hover:bg-emerald-600 rounded-xl font-bold text-sm disabled:opacity-50"
+          className="w-full py-3 bg-emerald-700 hover:bg-emerald-600 border border-emerald-600 rounded-xl font-bold text-sm disabled:opacity-50 transition-colors"
         >
           {busy ? t('vp_drawing') : t('vp_draw_button', { count: 5 - holds.length })}
         </button>
       ) : (
-        <Panel title={t('cas_place_bet')} icon="💰">
+        <Panel title={t('cas_place_bet')} icon="💰" variant="premium">
           <BetInput bet={bet} setBet={setBet} disabled={busy} max={player.cash} />
           <button
             onClick={deal}
             disabled={busy || (player.cash ?? 0) < bet}
-            className="w-full mt-3 py-3 bg-red-700 hover:bg-red-600 rounded-xl font-bold text-sm disabled:opacity-50"
+            className="w-full mt-3 py-3 bg-red-700 hover:bg-red-600 border border-red-600 rounded-xl font-bold text-sm disabled:opacity-50 transition-colors"
           >
             {busy ? t('cas_dealing') : t('vp_deal_button', { bet: fm(bet) })}
           </button>
         </Panel>
       )}
 
-      <div className="text-[11px] text-zinc-500">{t('vp_rules')}</div>
+      <div className="text-[10px] text-zinc-600 text-center">{t('vp_rules')}</div>
     </div>
   );
 }
