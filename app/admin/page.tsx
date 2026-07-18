@@ -19,6 +19,11 @@ export default function AdminPage() {
   const [lotteryPool, setLotteryPool] = useState<number | null>(null);
   const [banks, setBanks] = useState<any>(null);
   const [warEvents, setWarEvents] = useState<any>(null);
+  const [serverStats, setServerStats] = useState<any>(null);
+  const [topCash, setTopCash] = useState<any[]>([]);
+  const [topDiamonds, setTopDiamonds] = useState<any[]>([]);
+  const [topLevel, setTopLevel] = useState<any[]>([]);
+  const [topActive, setTopActive] = useState<any[]>([]);
   const isAdmin = player?.username === 'YGhosty';
 
   const supabase = createClient();
@@ -57,6 +62,21 @@ export default function AdminPage() {
 
       const { data: we } = await supabase.rpc('get_war_events');
       if (we) setWarEvents(we);
+
+      const { data: ss } = await supabase.rpc('admin_get_server_stats');
+      if (ss) setServerStats(ss);
+
+      const { data: tc } = await supabase.rpc('admin_get_top_cash', { limit_count: 10 });
+      if (tc) setTopCash(tc);
+
+      const { data: td } = await supabase.rpc('admin_get_top_diamonds', { limit_count: 10 });
+      if (td) setTopDiamonds(td);
+
+      const { data: tl } = await supabase.rpc('admin_get_top_level', { limit_count: 10 });
+      if (tl) setTopLevel(tl);
+
+      const { data: ta } = await supabase.rpc('admin_get_top_active', { limit_count: 10 });
+      if (ta) setTopActive(ta);
     } catch (e) {}
   };
 
@@ -354,7 +374,111 @@ export default function AdminPage() {
               }} className="px-4 bg-emerald-600 rounded text-sm">{t('admin_give_button')}</button>
             </div>
           </div>
-        </div>
+          </div>
+
+          {/* Server Stats & Leaderboards */}
+          {serverStats && (
+            <div className="mt-4 pt-3 border-t border-zinc-800">
+              <h3 className="font-semibold mb-2">{t('admin_stats_title')}</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs mb-4">
+                <div className="bg-zinc-950 border border-zinc-800 rounded p-2">
+                  <div className="text-zinc-500">{t('admin_stats_players')}</div>
+                  <div className="font-mono text-lg text-white">{serverStats.total_players}</div>
+                </div>
+                <div className="bg-zinc-950 border border-zinc-800 rounded p-2">
+                  <div className="text-zinc-500">{t('admin_stats_cash')}</div>
+                  <div className="font-mono text-lg text-emerald-400">{fm(serverStats.total_cash)}</div>
+                </div>
+                <div className="bg-zinc-950 border border-zinc-800 rounded p-2">
+                  <div className="text-zinc-500">{t('admin_stats_bank')}</div>
+                  <div className="font-mono text-lg text-blue-400">{fm(serverStats.total_bank)}</div>
+                </div>
+                <div className="bg-zinc-950 border border-zinc-800 rounded p-2">
+                  <div className="text-zinc-500">{t('admin_stats_diamonds')}</div>
+                  <div className="font-mono text-lg text-cyan-400">{fm(serverStats.total_diamonds)}</div>
+                </div>
+                <div className="bg-zinc-950 border border-zinc-800 rounded p-2">
+                  <div className="text-zinc-500">{t('admin_stats_properties')}</div>
+                  <div className="font-mono text-lg text-amber-400">{serverStats.total_properties}</div>
+                </div>
+                <div className="bg-zinc-950 border border-zinc-800 rounded p-2">
+                  <div className="text-zinc-500">{t('admin_stats_families')}</div>
+                  <div className="font-mono text-lg text-orange-400">{serverStats.total_families}</div>
+                </div>
+                <div className="bg-zinc-950 border border-zinc-800 rounded p-2">
+                  <div className="text-zinc-500">{t('admin_stats_avg_level')}</div>
+                  <div className="font-mono text-lg text-purple-400">{serverStats.avg_level}</div>
+                </div>
+                <div className="bg-zinc-950 border border-zinc-800 rounded p-2">
+                  <div className="text-zinc-500">{t('admin_stats_avg_power')}</div>
+                  <div className="font-mono text-lg text-red-400">{fm(serverStats.avg_power)}</div>
+                </div>
+                <div className="bg-zinc-950 border border-zinc-800 rounded p-2">
+                  <div className="text-zinc-500">{t('admin_stats_active_hour')}</div>
+                  <div className="font-mono text-lg text-emerald-300">{serverStats.active_last_hour}</div>
+                </div>
+                <div className="bg-zinc-950 border border-zinc-800 rounded p-2">
+                  <div className="text-zinc-500">{t('admin_stats_active_day')}</div>
+                  <div className="font-mono text-lg text-sky-300">{serverStats.active_last_day}</div>
+                </div>
+                <div className="bg-zinc-950 border border-zinc-800 rounded p-2">
+                  <div className="text-zinc-500">{t('admin_stats_banned')}</div>
+                  <div className="font-mono text-lg text-red-500">{serverStats.banned_count}</div>
+                </div>
+                <div className="bg-zinc-950 border border-zinc-800 rounded p-2">
+                  <div className="text-zinc-500">{t('admin_stats_timed_out')}</div>
+                  <div className="font-mono text-lg text-yellow-500">{serverStats.timed_out_count}</div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="bg-zinc-950 border border-zinc-800 rounded p-3">
+                  <h4 className="text-xs font-bold text-emerald-400 mb-2">{t('admin_leaderboard_cash')}</h4>
+                  <div className="space-y-1 text-[11px]">
+                    {topCash.slice(0, 5).map((p: any) => (
+                      <div key={p.id} className="flex justify-between">
+                        <span className="text-zinc-400">#{p.rank} {p.username}</span>
+                        <span className="font-mono text-emerald-400">{fm(p.cash)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-zinc-950 border border-zinc-800 rounded p-3">
+                  <h4 className="text-xs font-bold text-cyan-400 mb-2">{t('admin_leaderboard_diamonds')}</h4>
+                  <div className="space-y-1 text-[11px]">
+                    {topDiamonds.slice(0, 5).map((p: any) => (
+                      <div key={p.id} className="flex justify-between">
+                        <span className="text-zinc-400">#{p.rank} {p.username}</span>
+                        <span className="font-mono text-cyan-400">{fm(p.diamonds)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-zinc-950 border border-zinc-800 rounded p-3">
+                  <h4 className="text-xs font-bold text-purple-400 mb-2">{t('admin_leaderboard_level')}</h4>
+                  <div className="space-y-1 text-[11px]">
+                    {topLevel.slice(0, 5).map((p: any) => (
+                      <div key={p.id} className="flex justify-between">
+                        <span className="text-zinc-400">#{p.rank} {p.username}</span>
+                        <span className="font-mono text-purple-400">Lvl {p.level}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-zinc-950 border border-zinc-800 rounded p-3">
+                  <h4 className="text-xs font-bold text-sky-400 mb-2">{t('admin_leaderboard_active')}</h4>
+                  <div className="space-y-1 text-[11px]">
+                    {topActive.slice(0, 5).map((p: any) => (
+                      <div key={p.id} className="flex justify-between">
+                        <span className="text-zinc-400">#{p.rank} {p.username}</span>
+                        <span className="font-mono text-sky-400">{p.last_active ? new Date(p.last_active).toLocaleString() : '—'}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
         {/* Player Management Table - FULL CONTROL */}
         <div className="lg:col-span-3 card p-5">

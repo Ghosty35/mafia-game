@@ -130,7 +130,10 @@ export default function SafehousePage() {
           const successKg = player?.successful_harvest_kg || 0;
           const failedKg = player?.failed_harvest_kg || 0;
           const isMansion = prop.name.toLowerCase().includes('mansion');
+          const isPenthouse = prop.name.toLowerCase().includes('penthouse');
+          const isYacht = prop.name.toLowerCase().includes('yacht');
           const isVilla = prop.name.toLowerCase().includes('villa');
+          const isLuxury = isMansion || isPenthouse || isYacht;
           const piggy = prop.piggy_bank || 0;
           return (
             <div key={i} className="card p-5 flex flex-col">
@@ -138,6 +141,7 @@ export default function SafehousePage() {
                 <PropertyImage catalogId={prop.id} ptype={prop.ptype} name={prop.name} size={56} />
                 <div className="min-w-0">
                   <h2 className="text-xl font-bold leading-tight truncate">{getWelcome(prop)}</h2>
+                  {isYacht && <span className="text-[10px] uppercase tracking-wider text-cyan-400 font-bold">🛥️ Yacht Perks Active</span>}
                   <p className="text-[11px] text-zinc-500">
                     {t('safehouse_purchase_date', {
                       date: prop.purchase_date ? new Date(prop.purchase_date).toLocaleDateString() : 'N/A',
@@ -184,7 +188,7 @@ export default function SafehousePage() {
                 </div>
               )}
 
-              {isMansion && (
+              {isLuxury && (
                 <div className="mb-3 p-3 rounded-lg bg-zinc-800/60 border border-zinc-700">
                   <h4 className="font-bold text-sm mb-2">💰 {t('safehouse_piggy_title')}</h4>
                   <div className="flex gap-2 mb-2">
