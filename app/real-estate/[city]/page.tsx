@@ -65,9 +65,9 @@ export default function CityRealEstatePage() {
   useEffect(() => {
     const load = async () => {
       const supabase = createClient();
-      const { data } = await supabase.rpc('get_property_catalog');
+      const { data } = await supabase.rpc('get_property_catalog', { p_city: city });
       if (Array.isArray(data)) {
-        setCatalog(data.filter((p: Property) => p.city === city));
+        setCatalog(data as Property[]);
       }
       setLoading(false);
     };
@@ -149,8 +149,25 @@ export default function CityRealEstatePage() {
 
   if (!player) return <div className="p-6 text-zinc-400">{t('loading')}</div>;
 
+  const categoryOf = (ptype: string) => {
+    if (ptype === 'house' || ptype === 'villa' || ptype === 'mansion') return 'residential';
+    if (ptype === 'agency' || ptype === 'airport' || ptype === 'casino' || ptype === 'tuneshop' || ptype === 'redlight')
+      return 'business';
+    return 'other';
+  };
+
+  const sections: { key: string; label: string; items: Property[] }[] = [
+    { key: 'residential', label: t('re_section_residential'), items: [] },
+    { key: 'business', label: t('re_section_business'), items: [] },
+    { key: 'other', label: t('re_section_other'), items: [] },
+  ];
+  for (const prop of catalog) {
+    const cat = categoryOf(prop.ptype);
+    sections.find((s) => s.key === cat)?.items.push(prop);
+  }
+
   return (
-    <div className="max-w-5xl mx-auto p-4 sm:p-6 space-y-4">
+    <div className="max-w-5xl mx-auto p-4 sm:p-6 space-y-6">
       <div className="flex items-center gap-3">
         <Link href="/real-estate" className="text-amber-400 hover:text-amber-300 text-sm">← {t('common_back')}</Link>
         <div>
@@ -164,81 +181,91 @@ export default function CityRealEstatePage() {
       ) : catalog.length === 0 ? (
         <div className="text-sm text-amber-400">{t('re_none', { city })}</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {catalog.map((prop) => {
-            const meta = getIcon(prop.id, prop.ptype);
-            const tax = getTax(prop);
-            const maint = getMaintenance(prop);
-            const profit = getProfit(prop);
-            const owned = ownedIds.has(prop.id);
-            const blocked = owned || isAtTotalCap || isPtypeMaxed(prop.ptype);
-            const cantAfford = player.cash < prop.price + tax;
-
-            return (
-              <div key={prop.id} className={`${meta.bg} border border-zinc-800 rounded-xl p-5 transition-all hover:border-zinc-700`}>
-                <div className="flex items-center gap-3 mb-3">
-                  <div className={`w-12 h-12 rounded-lg ${meta.bg} border border-zinc-700 flex items-center justify-center overflow-hidden`}>
-                    <PropertyImage catalogId={prop.id} ptype={prop.ptype} name={prop.name} size={48} />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-sm">{prop.name}</h3>
-                    <div className="text-[10px] text-zinc-500 uppercase tracking-wider">{prop.ptype} • {prop.type}</div>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5 text-xs mb-4">
-                  <div className="flex justify-between">
-                    <span className="text-zinc-400">{t('re_purchase')}</span>
-                    <span className="font-mono text-white">{fm(prop.price)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-zinc-400">{t('re_tax')}</span>
-                    <span className="font-mono text-red-400">+{fm(tax)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-zinc-400">{t('re_avg_income')}</span>
-                    <span className="font-mono text-emerald-400">+{fm(prop.income)}/hr</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-zinc-400">{t('re_avg_maint')}</span>
-                    <span className="font-mono text-red-400">-{fm(maint)}/hr</span>
-                  </div>
-                  <div className="flex justify-between pt-1 border-t border-zinc-800">
-                    <span className="text-zinc-300 font-semibold">{t('re_avg_profit')}</span>
-                    <span className="font-mono text-emerald-400 font-bold">+{fm(profit)}/hr</span>
-                  </div>
-                  {prop.spots > 0 && (
-                    <div className="text-[10px] text-zinc-500">{t('re_spots_note', { spots: prop.spots })}</div>
-                  )}
-                </div>
-
-                <button
-                  onClick={() => owned ? sellProperty(prop) : buyProperty(prop)}
-                  disabled={busy || (owned ? false : (blocked || cantAfford))}
-                  className={`w-full py-2 rounded-lg text-xs font-semibold transition-all ${
-                    owned
-                      ? 'bg-zinc-700 hover:bg-zinc-600 text-zinc-200'
-                      : blocked
-                        ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
-                        : cantAfford
-                          ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
-                          : 'bg-red-700 hover:bg-red-600 text-white'
-                  }`}
-                >
-                  {owned
-                    ? t('common_sell')
-                    : isAtTotalCap
-                      ? t('re_total_limit')
-                      : isPtypeMaxed(prop.ptype)
-                        ? 'MAX ' + prop.ptype.toUpperCase()
-                        : cantAfford
-                          ? t('re_no_cash_tax')
-                          : t('re_buy_button', { name: prop.name })}
-                </button>
+        sections
+          .filter((s) => s.items.length > 0)
+          .map((section) => (
+            <div key={section.key} className="space-y-3">
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-300">{section.label}</h2>
+                <span className="text-[10px] text-zinc-500 bg-zinc-800 rounded-full px-2 py-0.5">{section.items.length}</span>
               </div>
-            );
-          })}
-        </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {section.items.map((prop) => {
+                  const meta = getIcon(prop.id, prop.ptype);
+                  const tax = getTax(prop);
+                  const maint = getMaintenance(prop);
+                  const profit = getProfit(prop);
+                  const owned = ownedIds.has(prop.id);
+                  const blocked = owned || isAtTotalCap || isPtypeMaxed(prop.ptype);
+                  const cantAfford = player.cash < prop.price + tax;
+
+                  return (
+                    <div key={prop.id} className={`${meta.bg} border border-zinc-800 rounded-xl p-5 transition-all hover:border-zinc-700`}>
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className={`w-12 h-12 rounded-lg ${meta.bg} border border-zinc-700 flex items-center justify-center overflow-hidden`}>
+                          <PropertyImage catalogId={prop.id} ptype={prop.ptype} name={prop.name} size={48} />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-sm">{prop.name}</h3>
+                          <div className="text-[10px] text-zinc-500 uppercase tracking-wider">{prop.ptype} • {prop.type}</div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5 text-xs mb-4">
+                        <div className="flex justify-between">
+                          <span className="text-zinc-400">{t('re_purchase')}</span>
+                          <span className="font-mono text-white">{fm(prop.price)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-400">{t('re_tax')}</span>
+                          <span className="font-mono text-red-400">+{fm(tax)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-400">{t('re_avg_income')}</span>
+                          <span className="font-mono text-emerald-400">+{fm(prop.income)}/hr</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-400">{t('re_avg_maint')}</span>
+                          <span className="font-mono text-red-400">-{fm(maint)}/hr</span>
+                        </div>
+                        <div className="flex justify-between pt-1 border-t border-zinc-800">
+                          <span className="text-zinc-300 font-semibold">{t('re_avg_profit')}</span>
+                          <span className="font-mono text-emerald-400 font-bold">+{fm(profit)}/hr</span>
+                        </div>
+                        {prop.spots > 0 && (
+                          <div className="text-[10px] text-zinc-500">{t('re_spots_note', { spots: prop.spots })}</div>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={() => owned ? sellProperty(prop) : buyProperty(prop)}
+                        disabled={busy || (owned ? false : (blocked || cantAfford))}
+                        className={`w-full py-2 rounded-lg text-xs font-semibold transition-all ${
+                          owned
+                            ? 'bg-zinc-700 hover:bg-zinc-600 text-zinc-200'
+                            : blocked
+                              ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                              : cantAfford
+                                ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                                : 'bg-red-700 hover:bg-red-600 text-white'
+                        }`}
+                      >
+                        {owned
+                          ? t('common_sell')
+                          : isAtTotalCap
+                            ? t('re_total_limit')
+                            : isPtypeMaxed(prop.ptype)
+                              ? 'MAX ' + prop.ptype.toUpperCase()
+                              : cantAfford
+                                ? t('re_no_cash_tax')
+                                : t('re_buy_button', { name: prop.name })}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))
       )}
     </div>
   );
