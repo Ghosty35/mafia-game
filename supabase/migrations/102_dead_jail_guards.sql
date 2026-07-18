@@ -547,27 +547,62 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION public.leave_family()
-RETURNS boolean
+RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 AS $$
 DECLARE
-  my_family_id uuid;
-  my_role text;
+  p        public.players;
+  v_fam_id uuid;
+  v_role   text;
+  v_fee    bigint;
+  v_others int;
+  v_expires timestamptz;
 BEGIN
   IF auth.uid() IS NULL THEN RAISE EXCEPTION 'NOT_AUTHENTICATED'; END IF;
 
-  SELECT family_id INTO my_family_id FROM public.players WHERE id = auth.uid();
-  IF my_family_id IS NULL THEN RETURN false; END IF;
-  IF EXISTS (SELECT 1 FROM public.players WHERE id = auth.uid() AND death_until IS NOT NULL AND death_until > now()) THEN
-    RAISE EXCEPTION 'DEAD';
+  SELECT * INTO p FROM public.players WHERE id = auth.uid() FOR UPDATE;
+  IF p.id IS NULL THEN RAISE EXCEPTION 'NO_PLAYER'; END IF;
+  IF p.death_until IS NOT NULL AND p.death_until > now() THEN RAISE EXCEPTION 'DEAD'; END IF;
+  IF p.family_id IS NULL THEN RAISE EXCEPTION 'NOT_IN_FAMILY'; END IF;
+
+  v_fam_id := p.family_id;
+
+  SELECT role INTO v_role FROM public.family_members WHERE family_id = v_fam_id AND player_id = p.id;
+  SELECT count(*) - 1 INTO v_others FROM public.family_members WHERE family_id = v_fam_id;
+
+  -- A boss can't abandon a crew that still has members: hand the seat over first.
+  IF v_role = 'boss' AND v_others > 0 THEN
+    RAISE EXCEPTION 'BOSS_MUST_HAND_OVER';
   END IF;
 
-  SELECT role INTO my_role FROM public.family_members WHERE family_id = my_family_id AND player_id = auth.uid();
-  DELETE FROM public.family_members WHERE family_id = my_family_id AND player_id = auth.uid();
-  UPDATE public.players SET family_id = null WHERE id = auth.uid();
-  RETURN true;
+  v_fee := least(5000000, greatest(25000,
+             floor((coalesce(p.cash,0) + coalesce(p.personal_bank,0)) * 0.05)::bigint));
+
+  IF coalesce(p.cash,0) < v_fee THEN RAISE EXCEPTION 'NOT_ENOUGH_CASH'; END IF;
+
+  UPDATE public.players SET cash = cash - v_fee, family_id = null WHERE id = p.id;
+
+  DELETE FROM public.family_members WHERE family_id = v_fam_id AND player_id = p.id;
+
+  -- The last one out doesn't get hunted by an empty room.
+  IF v_others > 0 THEN
+    v_expires := now() + interval '7 days';
+    DELETE FROM public.family_bounties WHERE target_id = p.id AND claimed_by IS NULL;
+    INSERT INTO public.family_bounties (target_id, family_id, amount, expires_at)
+    VALUES (p.id, v_fam_id, v_fee, v_expires);
+    PERFORM public._log_event_named(
+      p.username, 'bounty',
+      'walked out on the family — ' || p.username || ' has a $' || v_fee || ' bounty on their head'
+    );
+  END IF;
+
+  RETURN jsonb_build_object(
+    'success', true,
+    'fee', v_fee,
+    'bounty_placed', v_others > 0
+  );
 END;
 $$;
 

@@ -23,9 +23,13 @@ export default function StreetDealerPage() {
   const [prices, setPrices] = useState<DrugPrices>({ Coke: 0, Weed: 0, Meth: 0, Pills: 0 });
   const [city, setCity] = useState<City>('New York');
   const [drugStorage, setDrugStorage] = useState<Record<string, number>>({});
-  const [cooldowns, setCooldowns] = useState<Record<string, number>>({}); // for timers like murder, grow
-  const [buyQty, setBuyQty] = useState(1);
-  const [sellQty, setSellQty] = useState(1);
+  const [cooldowns, setCooldowns] = useState<Record<string, number>>({});
+  const [quantities, setQuantities] = useState<Record<string, number>>(
+    Object.fromEntries(DRUGS.map(d => [d, 1]))
+  );
+
+  const setQty = (drug: string, value: number) =>
+    setQuantities(prev => ({ ...prev, [drug]: Math.max(1, Math.min(9999, parseInt(value as any) || 1)) }));
 
   const drugMeta: Record<string, { icon: string; color: string; bg: string; border: string; label: string }> = {
     Coke:    { icon: '❄️', color: 'text-zinc-100', bg: 'bg-zinc-100/5', border: 'border-zinc-400/30', label: 'Cocaine' },
@@ -85,7 +89,7 @@ export default function StreetDealerPage() {
   }, []);
 
   const buyDrug = async (drug: typeof DRUGS[number], qty?: number) => {
-    const amount = qty || buyQty;
+    const amount = qty || quantities[drug] || 1;
     if (!player || amount < 1) return;
     if (!canPerformAction()) {
       showToast(t('dealer_wait'), 'error');
@@ -164,56 +168,58 @@ export default function StreetDealerPage() {
         </div>
       </div>
 
-      {/* Quantity controls — bulk buy/sell instead of spam-clicking */}
-      <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
-        <div className="grid grid-cols-2 gap-3">
-          <label className="flex items-center gap-2 text-sm">
-            <span className="text-zinc-400 w-16">Buy qty</span>
-            <input
-              type="number"
-              min={1}
-              value={buyQty}
-              onChange={(e) => setBuyQty(Math.max(1, parseInt(e.target.value) || 1))}
-              className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 font-mono text-sm focus:outline-none focus:border-amber-700"
-            />
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <span className="text-zinc-400 w-16">Sell qty</span>
-            <input
-              type="number"
-              min={1}
-              value={sellQty}
-              onChange={(e) => setSellQty(Math.max(1, parseInt(e.target.value) || 1))}
-              className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 font-mono text-sm focus:outline-none focus:border-amber-700"
-            />
-          </label>
-        </div>
-      </div>
-
       {/* Drug Market Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {DRUGS.map(drug => {
           const meta = drugMeta[drug];
+          const owned = drugStorage[drug] || 0;
+          const cap = economy?.drug_caps?.[drug] ?? 0;
+          const qty = quantities[drug] || 1;
+          const cost = prices[drug] * qty;
+          const canBuy = player.cash >= cost;
+          const canSell = owned >= qty;
           return (
             <div key={drug} className={`${meta.bg} border ${meta.border} rounded-xl p-4 transition-all hover:shadow-lg`}>
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-2xl">{meta.icon}</span>
-                <h3 className={`font-bold text-sm ${meta.color}`}>{meta.label}</h3>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">{meta.icon}</span>
+                  <h3 className={`font-bold text-sm ${meta.color}`}>{meta.label}</h3>
+                </div>
+                <span className="text-[10px] text-zinc-500">{owned}/{cap} kg</span>
               </div>
-              <div className="text-2xl font-mono text-white my-2">{fm(prices[drug])}</div>
+              <div className="text-2xl font-mono text-white mb-1">{fm(prices[drug])}</div>
               <div className="text-[10px] text-zinc-500 mb-3">per kg • {currentCity}</div>
+
+              <label className="flex items-center gap-2 text-xs mb-3">
+                <span className="text-zinc-400 w-12">Qty</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={9999}
+                  value={qty}
+                  onChange={(e) => setQty(drug, parseInt(e.target.value) || 1)}
+                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 font-mono text-sm focus:outline-none focus:border-amber-700"
+                />
+              </label>
+
+              <div className="text-xs text-zinc-400 mb-3">
+                {t('dealer_est_cost', { amount: fm(cost) })}
+              </div>
+
               <div className="flex gap-2">
                 <button
                   onClick={() => buyDrug(drug)}
-                  className="flex-1 py-2 bg-red-700 hover:bg-red-600 rounded-lg text-xs font-semibold transition-colors"
+                  disabled={!canBuy}
+                  className={`flex-1 py-2 bg-red-700 hover:bg-red-600 rounded-lg text-xs font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed`}
                 >
-                  {t('dealer_buy', { qty: buyQty })}
+                  {t('dealer_buy', { qty })}
                 </button>
                 <button
-                  onClick={() => sellDrug(drug, sellQty)}
-                  className="flex-1 py-2 bg-emerald-700 hover:bg-emerald-600 rounded-lg text-xs font-semibold transition-colors"
+                  onClick={() => sellDrug(drug, qty)}
+                  disabled={!canSell}
+                  className={`flex-1 py-2 bg-emerald-700 hover:bg-emerald-600 rounded-lg text-xs font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed`}
                 >
-                  {t('dealer_sell', { qty: sellQty })}
+                  {t('dealer_sell', { qty })}
                 </button>
               </div>
             </div>

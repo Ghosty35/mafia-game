@@ -24,6 +24,19 @@ export interface MenuCategory {
 
 export const leftMenuCategories: MenuCategory[] = [
   {
+    titleKey: 'side_journey',
+    items: [
+      { labelKey: 'menu_hustlers_way', href: '/hustlers-way', icon: '🛤️' },
+      { labelKey: 'menu_roadmap', href: '/journey/roadmap', icon: '🚀' },
+      { labelKey: 'menu_menus', href: '/journey/menus', icon: '🧭' },
+      { labelKey: 'menu_tips', href: '/journey/tips', icon: '💡' },
+      { labelKey: 'menu_guide', href: '/journey/guide', icon: '📖' },
+      { labelKey: 'menu_rebirth', href: '/rebirth', icon: '👑' },
+      { labelKey: 'menu_server_status', href: '/server-status', icon: '🟢' },
+      { labelKey: 'menu_about', href: '/about', icon: 'ℹ️' },
+    ],
+  },
+  {
     titleKey: 'side_street_ops',
     items: [
       { labelKey: 'menu_commit_crimes', href: '/crimes', icon: '🔫' },
@@ -48,19 +61,6 @@ export const leftMenuCategories: MenuCategory[] = [
       { labelKey: 'menu_marketplace', href: '/marketplace', icon: '🏛️' },
       { labelKey: 'menu_shop', href: '/shop', icon: '🛒' },
       { labelKey: 'menu_vip_store', href: '/shop/vip', icon: '👑' },
-    ],
-  },
-  {
-    titleKey: 'side_city_services',
-    items: [
-      { labelKey: 'menu_travel', href: '/travel', icon: '🧭' },
-      { labelKey: 'menu_hospital', href: '/hospital', icon: '🏥' },
-      { labelKey: 'menu_jail', href: '/jail', icon: '🔒' },
-      { labelKey: 'menu_garage', href: '/garage', icon: '🚙' },
-      { labelKey: 'menu_tune_shop', href: '/garage/tune-shop', icon: '🔧' },
-      { labelKey: 'menu_junkyard', href: '/garage/junkyard', icon: '🗜️' },
-      { labelKey: 'menu_gym', href: '/gym', icon: '🏋️' },
-      { labelKey: 'menu_wait_times', href: '/wachttijden', icon: '⏱️' },
     ],
   },
   {
@@ -99,23 +99,23 @@ export function buildLeftMenu(isAdmin: boolean): MenuCategory[] {
 
 export const rightMenuCategories: MenuCategory[] = [
   {
-    titleKey: 'side_journey',
+    titleKey: 'side_communication',
     items: [
-      { labelKey: 'menu_hustlers_way', href: '/hustlers-way', icon: '🛤️' },
-      { labelKey: 'menu_roadmap', href: '/journey/roadmap', icon: '🚀' },
-      { labelKey: 'menu_menus', href: '/journey/menus', icon: '🧭' },
-      { labelKey: 'menu_tips', href: '/journey/tips', icon: '💡' },
-      { labelKey: 'menu_guide', href: '/journey/guide', icon: '📖' },
-      { labelKey: 'menu_rebirth', href: '/rebirth', icon: '👑' },
-      { labelKey: 'menu_server_status', href: '/server-status', icon: '🟢' },
-      { labelKey: 'menu_about', href: '/about', icon: 'ℹ️' },
+      { labelKey: 'menu_messages', href: '/messages', icon: '✉️' },
+      { labelKey: 'menu_travel', href: '/travel', icon: '🧭' },
+      { labelKey: 'menu_hospital', href: '/hospital', icon: '🏥' },
+      { labelKey: 'menu_jail', href: '/jail', icon: '🔒' },
+      { labelKey: 'menu_garage', href: '/garage', icon: '🚙' },
+      { labelKey: 'menu_tune_shop', href: '/garage/tune-shop', icon: '🔧' },
+      { labelKey: 'menu_junkyard', href: '/garage/junkyard', icon: '🗜️' },
+      { labelKey: 'menu_gym', href: '/gym', icon: '🏋️' },
+      { labelKey: 'menu_wait_times', href: '/wachttijden', icon: '⏱️' },
     ],
   },
   {
     titleKey: 'side_profile',
     items: [
       { labelKey: 'menu_my_profile', href: '/profile', icon: '👤' },
-      { labelKey: 'menu_messages', href: '/messages', icon: '✉️' },
       { labelKey: 'menu_safehouse', href: '/safehouse', icon: '🏠' },
     ],
   },

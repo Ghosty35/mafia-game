@@ -22,6 +22,11 @@ export default function GaragePage() {
   const { cars, garageLevel, fuelPrice, loading, reload } = useGarage();
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
+
+  const pageCount = Math.max(1, Math.ceil(cars.length / PAGE_SIZE));
+  const shownCars = cars.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   const supabase = createClient();
   const maxCars = maxCarsFor(player?.owned_properties, garageLevel);
@@ -130,21 +135,22 @@ export default function GaragePage() {
           <p className="text-sm text-zinc-500">{t('gr_no_cars')}</p>
         </Panel>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {cars.map((car) => {
-            const fuelPct = car.fuel_tank > 0 ? (car.fuel / car.fuel_tank) * 100 : 0;
-            const roomLeft = car.fuel_tank - car.fuel;
-            return (
-              <Panel
-                key={car.id}
-                title={
-                  <div className="flex items-center justify-between gap-2">
-                    <span>{car.name}</span>
-                    {car.tuned && <span className="text-[10px] px-2 py-px bg-blue-900/60 text-blue-300 rounded uppercase tracking-wider">{t('gr_tuned')}</span>}
-                  </div>
-                }
-                icon="🚗"
-              >
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {shownCars.map((car) => {
+              const fuelPct = car.fuel_tank > 0 ? (car.fuel / car.fuel_tank) * 100 : 0;
+              const roomLeft = car.fuel_tank - car.fuel;
+              return (
+                <Panel
+                  key={car.id}
+                  title={
+                    <div className="flex items-center justify-between gap-2">
+                      <span>{car.name}</span>
+                      {car.tuned && <span className="text-[10px] px-2 py-px bg-blue-900/60 text-blue-300 rounded uppercase tracking-wider">{t('gr_tuned')}</span>}
+                    </div>
+                  }
+                  icon="🚗"
+                >
                 {/* Car art (procedural SVG by catalog_id) */}
                 <div className="flex items-center justify-center py-2 mb-2 bg-zinc-900/40 rounded-lg border border-zinc-800/60">
                   <CarImage catalogId={car.catalog_id ?? ''} name={car.name} tuned={car.tuned} size={120} />
@@ -213,7 +219,30 @@ export default function GaragePage() {
               </Panel>
             );
           })}
-        </div>
+          </div>
+
+          {pageCount > 1 && (
+            <div className="flex items-center justify-center gap-3 text-sm">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-lg disabled:opacity-40"
+              >
+                ← {t('common_prev')}
+              </button>
+              <span className="text-zinc-400 font-mono">
+                {page} / {pageCount}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                disabled={page === pageCount}
+                className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-lg disabled:opacity-40"
+              >
+                {t('common_next')} →
+              </button>
+            </div>
+          )}
+        </>
       )}
 
       {/* Warehouse upgrade */}
