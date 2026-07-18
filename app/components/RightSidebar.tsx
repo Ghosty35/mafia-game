@@ -47,15 +47,4 @@ export default function RightSidebar() {
       </div>
     </aside>
   );
-              })}
-            </div>
-          </div>
-        ))}
-
-        <div className="mt-8 pt-4 border-t border-zinc-800 px-3">
-          <div className="text-[10px] text-zinc-600">{t('side_footer_right')}</div>
-        </div>
-      </div>
-    </aside>
-  );
 }

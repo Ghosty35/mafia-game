@@ -15,13 +15,10 @@ export default function SafehousePage() {
   const router = useRouter();
   const economy = useEconomy();
   const owned: OwnedProperty[] = player?.owned_properties || [];
-  const safehouses = owned.filter(
-    (p) =>
-      p.name &&
-      (p.name.toLowerCase().includes('house') ||
-        p.name.toLowerCase().includes('villa') ||
-        p.name.toLowerCase().includes('mansion')),
-  );
+  const isResidential = (p: OwnedProperty) =>
+    p.name && (p.name.toLowerCase().includes('house') || p.name.toLowerCase().includes('villa') || p.name.toLowerCase().includes('mansion'));
+  const safehouses = owned.filter(isResidential);
+  const businesses = owned.filter((p) => !isResidential(p));
 
   const getWelcome = (prop: OwnedProperty) => {
     const name = prop.name || 'your spot';
@@ -331,6 +328,27 @@ export default function SafehousePage() {
           </div>
         );
       })}
+
+      {businesses.length > 0 && (
+        <div className="mt-8">
+          <h3 className="text-xl font-bold mb-4">🏢 {t('safehouse_business_title') || 'Your Businesses'}</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {businesses.map((prop, i) => (
+              <div key={i} className="card p-5">
+                <h4 className="font-bold text-sm mb-2">{prop.name}</h4>
+                <div className="text-xs text-zinc-400 space-y-1">
+                  <div>Type: <span className="text-zinc-300">{prop.ptype}</span></div>
+                  <div>City: <span className="text-zinc-300">{prop.city}</span></div>
+                  <div>Income: <span className="text-emerald-400">+{fm(prop.income || 0)}/hr</span></div>
+                  <div>Bank: <span className="text-amber-400">{fm(prop.bank_balance || 0)}</span></div>
+                  <div>Maintenance: <span className="text-red-400">-{fm(prop.maintenance_due || 0)}</span></div>
+                </div>
+                <p className="text-[10px] text-zinc-500 mt-2">{t('safehouse_business_note') || 'Business management features coming soon.'}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="mt-8">
         <h3 className="font-bold mb-2">{t('safehouse_shed_section_title')}</h3>

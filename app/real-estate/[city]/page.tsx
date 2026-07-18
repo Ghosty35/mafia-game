@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { usePlayer } from '../../components/PlayerContext';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
@@ -25,6 +25,19 @@ const PROPERTY_ICONS: Record<string, { icon: string; color: string; bg: string }
   house_mi:   { icon: '🏠', color: 'text-emerald-400', bg: 'bg-emerald-950/30' },
   villa_lv:   { icon: '🏛️', color: 'text-amber-400', bg: 'bg-amber-950/30' },
 };
+
+const PTYPE_ICONS: Record<string, { icon: string; color: string; bg: string }> = {
+  house:     { icon: '🏠', color: 'text-emerald-400', bg: 'bg-emerald-950/30' },
+  villa:     { icon: '🏛️', color: 'text-amber-400', bg: 'bg-amber-950/30' },
+  mansion:   { icon: '💎', color: 'text-amber-300', bg: 'bg-amber-950/40' },
+  agency:    { icon: '🏢', color: 'text-zinc-300', bg: 'bg-zinc-800/50' },
+  airport:   { icon: '✈️', color: 'text-sky-400', bg: 'bg-sky-950/30' },
+  casino:    { icon: '🎰', color: 'text-purple-400', bg: 'bg-purple-950/30' },
+  tuneshop:  { icon: '🔧', color: 'text-orange-400', bg: 'bg-orange-950/30' },
+  redlight:  { icon: '🌃', color: 'text-pink-400', bg: 'bg-pink-950/30' },
+};
+
+const getIcon = (id: string, ptype?: string) => PROPERTY_ICONS[id] || (ptype ? PTYPE_ICONS[ptype] : undefined) || { icon: '🏢', color: 'text-zinc-300', bg: 'bg-zinc-900' };
 
 type Property = {
   id: string;
@@ -87,6 +100,24 @@ export default function CityRealEstatePage() {
     showToast(t('re_bought', { name: prop.name, city: prop.city, price: fm(prop.price), tax: fm(data?.tax ?? tax) }));
   };
 
+  const sellProperty = async (prop: Property) => {
+    if (!player) return;
+    if (!confirm(t('re_sell_confirm', { name: prop.name, refund: fm(Math.floor(prop.price * 0.5)) }))) return;
+    setBusy(true);
+    const supabase = createClient();
+    const { data, error } = await supabase.rpc('sell_property', {
+      p_prop_id: prop.id,
+    });
+    setBusy(false);
+    if (error) {
+      showToast(error.message || t('re_sell_failed'));
+      return;
+    }
+    if (refreshPlayer) await refreshPlayer();
+    router.refresh();
+    showToast(t('re_sold', { name: prop.name, refund: fm(data?.refund ?? 0) }));
+  };
+
   const getMaintenance = (prop: Property) => Math.floor(prop.income * 0.12);
   const getProfit = (prop: Property) => prop.income - getMaintenance(prop);
 
@@ -120,7 +151,7 @@ export default function CityRealEstatePage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {catalog.map((prop) => {
-            const meta = PROPERTY_ICONS[prop.id] || { icon: '🏢', color: 'text-zinc-300', bg: 'bg-zinc-900' };
+            const meta = getIcon(prop.id, prop.ptype);
             const maint = getMaintenance(prop);
             const profit = getProfit(prop);
             const owned = ownedIds.has(prop.id);
@@ -162,17 +193,27 @@ export default function CityRealEstatePage() {
                 </div>
 
                 <button
-                  onClick={() => buyProperty(prop)}
-                  disabled={busy || blocked || cantAfford}
+                  onClick={() => owned ? sellProperty(prop) : buyProperty(prop)}
+                  disabled={busy || (owned ? false : (blocked || cantAfford))}
                   className={`w-full py-2 rounded-lg text-xs font-semibold transition-all ${
-                    blocked
-                      ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
-                      : cantAfford
+                    owned
+                      ? 'bg-zinc-700 hover:bg-zinc-600 text-zinc-200'
+                      : blocked
                         ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
-                        : 'bg-red-700 hover:bg-red-600 text-white'
+                        : cantAfford
+                          ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                          : 'bg-red-700 hover:bg-red-600 text-white'
                   }`}
                 >
-                  {owned ? t('re_house_in_city') : isAtTotalCap ? t('re_total_limit') : isPtypeMaxed(prop.ptype) ? 'MAX ' + prop.ptype.toUpperCase() : cantAfford ? t('re_no_cash_tax') : t('re_buy_button', { name: prop.name })}
+                  {owned
+                    ? t('common_sell')
+                    : isAtTotalCap
+                      ? t('re_total_limit')
+                      : isPtypeMaxed(prop.ptype)
+                        ? 'MAX ' + prop.ptype.toUpperCase()
+                        : cantAfford
+                          ? t('re_no_cash_tax')
+                          : t('re_buy_button', { name: prop.name })}
                 </button>
               </div>
             );

@@ -1,7 +1,9 @@
 // One entry in the owned_properties jsonb array on players
 export type OwnedProperty = {
   id: string;
+  catalog_id?: string;
   name: string;
+  ptype: string;
   type: string;
   city: string;
   purchase_date: string;
@@ -14,7 +16,7 @@ export type OwnedProperty = {
   last_earned?: string;     // ISO timestamp of last earnings tick
   piggy_bank?: number;      // Mansion only: hidden safe
   bodyguards?: number;      // Villa only: raid protection (0-10)
-  spots?: number;           // weed grow spots
+  spots?: number;           // weed grow spots / property capacity
 };
 
 // Matches the public.players table in Supabase

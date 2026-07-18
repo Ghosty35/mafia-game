@@ -41,6 +41,7 @@ const DURATIONS = [1, 3, 6, 12, 24];
 export default function MarketplacePage() {
   const { player, refreshPlayer } = usePlayer();
   const { t, fm } = useLanguage();
+  const router = useRouter();
 
   const [board, setBoard] = useState<Board | null>(null);
   const [myCars, setMyCars] = useState<ListableCar[]>([]);
