@@ -37,7 +37,9 @@ const PTYPE_ICONS: Record<string, { icon: string; color: string; bg: string }> =
   redlight:  { icon: '🌃', color: 'text-pink-400', bg: 'bg-pink-950/30' },
 };
 
-const getIcon = (id: string, ptype?: string) => PROPERTY_ICONS[id] || (ptype ? PTYPE_ICONS[ptype] : undefined) || { icon: '🏢', color: 'text-zinc-300', bg: 'bg-zinc-900' };
+const baseId = (id: string) => id.split('__')[0];
+
+const getIcon = (id: string, ptype?: string) => PROPERTY_ICONS[baseId(id)] || (ptype ? PTYPE_ICONS[ptype] : undefined) || { icon: '🏢', color: 'text-zinc-300', bg: 'bg-zinc-900' };
 
 type Property = {
   id: string;
