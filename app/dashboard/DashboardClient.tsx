@@ -188,6 +188,40 @@ export default function DashboardClient({
 
       {/* === HOME PAGE CONTENT === */}
 
+      {/* Current Stats — surfaced near the top so players see their standings */}
+      <section>
+        <h2 className="text-xl font-bold mb-3 tracking-tight">📊 Current Stats</h2>
+        <div className="grid md:grid-cols-3 gap-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+            <div className="text-[10px] uppercase tracking-[3px] text-zinc-500 mb-3">Combat</div>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between"><span className="text-zinc-400">Health</span><span className="font-mono text-emerald-400">{player.health ?? 100}%</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">Heat</span><span className="font-mono text-red-400">{player.heat ?? 0}/100</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">Power</span><span className="font-mono text-amber-400">{player.power ?? 0}</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">Bullets</span><span className="font-mono text-zinc-300">{player.bullets ?? 0}</span></div>
+            </div>
+          </div>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+            <div className="text-[10px] uppercase tracking-[3px] text-zinc-500 mb-3">Economy</div>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between"><span className="text-zinc-400">Cash</span><span className="font-mono text-emerald-400">{fm(player.cash ?? 0)}</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">Bank</span><span className="font-mono text-blue-400">{fm(player.personal_bank ?? 0)}</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">Weed</span><span className="font-mono text-emerald-400">{(player.drug_storage?.Weed ?? 0)} kg</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">Coke</span><span className="font-mono text-zinc-200">{(player.drug_storage?.Coke ?? 0)} kg</span></div>
+            </div>
+          </div>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
+            <div className="text-[10px] uppercase tracking-[3px] text-zinc-500 mb-3">Status</div>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between"><span className="text-zinc-400">City</span><span className="font-mono text-white">{player.current_city ?? 'New York'}</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">Properties</span><span className="font-mono text-amber-400">{(player.owned_properties || []).length}/4</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">Rank</span><span className="font-mono text-red-400">{player.money_rank ?? 'Hobo'}</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">Diamonds</span><span className="font-mono text-amber-300">💎 {player.diamonds ?? 0}</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Heat management — passive decay, cool-down items, corrupt lawyer */}
       <HeatManager variant="full" />
 
@@ -253,40 +287,6 @@ export default function DashboardClient({
               <div className="text-xs text-zinc-500">{card.desc}</div>
             </Link>
           ))}
-        </div>
-      </section>
-
-      {/* Current Stats */}
-      <section>
-        <h2 className="text-xl font-bold mb-3 tracking-tight">📊 Current Stats</h2>
-        <div className="grid md:grid-cols-3 gap-4">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-            <div className="text-[10px] uppercase tracking-[3px] text-zinc-500 mb-3">Combat</div>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-zinc-400">Health</span><span className="font-mono text-emerald-400">{player.health ?? 100}%</span></div>
-              <div className="flex justify-between"><span className="text-zinc-400">Heat</span><span className="font-mono text-red-400">{player.heat ?? 0}/100</span></div>
-              <div className="flex justify-between"><span className="text-zinc-400">Power</span><span className="font-mono text-amber-400">{player.power ?? 0}</span></div>
-              <div className="flex justify-between"><span className="text-zinc-400">Bullets</span><span className="font-mono text-zinc-300">{player.bullets ?? 0}</span></div>
-            </div>
-          </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-            <div className="text-[10px] uppercase tracking-[3px] text-zinc-500 mb-3">Economy</div>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-zinc-400">Cash</span><span className="font-mono text-emerald-400">{fm(player.cash ?? 0)}</span></div>
-              <div className="flex justify-between"><span className="text-zinc-400">Bank</span><span className="font-mono text-blue-400">{fm(player.personal_bank ?? 0)}</span></div>
-              <div className="flex justify-between"><span className="text-zinc-400">Weed</span><span className="font-mono text-emerald-400">{(player.drug_storage?.Weed ?? 0)} kg</span></div>
-              <div className="flex justify-between"><span className="text-zinc-400">Coke</span><span className="font-mono text-zinc-200">{(player.drug_storage?.Coke ?? 0)} kg</span></div>
-            </div>
-          </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
-            <div className="text-[10px] uppercase tracking-[3px] text-zinc-500 mb-3">Status</div>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-zinc-400">City</span><span className="font-mono text-white">{player.current_city ?? 'New York'}</span></div>
-              <div className="flex justify-between"><span className="text-zinc-400">Properties</span><span className="font-mono text-amber-400">{(player.owned_properties || []).length}/4</span></div>
-              <div className="flex justify-between"><span className="text-zinc-400">Rank</span><span className="font-mono text-red-400">{player.money_rank ?? 'Hobo'}</span></div>
-              <div className="flex justify-between"><span className="text-zinc-400">Diamonds</span><span className="font-mono text-amber-300">💎 {player.diamonds ?? 0}</span></div>
-            </div>
-          </div>
         </div>
       </section>
 

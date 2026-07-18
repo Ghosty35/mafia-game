@@ -40,6 +40,29 @@ function ProfileContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [now, setNow] = useState(() => Date.now());
+  const [findMsg, setFindMsg] = useState('');
+  const [findBusy, setFindBusy] = useState(false);
+
+  const findBithes = async () => {
+    if (!viewUser) return;
+    setFindBusy(true);
+    setFindMsg('');
+    const supabase = createClient();
+    const { data, error: err } = await supabase.rpc('find_bitches', { p_target_username: viewUser });
+    setFindBusy(false);
+    if (err) {
+      const m = err.message || '';
+      if (m.includes('FIND_ON_COOLDOWN')) setFindMsg(t('prof_find_bitches_cooldown'));
+      else if (m.includes('BITCH_LIMIT')) setFindMsg(t('prof_find_bitches_limit'));
+      else if (m.includes('IN_JAIL')) setFindMsg(t('rl_err_in_jail'));
+      else if (m.includes('DEAD')) setFindMsg(t('rl_err_dead'));
+      else setFindMsg(m);
+    } else if (data?.success) {
+      setFindMsg(t('prof_find_bitches_done', { added: data.added, city: data.city }));
+      if (refreshPlayer) await refreshPlayer();
+      await router.refresh();
+    }
+  };
 
   // Viewing someone else only when the name differs from our own.
   const isOwn = !viewUser || (player?.username != null && viewUser.toLowerCase() === player.username.toLowerCase());
@@ -127,6 +150,18 @@ function ProfileContent() {
             </div>
           )}
           {p.bio && <p className="text-xs text-zinc-300 mt-2 whitespace-pre-wrap">{p.bio}</p>}
+          {!isOwn && (
+            <div className="mt-3 flex items-center gap-2 flex-wrap">
+              <button
+                onClick={findBithes}
+                disabled={findBusy}
+                className="px-3 py-1.5 rounded bg-pink-700 hover:bg-pink-600 disabled:opacity-40 text-xs font-bold"
+              >
+                {findBusy ? '…' : '🔎 ' + t('prof_find_bitches')}
+              </button>
+              {findMsg && <span className="text-[11px] text-emerald-400">{findMsg}</span>}
+            </div>
+          )}
         </div>
       </div>
 
