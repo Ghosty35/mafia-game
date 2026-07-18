@@ -122,7 +122,9 @@ export default function CityRealEstatePage() {
     });
     setBusy(false);
     if (error) {
-      showToast(error.message || t('re_sell_failed'));
+      const m = error.message || '';
+      if (m.includes('LAUNDER_ACTIVE')) showToast(t('re_sell_launder_active'));
+      else showToast(m || t('re_sell_failed'));
       return;
     }
     if (refreshPlayer) await refreshPlayer();

@@ -52,6 +52,11 @@ export default function PropertyLaunderBoard() {
   const dirty = Number(player?.dirty_cash ?? 0);
   const owned: OwnedProperty[] = useMemo(() => player?.owned_properties ?? [], [player]);
 
+  // Bust risk on collect mirrors the server: heat/350, halved by Corrupt Lawyer.
+  const heat = player?.heat ?? 0;
+  const hasLawyer = !!player?.has_corrupt_lawyer;
+  const bustPct = Math.round((heat / 350) * (hasLawyer ? 0.5 : 1) * 100);
+
   const mapErr = (msg: string): string => {
     if (msg.includes('BATCH_ACTIVE')) return t('pl_err_active');
     if (msg.includes('OVER_CAPACITY')) return t('pl_err_capacity');
@@ -59,6 +64,7 @@ export default function PropertyLaunderBoard() {
     if (msg.includes('NOT_READY')) return t('pl_err_not_ready');
     if (msg.includes('NO_BATCH')) return t('pl_err_no_batch');
     if (msg.includes('IN_JAIL')) return t('ld_err_jail');
+    if (msg.includes('DEAD')) return t('pl_err_dead');
     if (msg.includes('INVALID_AMOUNT')) return t('ld_err_amount');
     return msg;
   };
@@ -118,6 +124,9 @@ export default function PropertyLaunderBoard() {
       <div>
         <h2 className="font-semibold text-sm">🏠 {t('pl_title')}</h2>
         <p className="text-[11px] text-zinc-500">{t('pl_desc')}</p>
+        <p className={`text-[11px] mt-1 ${bustPct > 10 ? 'text-orange-400' : 'text-zinc-500'}`}>
+          {t('pl_bust_risk', { pct: bustPct })}{hasLawyer ? ` ${t('ld_bust_lawyer')}` : ''}
+        </p>
       </div>
 
       {owned.length === 0 ? (

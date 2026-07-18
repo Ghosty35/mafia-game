@@ -9,6 +9,7 @@ import type { TranslationKey } from '@/lib/i18n/translations';
 const GUIDE_STEPS: Array<{ icon: string; titleKey: TranslationKey; bodyKey: TranslationKey }> = [
   { icon: '🩸', titleKey: 'ld_guide_s1_title', bodyKey: 'ld_guide_s1_body' },
   { icon: '🧺', titleKey: 'ld_guide_s2_title', bodyKey: 'ld_guide_s2_body' },
+  { icon: '🏠', titleKey: 'ld_guide_s5_title', bodyKey: 'ld_guide_s5_body' },
   { icon: '🚨', titleKey: 'ld_guide_s3_title', bodyKey: 'ld_guide_s3_body' },
   { icon: '⚖️', titleKey: 'ld_guide_s4_title', bodyKey: 'ld_guide_s4_body' },
 ];
