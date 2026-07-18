@@ -473,33 +473,23 @@ as $$
   select jsonb_build_object(
     'top_crimes', coalesce((
       select jsonb_agg(jsonb_build_object('username', s.username, 'value', s.crimes_done))
-      from public.player_stats s
-      order by s.crimes_done desc nulls last
-      limit 20
+      from (select username, crimes_done from public.player_stats order by crimes_done desc nulls last limit 20) s
     ), '[]'::jsonb),
     'top_heists', coalesce((
       select jsonb_agg(jsonb_build_object('username', s.username, 'value', s.heists_done))
-      from public.player_stats s
-      order by s.heists_done desc nulls last
-      limit 20
+      from (select username, heists_done from public.player_stats order by heists_done desc nulls last limit 20) s
     ), '[]'::jsonb),
     'top_murders', coalesce((
       select jsonb_agg(jsonb_build_object('username', s.username, 'value', s.murders_done))
-      from public.player_stats s
-      order by s.murders_done desc nulls last
-      limit 20
+      from (select username, murders_done from public.player_stats order by murders_done desc nulls last limit 20) s
     ), '[]'::jsonb),
     'top_races', coalesce((
       select jsonb_agg(jsonb_build_object('username', s.username, 'value', s.races_won))
-      from public.player_stats s
-      order by s.races_won desc nulls last
-      limit 20
+      from (select username, races_won from public.player_stats order by races_won desc nulls last limit 20) s
     ), '[]'::jsonb),
     'top_drugs', coalesce((
       select jsonb_agg(jsonb_build_object('username', s.username, 'value', s.drugs_sold))
-      from public.player_stats s
-      order by s.drugs_sold desc nulls last
-      limit 20
+      from (select username, drugs_sold from public.player_stats order by drugs_sold desc nulls last limit 20) s
     ), '[]'::jsonb)
   );
 $$;
