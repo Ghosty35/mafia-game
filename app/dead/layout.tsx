@@ -1,3 +1,5 @@
+'use client';
+
 import type { ReactNode } from 'react';
 import { PlayerProvider, usePlayer } from '../components/PlayerContext';
 import { useRouter } from 'next/navigation';
