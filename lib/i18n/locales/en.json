@@ -2134,7 +2134,7 @@
     "dl_err_in_jail": "You are in jail.",
     "dl_err_dead": "You are dead.",
     "dl_err_limit": "Lab limit reached (1).",
-    "dl_err_city_limit_test": "This city already has 3 labs of this type.",
+    "dl_err_city_limit": "This city already has 3 labs of this type.",
     "dl_err_not_found": "Lab not found.",
     "dl_err_nothing": "Nothing to collect yet.",
     "dl_err_max_level": "Lab is already at max level.",
