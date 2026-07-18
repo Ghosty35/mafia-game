@@ -37,6 +37,7 @@ export default function PlayerInfoCard({ player: propPlayer, familyStatus: propF
   const [familyStatus, setFamilyStatus] = useState(propFamily || null);
   const [serverTime, setServerTime] = useState(''); // client-only, avoids SSR hydration mismatch
   const [unread, setUnread] = useState(0);
+  const [hustler, setHustler] = useState<{ hustler_rank: number; daily_streak: number } | null>(null);
 
   // Live server clock (Europe/Amsterdam), set only on the client.
   useEffect(() => {
@@ -88,6 +89,22 @@ export default function PlayerInfoCard({ player: propPlayer, familyStatus: propF
     return () => clearInterval(iv);
   }, [player?.id]);
 
+  // Hustler's Way rank + streak (surfaced as a chip in the HUD header).
+  useEffect(() => {
+    if (!player?.id) return;
+    const fetchHustler = async () => {
+      try {
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+        const { data } = await supabase.rpc('get_hustler_tasks');
+        if (data) setHustler({ hustler_rank: data.hustler_rank ?? 0, daily_streak: data.daily_streak ?? 0 });
+      } catch {
+        /* keep null */
+      }
+    };
+    fetchHustler();
+  }, [player?.id]);
+
   if (!player) {
     return <div className="card p-3 mb-4 animate-pulse h-24 bg-zinc-900 border border-zinc-800" />;
   }
@@ -137,6 +154,12 @@ export default function PlayerInfoCard({ player: propPlayer, familyStatus: propF
               {rankName}
               {player.leaderboard_rank ? ` (#${player.leaderboard_rank})` : ''}
             </span>
+            {hustler && hustler.hustler_rank > 0 && (
+              <span className="text-[9px] px-1.5 py-px rounded bg-amber-950 text-amber-300 font-bold tracking-wide shrink-0 border border-amber-800/50">
+                🛤️ {t('hw_rank_short')} {hustler.hustler_rank}
+                {hustler.daily_streak > 0 ? ` · 🔥${hustler.daily_streak}` : ''}
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {protection > 0 && <span className="text-xs text-blue-400">🛡️+{protection}</span>}
