@@ -67,13 +67,13 @@ insert into public.car_catalog (id, name, tier, base_value, base_speed, purchase
   ('aston_vantage',    'Aston Martin Vantage','super', 750000, 180, 1100000, 80, 35)
 on conflict (id) do nothing;
 
--- hyper tier
+-- hyper tier (prestige: top car ~2x the most expensive property/Airport at $3M)
 insert into public.car_catalog (id, name, tier, base_value, base_speed, purchase_price, fuel_tank, min_level) values
-  ('lamborghini_huracan','Lamborghini Huracan','hyper', 3500000, 200, 5000000,  90, 50),
-  ('ferrari_sf90',      'Ferrari SF90',      'hyper', 4200000, 205, 6000000,  90, 50),
-  ('mclaren_720s',      'McLaren 720S',      'hyper', 3800000, 208, 5500000,  90, 50),
-  ('pagani_huayra',     'Pagani Huayra',     'hyper', 6200000, 212, 9000000,  90, 50),
-  ('bugatti_chiron',    'Bugatti Chiron',    'hyper', 5500000, 215, 8000000,  90, 50),
-  ('koenigsegg_jesko',  'Koenigsegg Jesko',  'hyper', 7000000, 225, 10000000, 90, 50),
-  ('rimac_nevera',      'Rimac Nevera',      'hyper', 8500000, 230, 12000000, 90, 50)
+  ('lamborghini_huracan','Lamborghini Huracan','hyper', 2100000, 200, 3000000,  90, 50),
+  ('ferrari_sf90',      'Ferrari SF90',      'hyper', 2450000, 205, 3500000,  90, 50),
+  ('mclaren_720s',      'McLaren 720S',      'hyper', 2800000, 208, 4000000,  90, 50),
+  ('pagani_huayra',     'Pagani Huayra',     'hyper', 3500000, 212, 5000000,  90, 50),
+  ('bugatti_chiron',    'Bugatti Chiron',    'hyper', 3850000, 215, 5500000,  90, 50),
+  ('koenigsegg_jesko',  'Koenigsegg Jesko',  'hyper', 4200000, 225, 6000000,  90, 50),
+  ('rimac_nevera',      'Rimac Nevera',      'hyper', 4900000, 230, 7000000,  90, 50)
 on conflict (id) do nothing;
