@@ -1,15 +1,15 @@
 -- 115_druglab_system.sql
 -- Drug Lab: standalone production facility per city.
--- Players buy a lab, choose a drug type (Coke, Meth, Pills, Weed),
+-- Players buy a lab, choose a drug type (Coke, Meth, Pills),
 -- and collect produced drugs into drug_storage. No cron needed:
 -- pending production is computed lazily at collect time, capped at 24h.
--- Max 5 labs per player. Upgrades cost cash, boost production rate.
+-- Max 1 lab per player. Upgrades cost cash, boost production rate.
 
 CREATE TABLE IF NOT EXISTS public.player_druglabs (
   id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   player_id      uuid NOT NULL REFERENCES public.players(id) ON DELETE CASCADE,
   city           text NOT NULL,
-  drug_type      text NOT NULL CHECK (drug_type IN ('Coke','Meth','Pills','Weed')),
+  drug_type      text NOT NULL CHECK (drug_type IN ('Coke','Meth','Pills')),
   level          int NOT NULL DEFAULT 1 CHECK (level BETWEEN 1 AND 10),
   last_collected timestamptz NOT NULL DEFAULT now(),
   created_at     timestamptz NOT NULL DEFAULT now()
@@ -36,8 +36,7 @@ AS $$
     'cap_hours',    24,
     'coke_rate',    2,
     'meth_rate',    3,
-    'pills_rate',   4,
-    'weed_rate',    5
+    'pills_rate',   4
   );
 $$;
 
@@ -54,7 +53,6 @@ BEGIN
             WHEN 'Coke'  THEN (r->>'coke_rate')::int
             WHEN 'Meth'  THEN (r->>'meth_rate')::int
             WHEN 'Pills' THEN (r->>'pills_rate')::int
-            WHEN 'Weed'  THEN (r->>'weed_rate')::int
             ELSE 0
           END;
   hrs := LEAST(cap_hours, EXTRACT(EPOCH FROM (now() - p_last)) / 3600.0);
@@ -81,7 +79,7 @@ BEGIN
   IF p.cash < cost THEN RAISE EXCEPTION 'NOT_ENOUGH_CASH'; END IF;
 
   SELECT COUNT(*) INTO owned FROM public.player_druglabs WHERE player_id = p.id;
-  IF owned >= 5 THEN RAISE EXCEPTION 'LAB_LIMIT'; END IF;
+  IF owned >= 1 THEN RAISE EXCEPTION 'LAB_LIMIT'; END IF;
 
   tax := floor(cost * (r->>'buy_tax_rate')::numeric)::bigint;
 
@@ -109,6 +107,8 @@ BEGIN
   IF auth.uid() IS NULL THEN RAISE EXCEPTION 'NOT_AUTHENTICATED'; END IF;
   SELECT * INTO p FROM public.players WHERE id = auth.uid() FOR UPDATE;
   IF p.id IS NULL THEN RAISE EXCEPTION 'NO_PLAYER'; END IF;
+  IF p.jailed_until IS NOT NULL AND p.jailed_until > now() THEN RAISE EXCEPTION 'IN_JAIL'; END IF;
+  IF p.death_until IS NOT NULL AND p.death_until > now() THEN RAISE EXCEPTION 'DEAD'; END IF;
 
   SELECT * INTO lab FROM public.player_druglabs WHERE id = p_lab_id AND player_id = p.id FOR UPDATE;
   IF lab.id IS NULL THEN RAISE EXCEPTION 'LAB_NOT_FOUND'; END IF;
@@ -175,7 +175,6 @@ BEGIN
                 WHEN 'Coke'  THEN (public._druglab_rates()->>'coke_rate')::int
                 WHEN 'Meth'  THEN (public._druglab_rates()->>'meth_rate')::int
                 WHEN 'Pills' THEN (public._druglab_rates()->>'pills_rate')::int
-                WHEN 'Weed'  THEN (public._druglab_rates()->>'weed_rate')::int
                 ELSE 0
               END * dl.level,
       'last_collected', dl.last_collected, 'created_at', dl.created_at
@@ -183,7 +182,7 @@ BEGIN
   ), '[]'::jsonb) INTO labs
   FROM public.player_druglabs dl WHERE dl.player_id = auth.uid();
 
-  RETURN jsonb_build_object('labs', labs, 'count', COALESCE(jsonb_array_length(labs), 0), 'limit', 5);
+  RETURN jsonb_build_object('labs', labs, 'count', COALESCE(jsonb_array_length(labs), 0), 'limit', 1);
 END;
 $$;
 

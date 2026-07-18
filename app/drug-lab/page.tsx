@@ -30,7 +30,6 @@ const DRUG_ICONS: Record<string, { icon: string; color: string; bg: string; labe
   Coke:  { icon: '💎', color: 'text-zinc-200',   bg: 'bg-zinc-800/50',   label: 'Cocaine' },
   Meth:  { icon: '🧪', color: 'text-sky-300',    bg: 'bg-sky-950/30',    label: 'Meth' },
   Pills: { icon: '💊', color: 'text-fuchsia-300', bg: 'bg-fuchsia-950/30', label: 'Pills' },
-  Weed:  { icon: '🌿', color: 'text-emerald-300', bg: 'bg-emerald-950/30', label: 'Weed' },
 };
 
 export default function DrugLabPage() {
@@ -72,9 +71,11 @@ export default function DrugLabPage() {
       else if (m.includes('IN_JAIL')) setMessage(t('dl_err_in_jail'));
       else if (m.includes('DEAD')) setMessage(t('dl_err_dead'));
       else if (m.includes('LAB_LIMIT')) setMessage(t('dl_err_limit'));
+      else if (m.includes('LAB_CITY_LIMIT')) setMessage(t('dl_err_city_limit'));
       else if (m.includes('LAB_NOT_FOUND')) setMessage(t('dl_err_not_found'));
       else if (m.includes('NOTHING_TO_COLLECT')) setMessage(t('dl_err_nothing'));
       else if (m.includes('LAB_MAX_LEVEL')) setMessage(t('dl_err_max_level'));
+      else if (m.includes('LAB_CAP_REACHED')) setMessage(t('dl_err_cap_reached'));
       else setMessage(m);
     } else if (okMsg && d) {
       setMessage(okMsg(d));
@@ -87,7 +88,7 @@ export default function DrugLabPage() {
 
   if (!player) return <div className="p-6 text-zinc-400">{t('loading')}</div>;
 
-  const limit = data?.limit ?? 5;
+  const limit = data?.limit ?? 1;
   const upgradeCost = (level: number) => 150000 * level;
 
   return (
@@ -102,7 +103,7 @@ export default function DrugLabPage() {
       )}
 
       {/* Summary */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
           <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">{t('dl_labs')}</div>
           <div className="font-mono text-lg text-amber-400">{data?.count ?? 0}<span className="text-zinc-500 text-sm">/{limit}</span></div>
