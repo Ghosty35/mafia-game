@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import LaunderingBoard from '../components/LaunderingBoard';
+import PropertyLaunderBoard from '../components/PropertyLaunderBoard';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import type { TranslationKey } from '@/lib/i18n/translations';
 
@@ -49,6 +50,10 @@ export default function LaunderingPage() {
       )}
 
       <LaunderingBoard />
+
+      <div className="mt-4">
+        <PropertyLaunderBoard />
+      </div>
     </div>
   );
 }

@@ -17,6 +17,11 @@ export type OwnedProperty = {
   piggy_bank?: number;      // Mansion only: hidden safe
   bodyguards?: number;      // Villa only: raid protection (0-10)
   spots?: number;           // weed grow spots / property capacity
+  // Dirty-cash laundering batch (095_property_laundering.sql)
+  launder_pending?: number;      // dirty cash currently washing (0 = idle)
+  launder_fee?: number;          // fee locked in at pump time
+  launder_started_at?: string;   // ISO timestamp the batch started
+  launder_ready_at?: string;     // ISO timestamp the batch can be collected
 };
 
 // Matches the public.players table in Supabase
