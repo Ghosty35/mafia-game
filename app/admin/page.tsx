@@ -15,6 +15,7 @@ export default function AdminPage() {
   const [loadingPlayers, setLoadingPlayers] = useState(false);
   const [economy, setEconomy] = useState<any>(null);
   const [pools, setPools] = useState<any>(null);
+  const [govTax, setGovTax] = useState<number | null>(null);
   const isAdmin = player?.username === 'YGhosty';
 
   const supabase = createClient();
@@ -41,6 +42,9 @@ export default function AdminPage() {
 
       const { data: cp } = await supabase.rpc('get_casino_pools');
       setPools(cp);
+
+      const { data: gt } = await supabase.rpc('admin_get_gov_tax');
+      if (gt) setGovTax(gt.balance ?? 0);
     } catch (e) {}
   };
 
@@ -125,6 +129,27 @@ export default function AdminPage() {
     fetchPlayers();
   };
 
+  const govDeposit = async (amt: number) => {
+    if (!amt || amt <= 0) return;
+    const { data, error } = await supabase.rpc('admin_deposit_gov_tax', { p_amount: amt });
+    if (error) { addLog('ERROR', error.message); return; }
+    setGovTax(data?.balance ?? 0);
+    addLog('TAX', `Deposited ${fm(amt)} into Gov Tax Bank. Balance: ${fm(data?.balance ?? 0)}`);
+  };
+
+  const govWithdraw = async (amt: number) => {
+    if (!amt || amt <= 0) return;
+    const { data, error } = await supabase.rpc('admin_withdraw_gov_tax', { p_amount: amt });
+    if (error) {
+      addLog('ERROR', error.message.includes('NOT_ENOUGH_TAX') ? 'Gov Tax Bank has insufficient funds' : error.message);
+      return;
+    }
+    setGovTax(data?.balance ?? 0);
+    addLog('TAX', `Withdrew ${fm(amt)} from Gov Tax Bank. Balance: ${fm(data?.balance ?? 0)}`);
+    await refreshPlayer();
+    await router.refresh();
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-6">
       <h1 className="text-4xl font-bold mb-1">{t('admin_title')}</h1>
@@ -170,6 +195,20 @@ export default function AdminPage() {
               <button onClick={adjustTaxUI} className="px-3 py-0.5 bg-yellow-700 text-xs rounded">{t('admin_tax_apply')}</button>
             </div>
             <div className="text-[10px] text-zinc-500">{t('admin_tax_footer')}</div>
+          </div>
+
+          {/* Gov Tax Bank - Admin managed */}
+          <div className="mt-4 pt-3 border-t border-zinc-800">
+            <div className="flex items-center justify-between mb-1">
+              <div className="font-semibold">🏛️ Gov Tax Bank</div>
+              <div className="text-sm font-mono text-amber-400">{govTax !== null ? fm(govTax) : '—'}</div>
+            </div>
+            <div className="flex gap-2 items-center text-sm flex-wrap">
+              <input id="govAmt" type="number" defaultValue={50000} className="bg-zinc-900 px-2 py-1 border w-28" />
+              <button onClick={() => govDeposit(parseInt((document.getElementById('govAmt') as HTMLInputElement).value))} className="px-3 py-1 bg-emerald-700 hover:bg-emerald-600 rounded text-xs">{t('admin_gov_deposit')}</button>
+              <button onClick={() => govWithdraw(parseInt((document.getElementById('govAmt') as HTMLInputElement).value))} className="px-3 py-1 bg-red-700 hover:bg-red-600 rounded text-xs">{t('admin_gov_withdraw')}</button>
+            </div>
+            <div className="text-[10px] text-zinc-500 mt-1">{t('admin_gov_footer')}</div>
           </div>
 
           {/* Give Money - FULL WORKING */}
