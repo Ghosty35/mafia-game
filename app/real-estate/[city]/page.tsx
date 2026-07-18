@@ -32,6 +32,8 @@ const PTYPE_ICONS: Record<string, { icon: string; color: string; bg: string }> =
   house:     { icon: '🏠', color: 'text-emerald-400', bg: 'bg-emerald-950/30' },
   villa:     { icon: '🏛️', color: 'text-amber-400', bg: 'bg-amber-950/30' },
   mansion:   { icon: '💎', color: 'text-amber-300', bg: 'bg-amber-950/40' },
+  penthouse: { icon: '🏙️', color: 'text-sky-300', bg: 'bg-sky-950/30' },
+  yacht:     { icon: '🛥️', color: 'text-cyan-300', bg: 'bg-cyan-950/30' },
   agency:    { icon: '🏢', color: 'text-zinc-300', bg: 'bg-zinc-800/50' },
   airport:   { icon: '✈️', color: 'text-sky-400', bg: 'bg-sky-950/30' },
   casino:    { icon: '🎰', color: 'text-purple-400', bg: 'bg-purple-950/30' },
@@ -99,16 +101,33 @@ export default function CityRealEstatePage() {
     }
     setBusy(true);
     const supabase = createClient();
+    const propJsonb = {
+      id: prop.id,
+      catalog_id: prop.id,
+      name: prop.name,
+      ptype: prop.ptype,
+      type: prop.type,
+      city: prop.city,
+      income: prop.income,
+      spots: prop.spots,
+      purchase_date: new Date().toISOString(),
+      bank_balance: 0,
+      maintenance_due: Math.floor(prop.income * 0.12),
+      autopay: false,
+      shed_level: 1,
+      earnings_week: 0,
+      last_earned: new Date().toISOString(),
+    };
     const { data, error } = await supabase.rpc('purchase_property', {
-      p_catalog_id: prop.id,
-      p_custom_name: prop.name,
+      prop: propJsonb,
+      price: prop.price,
     });
     setBusy(false);
     if (error) {
       const m = error.message || '';
       if (m.includes('NOT_ENOUGH_CASH')) showToast(t('re_no_cash_tax'));
       else if (m.includes('PROPERTY_LIMIT_REACHED')) showToast(t('re_total_limit'));
-      else if (m.includes('ALREADY_OWNED')) showToast(t('re_house_in_city'));
+      else if (m.includes('ALREADY_OWN_THIS_TYPE')) showToast(t('re_already_own'));
       else if (m.includes('WRONG_CITY')) showToast(t('re_city_only', { city: prop.city }));
       else showToast(m || t('re_purchase_failed'));
       return;
@@ -143,13 +162,15 @@ export default function CityRealEstatePage() {
 
   const owned: OwnedProperty[] = player?.owned_properties || [];
   const ownedIds = new Set(owned.map((p) => p?.catalog_id || p?.id));
-  const isAtTotalCap = owned.length >= 4;
+  const isAtTotalCap = owned.length >= 5;
   const isPtypeMaxed = (ptype: string) => {
     const target = ptype.toLowerCase();
     const count = owned.filter((p) => (p?.ptype || p?.name || '').toLowerCase() === target).length;
     if (target === 'mansion') return count >= 1;
-    if (target === 'villa') return count >= 2;
-    if (target === 'house') return count >= 4;
+    if (target === 'villa') return count >= 1;
+    if (target === 'house') return count >= 1;
+    if (target === 'penthouse') return count >= 1;
+    if (target === 'yacht') return count >= 1;
     return false;
   };
 
@@ -157,9 +178,10 @@ export default function CityRealEstatePage() {
 
   const categoryOf = (ptype: string) => {
     const p = ptype.toLowerCase();
-    if (p === 'house' || p === 'villa' || p === 'mansion') return 'residential';
+    if (p === 'house' || p === 'villa' || p === 'mansion' || p === 'penthouse') return 'residential';
     if (p === 'agency' || p === 'airport' || p === 'casino' || p === 'tuneshop' || p === 'redlight')
       return 'business';
+    if (p === 'yacht') return 'luxury';
     return 'other';
   };
 

@@ -377,7 +377,9 @@ export default function AdminPage() {
                   <th>{t('admin_col_kill')}</th>
                   <th>{t('admin_col_donator')}</th>
                   <th>{t('admin_col_status')}</th>
-                  <th className="w-80">{t('admin_col_actions')}</th>
+                  <th>{t('admin_col_warnings')}</th>
+                  <th>{t('admin_col_mod_status')}</th>
+                  <th className="w-96">{t('admin_col_actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -404,12 +406,27 @@ export default function AdminPage() {
                     <td className="text-[10px]">
                       {p.jailed_until && 'JAIL'} {p.death_until && 'DEAD'}
                     </td>
+                    <td className="text-[10px] font-mono">{p.warnings ?? 0}/3</td>
+                    <td className="text-[10px]">
+                      {p.banned_permanent && <span className="text-red-400">BANNED</span>}
+                      {!p.banned_permanent && p.banned_until && <span className="text-orange-400">TEMP BAN</span>}
+                      {p.timeout_until && <span className="text-yellow-400">TIMEOUT</span>}
+                      {p.ip_banned && <span className="text-purple-400">IP BAN</span>}
+                      {!p.banned_permanent && !p.banned_until && !p.timeout_until && !p.ip_banned && <span className="text-zinc-500">—</span>}
+                    </td>
                     <td className="flex gap-1 flex-wrap py-0.5">
                       <button onClick={() => giveCash(p.username, 100000)} className="px-2 py-px bg-emerald-800 rounded text-[10px]">+100k</button>
                       <button onClick={() => giveCash(p.username, -50000)} className="px-2 py-px bg-orange-800 rounded text-[10px]">-50k</button>
                       <button onClick={() => forceClearStatus(p.id, 'jail')} className="px-2 py-px bg-blue-800 rounded text-[10px]">{t('admin_clear_jail')}</button>
                       <button onClick={() => forceClearStatus(p.id, 'death')} className="px-2 py-px bg-blue-800 rounded text-[10px]">{t('admin_revive')}</button>
                       <button onClick={() => updateFieldDirect(p.id, 'is_donator', true)} className="px-2 py-px bg-amber-700 rounded text-[10px]">{t('admin_make_donator')}</button>
+                      <button onClick={() => supabase.rpc('admin_warn_player', { target_id: p.id, reason: '' }).then(() => fetchPlayers())} className="px-2 py-px bg-yellow-800 rounded text-[10px]">{t('admin_warn')}</button>
+                      <button onClick={() => supabase.rpc('admin_kick_player', { target_id: p.id, duration_minutes: 60 }).then(() => fetchPlayers())} className="px-2 py-px bg-orange-900 rounded text-[10px]">{t('admin_kick')}</button>
+                      <button onClick={() => supabase.rpc('admin_ban_player', { target_id: p.id, duration_hours: 24, permanent: false }).then(() => fetchPlayers())} className="px-2 py-px bg-red-900 rounded text-[10px]">{t('admin_ban')}</button>
+                      {(p.banned_until || p.banned_permanent) && <button onClick={() => supabase.rpc('admin_unban_player', { target_id: p.id }).then(() => fetchPlayers())} className="px-2 py-px bg-emerald-900 rounded text-[10px]">{t('admin_unban')}</button>}
+                      <button onClick={() => supabase.rpc('admin_timeout_player', { target_id: p.id, duration_minutes: 30 }).then(() => fetchPlayers())} className="px-2 py-px bg-yellow-900 rounded text-[10px]">{t('admin_timeout')}</button>
+                      <button onClick={() => supabase.rpc('admin_ip_ban_player', { target_id: p.id }).then(() => fetchPlayers())} className="px-2 py-px bg-purple-900 rounded text-[10px]">{t('admin_ip_ban')}</button>
+                      <button onClick={() => supabase.rpc('admin_clear_warnings', { target_id: p.id }).then(() => fetchPlayers())} className="px-2 py-px bg-zinc-700 rounded text-[10px]">{t('admin_clear_warnings')}</button>
                     </td>
                   </tr>
                 ))}
