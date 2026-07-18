@@ -6,10 +6,19 @@ import type { TranslationKey } from '@/lib/i18n/translations';
 
 const systems: { titleKey: TranslationKey; textKey: TranslationKey }[] = [
   { titleKey: 'guide_sys_crimes_title', textKey: 'guide_sys_crimes' },
-  { titleKey: 'guide_sys_families_title', textKey: 'guide_sys_families' },
+  { titleKey: 'guide_sys_heists_title', textKey: 'guide_sys_heists' },
+  { titleKey: 'guide_sys_murder_title', textKey: 'guide_sys_murder' },
+  { titleKey: 'guide_sys_drug_lab_title', textKey: 'guide_sys_drug_lab' },
+  { titleKey: 'guide_sys_drug_market_title', textKey: 'guide_sys_drug_market' },
+  { titleKey: 'guide_sys_real_estate_title', textKey: 'guide_sys_real_estate' },
   { titleKey: 'guide_sys_safehouse_title', textKey: 'guide_sys_safehouse' },
   { titleKey: 'guide_sys_weed_title', textKey: 'guide_sys_weed' },
+  { titleKey: 'guide_sys_armory_title', textKey: 'guide_sys_armory' },
+  { titleKey: 'guide_sys_gym_title', textKey: 'guide_sys_gym' },
+  { titleKey: 'guide_sys_stocks_title', textKey: 'guide_sys_stocks' },
+  { titleKey: 'guide_sys_casino_title', textKey: 'guide_sys_casino' },
   { titleKey: 'guide_sys_banking_title', textKey: 'guide_sys_banking' },
+  { titleKey: 'guide_sys_families_title', textKey: 'guide_sys_families' },
   { titleKey: 'guide_sys_racing_title', textKey: 'guide_sys_racing' },
 ];
 

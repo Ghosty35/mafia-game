@@ -24,6 +24,7 @@ export default function AdminPage() {
   const [topDiamonds, setTopDiamonds] = useState<any[]>([]);
   const [topLevel, setTopLevel] = useState<any[]>([]);
   const [topActive, setTopActive] = useState<any[]>([]);
+  const [nextDraw, setNextDraw] = useState<string | null>(null);
   const isAdmin = player?.username === 'YGhosty';
 
   const supabase = createClient();
@@ -65,6 +66,9 @@ export default function AdminPage() {
 
       const { data: ss } = await supabase.rpc('admin_get_server_stats');
       if (ss) setServerStats(ss);
+
+      const { data: nd } = await supabase.rpc('admin_get_lottery');
+      if (nd) setNextDraw(nd.next_draw || null);
 
       const { data: tc } = await supabase.rpc('admin_get_top_cash', { limit_count: 10 });
       if (tc) setTopCash(tc);
@@ -301,11 +305,20 @@ export default function AdminPage() {
               <div className="font-semibold">🎟️ Lottery Pool</div>
               <div className="text-sm font-mono text-amber-400">{lotteryPool !== null ? fm(lotteryPool) : '—'}</div>
             </div>
+            {nextDraw && (
+              <div className="text-[10px] text-zinc-400 mb-1">Next draw: {new Date(nextDraw).toLocaleString()}</div>
+            )}
             <div className="flex gap-2 items-center text-sm flex-wrap">
               <input id="lotAmt" type="number" defaultValue={50000} className="bg-zinc-900 px-2 py-1 border w-28" />
               <button onClick={() => lotDeposit(parseInt((document.getElementById('lotAmt') as HTMLInputElement).value))} className="px-3 py-1 bg-emerald-700 hover:bg-emerald-600 rounded text-xs">{t('admin_lot_deposit')}</button>
               <button onClick={() => lotWithdraw(parseInt((document.getElementById('lotAmt') as HTMLInputElement).value))} className="px-3 py-1 bg-red-700 hover:bg-red-600 rounded text-xs">{t('admin_lot_withdraw')}</button>
               <button onClick={lotDraw} className="px-3 py-1 bg-yellow-700 hover:bg-yellow-600 rounded text-xs">{t('admin_lot_draw')}</button>
+              <button onClick={() => {
+                const dt = (document.getElementById('lotSchedule') as HTMLInputElement).value;
+                if (!dt) return;
+                supabase.rpc('admin_set_lottery_schedule', { next_draw: new Date(dt).toISOString() }).then(() => fetchEconomy());
+              }} className="px-3 py-1 bg-blue-700 hover:bg-blue-600 rounded text-xs">Set Schedule</button>
+              <input id="lotSchedule" type="datetime-local" className="bg-zinc-900 px-2 py-1 border text-xs" />
             </div>
             <div className="text-[10px] text-zinc-500 mt-1">{t('admin_lot_footer')}</div>
           </div>
