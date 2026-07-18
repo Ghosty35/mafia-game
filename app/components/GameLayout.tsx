@@ -16,16 +16,23 @@ function LayoutContent({ children }: { children: ReactNode }) {
   const { player } = usePlayer();
   const router = useRouter();
 
-  // Enforce death lock - only allow leaderboards and jail when dead
-  // Jail allows training breakout skills
+  // Hard lock: dead players go to /dead, jailed players go to /jail.
+  // Death always takes priority over jail.
   useEffect(() => {
-    if (player?.death_until && new Date(player.death_until).getTime() > Date.now()) {
-      const path = window.location.pathname;
-      if (!path.includes('/leaderboard') && !path.includes('/dead') && !path.includes('/jail')) {
-        router.push('/dead');
-      }
+    const deathTime = player?.death_until ? new Date(player.death_until).getTime() : 0;
+    const jailTime = player?.jailed_until ? new Date(player.jailed_until).getTime() : 0;
+    const now = Date.now();
+    const isDead = deathTime > now;
+    const isJailed = jailTime > now;
+    if (!isDead && !isJailed) return;
+
+    const path = window.location.pathname;
+    if (isDead && path !== '/dead') {
+      router.push('/dead');
+    } else if (isJailed && path !== '/jail') {
+      router.push('/jail');
     }
-  }, [player?.death_until, router]);
+  }, [player?.death_until, player?.jailed_until, router]);
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white relative overflow-x-hidden">

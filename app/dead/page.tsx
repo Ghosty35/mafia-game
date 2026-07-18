@@ -2,59 +2,71 @@
 
 import { useEffect, useState } from 'react';
 import { usePlayer } from '../components/PlayerContext';
-import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function DeadPage() {
   const { player } = usePlayer();
   const { t } = useLanguage();
-  const [timeLeft, setTimeLeft] = useState(0);
+  const [timeLeft, setTimeLeft] = useState({ h: 0, m: 0, s: 0 });
 
   useEffect(() => {
     if (!player?.death_until) return;
 
-    const interval = setInterval(() => {
+    const tick = () => {
       const deathTime = new Date(player.death_until!).getTime();
       const now = Date.now();
-      const remaining = Math.max(0, Math.floor((deathTime - now) / 1000 / 60));
-      setTimeLeft(remaining);
+      const diff = Math.max(0, deathTime - now);
+      const h = Math.floor(diff / (1000 * 60 * 60));
+      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((diff % (1000 * 60)) / 1000);
+      setTimeLeft({ h, m, s });
 
-      if (remaining <= 0) {
-        // Respawn logic would be in context or server
+      if (diff <= 0) {
         window.location.href = '/dashboard';
       }
-    }, 1000);
+    };
 
+    tick();
+    const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
   }, [player?.death_until]);
 
   if (!player) return <div>{t('loading')}</div>;
 
-  const killer = t('dead_unknown_killer'); // In real, store who killed you
+  const pad = (n: number) => String(n).padStart(2, '0');
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black text-white p-6">
       <div className="max-w-md text-center">
-        <h1 className="text-4xl font-bold mb-4 text-red-600">{t('dead_title')}</h1>
-        <p className="text-xl mb-2">{t('dead_killed_by')} <span className="font-semibold">{killer}</span></p>
-        <p className="mb-6">{t('dead_duration', { minutes: timeLeft })}</p>
-        
-        <div className="bg-zinc-900 p-4 rounded mb-6">
-          <p className="text-sm text-zinc-400">{t('dead_leaderboard_note')}</p>
-          <a href="/leaderboard" className="text-red-400 hover:underline">{t('dead_go_leaderboard')}</a>
+        <h1 className="text-5xl font-bold mb-2 text-red-600 animate-pulse">☠️ {t('dead_title')}</h1>
+        <p className="text-xl mb-6 text-zinc-300">{t('dead_respawn_in')}</p>
+
+        <div className="bg-zinc-900 border border-red-900/50 rounded-2xl p-6 mb-6">
+          <div className="flex items-center justify-center gap-3 text-4xl font-mono font-bold text-red-400">
+            <span>{pad(timeLeft.h)}</span>
+            <span className="text-red-600 animate-pulse">:</span>
+            <span>{pad(timeLeft.m)}</span>
+            <span className="text-red-600 animate-pulse">:</span>
+            <span>{pad(timeLeft.s)}</span>
+          </div>
+          <p className="text-xs text-zinc-500 mt-2">HH : MM : SS</p>
         </div>
 
-        <p className="text-xs text-zinc-500">{t('dead_respawn_note')}</p>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 mb-6">
+          <p className="text-sm text-zinc-500">{t('dead_respawn_note')}</p>
+        </div>
 
-        <button 
+        <p className="text-xs text-zinc-600">{t('dead_respawn_note')}</p>
+
+        <button
           onClick={async () => {
             if (player) {
-              const supabase = createClient();
+              const supabase = (await import('@/lib/supabase/client')).createClient();
               await supabase.rpc('force_respawn');
               window.location.href = '/dashboard';
             }
           }}
-          className="mt-4 px-4 py-2 bg-red-700 rounded text-sm"
+          className="mt-4 px-4 py-2 bg-red-700 hover:bg-red-600 rounded text-sm"
         >
           {t('dead_force_respawn')}
         </button>
