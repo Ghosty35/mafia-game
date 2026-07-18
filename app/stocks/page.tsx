@@ -113,7 +113,7 @@ export default function StocksPage() {
     return v;
   };
 
-  const isAdmin = player?.username === 'YGhosty';
+  const isAdmin = !!(player as any)?.staff_role;
 
   const nudgeStock = async (ticker: string, pct: number) => {
     // Admin-only market mover via RPC (direct table writes are blocked by RLS)

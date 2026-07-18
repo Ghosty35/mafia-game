@@ -12,7 +12,7 @@ export default function Sidebar() {
   const { player } = usePlayer();
   const { t } = useLanguage();
 
-  const isAdmin = player?.username === 'YGhosty';
+  const isAdmin = !!player?.staff_role;
   const categories = buildLeftMenu(isAdmin);
   const search = searchParams.toString();
 

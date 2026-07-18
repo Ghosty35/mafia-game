@@ -80,18 +80,17 @@ export default function PhoneInbox() {
 
   const activeThread = threads.find((th) => th.key === selected) ?? null;
 
-  // Opening a thread marks its incoming messages as read (column-scoped
-  // UPDATE policy from 072).
+  // Opening a thread marks its incoming messages as read. Direct writes to
+  // `messages` were removed in migration 130 (a recipient could otherwise
+  // rewrite any column); this goes through the mark_messages_read RPC, which
+  // only ever flips read=true on the caller's own inbound messages.
   useEffect(() => {
     if (!player || !activeThread || activeThread.unread === 0) return;
     const markRead = async () => {
       const supabase = createClient();
-      let q = supabase.from('messages').update({ read: true })
-        .eq('to_player_id', player.id).eq('read', false);
-      q = activeThread.key === SYSTEM_KEY
-        ? q.is('from_player_id', null)
-        : q.eq('from_player_id', activeThread.key);
-      await q;
+      await (activeThread.key === SYSTEM_KEY
+        ? supabase.rpc('mark_messages_read', { p_system: true })
+        : supabase.rpc('mark_messages_read', { p_from: activeThread.key }));
       setMsgs((prev) =>
         prev.map((m) => {
           const cp = m.mine ? m.to_id : m.from_id;

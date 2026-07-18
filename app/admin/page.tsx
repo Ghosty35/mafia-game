@@ -31,8 +31,14 @@ export default function AdminPage() {
   const [staffTarget, setStaffTarget] = useState('');
   const [staffList, setStaffList] = useState<any[]>([]);
   const [staffLoading, setStaffLoading] = useState(false);
+  const [config, setConfig] = useState<any[]>([]);
+  const [configDraft, setConfigDraft] = useState<Record<string, string>>({});
+  const [newCfgKey, setNewCfgKey] = useState('');
+  const [newCfgVal, setNewCfgVal] = useState('');
   const isCEO = (player as any)?.staff_role === 'ceo';
-  const isAdmin = isCEO || (player as any)?.staff_role === 'admin' || player?.username === 'YGhosty';
+  // Any staff role can open the admin panel; the server gates each action via
+  // is_admin(). CEO-only sections (staff management) use isCEO. No username hardcode.
+  const isAdmin = !!(player as any)?.staff_role;
 
   const supabase = createClient();
 
@@ -115,6 +121,20 @@ export default function AdminPage() {
     fetchPlayers();
   };
 
+  const loadConfig = async () => {
+    const { data, error } = await supabase.rpc('admin_get_config');
+    if (!error && data) setConfig(data as any[]);
+  };
+
+  const saveConfig = async (key: string, value: string) => {
+    const num = Number(value);
+    if (!Number.isFinite(num)) { addLog('ERROR', `Invalid number for ${key}`); return; }
+    const { error } = await supabase.rpc('admin_set_config', { p_key: key, p_value: num });
+    if (error) { addLog('ERROR', error.message); return; }
+    addLog('CONFIG', `Set ${key} = ${num}`);
+    loadConfig();
+  };
+
   const fetchPlayers = async (search?: string) => {
     setLoadingPlayers(true);
     // RLS only allows reading your own row directly; the roster goes
@@ -168,6 +188,7 @@ export default function AdminPage() {
     if (!isAdmin) return;
     fetchPlayers();
     fetchEconomy();
+    loadConfig();
     if (isCEO) loadStaff();
     addLog('INFO', 'Admin data refreshed');
   };
@@ -231,11 +252,14 @@ export default function AdminPage() {
   };
 
   const adjustTaxUI = async () => {
-    // Simple: we store rates in logs + future global. For now persist via note + can be used by other systems.
+    // Real, live: property tax % is persisted to game_config and read by
+    // purchase_property via _cfg('property_tax_pct'). Applies to all players at once.
     const prop = parseFloat((document.getElementById('propTax') as HTMLInputElement)?.value || '10');
-    const bank = parseFloat((document.getElementById('bankTax') as HTMLInputElement)?.value || '0.5');
-    addLog('TAX', `Admin set Property: ${prop}% | Bank: ${bank}% (applies to future txns via code)`);
-    // For real global tax, could extend player or server_stats later.
+    if (!Number.isFinite(prop) || prop < 0 || prop > 90) { addLog('ERROR', 'Property tax must be 0–90%'); return; }
+    const { error } = await supabase.rpc('admin_set_config', { p_key: 'property_tax_pct', p_value: prop });
+    if (error) { addLog('ERROR', error.message); return; }
+    addLog('TAX', `Property purchase tax set to ${prop}% (live for all players)`);
+    loadConfig();
   };
 
   const giveToAllOnlineSim = async (amt: number) => {
@@ -360,7 +384,6 @@ export default function AdminPage() {
             <div className="font-semibold mb-1">{t('admin_tax_title')}</div>
             <div className="flex gap-3 items-center text-sm">
               <div>{t('admin_tax_property')} <input id="propTax" type="number" defaultValue={10} className="w-14 bg-zinc-900 px-1 border" />%</div>
-              <div>{t('admin_tax_bank')} <input id="bankTax" type="number" step="0.1" defaultValue={0.5} className="w-14 bg-zinc-900 px-1 border" />%</div>
               <button onClick={adjustTaxUI} className="px-3 py-0.5 bg-yellow-700 text-xs rounded">{t('admin_tax_apply')}</button>
             </div>
             <div className="text-[10px] text-zinc-500">{t('admin_tax_footer')}</div>
@@ -457,7 +480,7 @@ export default function AdminPage() {
           <div className="mt-4 pt-3 border-t">
             <div className="font-semibold mb-1">{t('admin_give_title')}</div>
             <div className="flex gap-2">
-              <input id="giveU" placeholder={t('admin_give_placeholder')} className="bg-zinc-900 px-2 py-1 text-sm border w-40" defaultValue="YGhosty" />
+              <input id="giveU" placeholder={t('admin_give_placeholder')} className="bg-zinc-900 px-2 py-1 text-sm border w-40" defaultValue="" />
               <input id="giveA" type="number" defaultValue={250000} className="bg-zinc-900 px-2 py-1 text-sm border w-28" />
               <button onClick={() => {
                 const u = (document.getElementById('giveU') as HTMLInputElement).value;
@@ -767,6 +790,63 @@ export default function AdminPage() {
             </div>
           </div>
         )}
+
+        {/* Live Economy Config — tune balance knobs without a redeploy */}
+        <div className="lg:col-span-3 card p-5">
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="font-bold">⚙️ Live Economy Config</h3>
+            <button onClick={loadConfig} className="text-xs px-3 py-1 bg-zinc-800 rounded">Refresh</button>
+          </div>
+          <div className="text-[10px] text-zinc-400 mb-3">
+            Change a value and hit Save — it applies to all players instantly, no deploy. Unset keys fall back to the code default.
+          </div>
+          <div className="space-y-1 mb-4 max-h-[260px] overflow-auto">
+            {config.length === 0 && <div className="text-zinc-500 text-xs">No config knobs yet.</div>}
+            {config.map((c: any) => (
+              <div key={c.key} className="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded px-2 py-1.5 text-[11px] gap-2">
+                <div className="truncate pr-2 min-w-0">
+                  <span className="font-mono font-semibold">{c.key}</span>
+                  {c.label && <span className="text-zinc-500 ml-2">{c.label}</span>}
+                </div>
+                <div className="flex gap-1 shrink-0 items-center">
+                  <input
+                    type="number"
+                    className="bg-zinc-900 border px-2 py-1 text-xs w-28 text-right"
+                    defaultValue={c.num}
+                    onChange={(e) => setConfigDraft((d) => ({ ...d, [c.key]: e.target.value }))}
+                  />
+                  <button
+                    onClick={() => saveConfig(c.key, configDraft[c.key] ?? String(c.num))}
+                    className="px-2 py-1 bg-emerald-800 hover:bg-emerald-700 rounded text-[10px]"
+                  >Save</button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="border-t border-zinc-800 pt-3">
+            <div className="font-semibold mb-2 text-xs">Add / override a knob</div>
+            <div className="flex gap-2">
+              <input
+                placeholder="key (e.g. bullet_cap)"
+                className="bg-zinc-900 border px-2 py-1 text-xs flex-1 font-mono"
+                value={newCfgKey}
+                onChange={(e) => setNewCfgKey(e.target.value)}
+              />
+              <input
+                type="number"
+                placeholder="value"
+                className="bg-zinc-900 border px-2 py-1 text-xs w-28 text-right"
+                value={newCfgVal}
+                onChange={(e) => setNewCfgVal(e.target.value)}
+              />
+              <button
+                onClick={() => { if (newCfgKey.trim()) { saveConfig(newCfgKey.trim(), newCfgVal); setNewCfgKey(''); setNewCfgVal(''); } }}
+                className="px-3 py-1 bg-blue-700 hover:bg-blue-600 rounded text-xs"
+              >Set</button>
+            </div>
+            <div className="text-[10px] text-zinc-500 mt-2">Only keys the code reads via <span className="font-mono">_cfg()</span> take effect. Current wired keys: bullet_cap, bullet_bust_threshold, family_hourly_cap.</div>
+          </div>
+        </div>
       </div>
 
       <div className="mt-4 text-xs">

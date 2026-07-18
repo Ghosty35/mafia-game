@@ -81,6 +81,8 @@ export type Player = {
   // Donator / VIP status (030)
   is_donator?: boolean;
   donator_since?: string;
+  // Staff role (128): 'ceo' | 'admin' | 'jr_admin' | 'game_mod' | 'support' | null
+  staff_role?: string | null;
   breakout_skill?: number;  // for jail breakout training
   gov_tax_bank?: number;    // Gov Tax fund contributions
   stock_holdings?: Record<string, number>;  // ticker -> shares

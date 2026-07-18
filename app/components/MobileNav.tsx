@@ -39,7 +39,7 @@ export default function MobileNav() {
     };
   }, [open]);
 
-  const isAdmin = player?.username === 'YGhosty';
+  const isAdmin = !!player?.staff_role;
   const gameCategories: MenuCategory[] = buildLeftMenu(isAdmin);
   const categories = tab === 'game' ? gameCategories : rightMenuCategories;
 

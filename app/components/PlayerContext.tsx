@@ -81,6 +81,21 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(interval);
   }, []);
 
+  // Immediately re-sync when the player returns to the tab or refocuses the
+  // window, so stats/cash are never stale after switching away and back (the
+  // 15s poll alone can lag behind actions taken in another tab/device).
+  useEffect(() => {
+    const onWake = () => {
+      if (document.visibilityState === 'visible') refreshPlayer();
+    };
+    document.addEventListener('visibilitychange', onWake);
+    window.addEventListener('focus', onWake);
+    return () => {
+      document.removeEventListener('visibilitychange', onWake);
+      window.removeEventListener('focus', onWake);
+    };
+  }, []);
+
   return (
     <PlayerContext.Provider
       value={{

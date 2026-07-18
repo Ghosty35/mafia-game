@@ -101,26 +101,11 @@ export default function CityRealEstatePage() {
     }
     setBusy(true);
     const supabase = createClient();
-    const propJsonb = {
-      id: prop.id,
-      catalog_id: prop.id,
-      name: prop.name,
-      ptype: prop.ptype,
-      type: prop.type,
-      city: prop.city,
-      income: prop.income,
-      spots: prop.spots,
-      purchase_date: new Date().toISOString(),
-      bank_balance: 0,
-      maintenance_due: Math.floor(prop.income * 0.12),
-      autopay: false,
-      shed_level: 1,
-      earnings_week: 0,
-      last_earned: new Date().toISOString(),
-    };
+    // Server-authoritative: pass only the catalog id. The RPC reads price/income
+    // from property_catalog, so the client cannot forge a high-income property.
     const { data, error } = await supabase.rpc('purchase_property', {
-      prop: propJsonb,
-      price: prop.price,
+      p_catalog_id: prop.id,
+      p_custom_name: null,
     });
     setBusy(false);
     if (error) {
