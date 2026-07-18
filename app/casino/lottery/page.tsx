@@ -19,6 +19,7 @@ type LotteryInfo = {
   base_prize_max: number;
   can_enter: boolean;
   next_entry_at: string | null;
+  next_draw: string | null;
   my_cash: number;
 };
 
@@ -103,6 +104,9 @@ export default function LotteryPage() {
           <div className="text-[10px] text-zinc-500 mt-0.5">
             {info.pool_active ? t('lot_pool_active') : t('lot_pool_building', { threshold: fm(200000) })}
           </div>
+          {info.next_draw && (
+            <div className="text-[10px] text-zinc-400 mt-1">Next draw: {new Date(info.next_draw).toLocaleString()}</div>
+          )}
         </div>
         <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-4 text-center">
           <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">{t('lot_your_odds')}</div>
