@@ -106,6 +106,7 @@ export const rightMenuCategories: MenuCategory[] = [
     titleKey: 'side_communication',
     items: [
       { labelKey: 'menu_messages', href: '/messages', icon: '✉️' },
+      { labelKey: 'menu_forums', href: '/forum', icon: '📢' },
       { labelKey: 'menu_travel', href: '/travel', icon: '🧭' },
       { labelKey: 'menu_hospital', href: '/hospital', icon: '🏥' },
       { labelKey: 'menu_jail', href: '/jail', icon: '🔒' },
@@ -144,6 +145,7 @@ export const rightMenuCategories: MenuCategory[] = [
       { labelKey: 'menu_territories', href: '/territories', icon: '🗺️' },
       { labelKey: 'menu_crusher', href: '/families/crusher', icon: '🗜️' },
       { labelKey: 'menu_bounties', href: '/families/bounties', icon: '🎯' },
+      { labelKey: 'menu_players_without_family', href: '/families/without-family', icon: '👤' },
       { labelKey: 'menu_leave_family', href: '/families/leave', icon: '🚪' },
     ],
   },
