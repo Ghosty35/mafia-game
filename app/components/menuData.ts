@@ -101,6 +101,7 @@ export const rightMenuCategories: MenuCategory[] = [
   {
     titleKey: 'side_journey',
     items: [
+      { labelKey: 'menu_hustlers_way', href: '/hustlers-way', icon: '🛤️' },
       { labelKey: 'menu_roadmap', href: '/journey/roadmap', icon: '🚀' },
       { labelKey: 'menu_menus', href: '/journey/menus', icon: '🧭' },
       { labelKey: 'menu_tips', href: '/journey/tips', icon: '💡' },
@@ -146,6 +147,7 @@ export const rightMenuCategories: MenuCategory[] = [
     titleKey: 'side_reputation',
     items: [
       { labelKey: 'menu_leaderboard', href: '/leaderboard', icon: '🏆' },
+      { labelKey: 'menu_crime_leaderboard', href: '/crime-leaderboard', icon: '🔫' },
       { labelKey: 'menu_most_wanted', href: '/most-wanted', icon: '🚨' },
       { labelKey: 'menu_families_leaderboard', href: '/families/leaderboard', icon: '👑' },
       { labelKey: 'menu_tax_bank', href: '/reputations/tax-bank', icon: '🏛️' },
