@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { useRouter } from 'next/navigation';
 
 type FactoryState = {
   stock: number;
@@ -16,6 +17,7 @@ type FactoryState = {
 export default function MetalFactoryPage() {
   const { player, refreshPlayer } = usePlayer();
   const { t, language, fm } = useLanguage();
+  const router = useRouter();
   const [amount, setAmount] = useState(100);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
@@ -58,9 +60,11 @@ export default function MetalFactoryPage() {
       else setMessage(error.message || t('factory_purchase_failed'));
     } else if (data?.busted) {
       await refreshPlayer();
+      await router.refresh();
       setMessage(t('factory_busted', { fine: fm(Number(data.fine)) }));
     } else {
       await refreshPlayer();
+      await router.refresh();
       const bought = Number(data?.bullets_bought || 0);
       const requested = Number(data?.requested || amount);
       let text = t('factory_bought', {

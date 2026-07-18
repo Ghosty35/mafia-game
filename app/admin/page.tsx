@@ -4,10 +4,12 @@ import { usePlayer } from '../components/PlayerContext';
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { useRouter } from 'next/navigation';
 
 export default function AdminPage() {
   const { player, updatePlayer, refreshPlayer } = usePlayer();
   const { t, fm } = useLanguage();
+  const router = useRouter();
   const [logs, setLogs] = useState<any[]>([]);
   const [allPlayers, setAllPlayers] = useState<any[]>([]);
   const [loadingPlayers, setLoadingPlayers] = useState(false);
@@ -69,6 +71,7 @@ export default function AdminPage() {
     addLog('GIVE', `Gave ${fm(amt)} to ${data?.username || username}. New cash: ${fm(data?.new_cash || 0)}`);
     if (username.toLowerCase() === (player?.username || '').toLowerCase()) {
       await refreshPlayer();
+      await router.refresh();
     }
     fetchPlayers();
   };
@@ -85,7 +88,8 @@ export default function AdminPage() {
     if (error) { addLog('ERROR', error.message); return; }
     addLog('FORCE', `Cleared ${type} for player`);
     fetchPlayers();
-    refreshPlayer();
+    await refreshPlayer();
+    await router.refresh();
   };
 
   const updateFieldDirect = async (pid: string, field: string, value: any) => {
@@ -98,7 +102,10 @@ export default function AdminPage() {
     else {
       addLog('EDIT', `Set ${field}=${value}`);
       fetchPlayers();
-      if (pid === player?.id) await refreshPlayer();
+      if (pid === player?.id) {
+        await refreshPlayer();
+        await router.refresh();
+      }
     }
   };
 

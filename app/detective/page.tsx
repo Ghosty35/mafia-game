@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import Panel from '../components/Panel';
+import { useRouter } from 'next/navigation';
 
 type Search = {
   id: string;
@@ -32,6 +33,7 @@ export const dynamic = 'force-dynamic';
 export default function DetectivePage() {
   const { player, refreshPlayer } = usePlayer();
   const { t, fm } = useLanguage();
+  const router = useRouter();
 
   const [info, setInfo] = useState<DetectiveInfo | null>(null);
   const [targetName, setTargetName] = useState('');
@@ -79,6 +81,7 @@ export default function DetectivePage() {
     }
     setTargetName('');
     await refreshPlayer();
+    await router.refresh();
     await load();
     setMessage(t('dt_hired', { target: data.target, cost: fm(data.cost) }));
   };

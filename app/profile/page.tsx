@@ -9,6 +9,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { getRank, getNextRank } from '@/lib/ranks';
 import Panel from '../components/Panel';
 import type { TranslationKey } from '@/lib/i18n/translations';
+import { useRouter } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,9 +26,15 @@ export default function ProfilePage() {
 function ProfileContent() {
   const { player, refreshPlayer } = usePlayer();
   const { t, fm, language } = useLanguage();
+  const router = useRouter();
   const dateLocale = language === 'nl' ? 'nl-NL' : 'en-US';
   const searchParams = useSearchParams();
   const viewUser = searchParams.get('user') || searchParams.get('username');
+
+  const handleProfileSaved = async () => {
+    await refreshPlayer();
+    await router.refresh();
+  };
 
   const [publicProfile, setPublicProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -168,7 +175,7 @@ function ProfileContent() {
             </div>
           </Panel>
 
-          <ProfileSettings onSaved={refreshPlayer} />
+          <ProfileSettings onSaved={handleProfileSaved} />
         </>
       )}
 
