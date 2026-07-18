@@ -28,6 +28,17 @@ type Territory = {
   active_war: ActiveWarSummary | null;
 };
 
+type PendingEvent = {
+  id: string;
+  city: string;
+  applicant_1: string | null;
+  applicant_2: string | null;
+  applicant_1_name: string | null;
+  applicant_2_name: string | null;
+  apply_ends_at: string;
+  my_family_applied: boolean;
+};
+
 type Contributor = { username: string; points: number; family_id: string };
 
 type War = {
@@ -67,6 +78,11 @@ const ERROR_KEYS: Record<string, TranslationKey> = {
   NOT_YOUR_WAR: 'tw_err_not_your_war',
   IN_JAIL: 'tw_err_jailed',
   DEAD: 'tw_err_dead',
+  EVENT_NOT_OPEN: 'tw_err_event_not_open',
+  EVENT_EXPIRED: 'tw_err_event_expired',
+  EVENT_FULL: 'tw_err_event_full',
+  ALREADY_APPLIED: 'tw_err_already_applied',
+  EVENT_ALREADY_OPEN: 'tw_err_event_already_open',
 };
 
 function fmtCountdown(msLeft: number): string {
@@ -87,6 +103,7 @@ export default function TerritoryBoard() {
   const [recentWars, setRecentWars] = useState<War[]>([]);
   const [myFamilyId, setMyFamilyId] = useState<string | null>(null);
   const [myRole, setMyRole] = useState<string | null>(null);
+  const [pendingEvents, setPendingEvents] = useState<PendingEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -99,10 +116,11 @@ export default function TerritoryBoard() {
 
   const load = async () => {
     // No unmount guard (dev StrictMode double-mount, see MostWantedBoard).
-    const [terrRes, warsRes, famRes] = await Promise.all([
+    const [terrRes, warsRes, famRes, eventsRes] = await Promise.all([
       supabase.rpc('get_territories'),
       supabase.rpc('get_family_wars'),
       supabase.rpc('get_my_family'),
+      supabase.rpc('get_war_events'),
     ]);
     if (terrRes.data) setTerritories(terrRes.data as Territory[]);
     if (warsRes.data) {
@@ -111,6 +129,7 @@ export default function TerritoryBoard() {
       setMyFamilyId((warsRes.data.my_family_id ?? null) as string | null);
     }
     if (famRes.data) setMyRole((famRes.data.my_role ?? null) as string | null);
+    if (eventsRes.data) setPendingEvents((eventsRes.data.pending ?? []) as PendingEvent[]);
     setLoading(false);
   };
 
@@ -150,6 +169,9 @@ export default function TerritoryBoard() {
 
   const declareWar = (city: string) =>
     runAction(() => supabase.rpc('declare_war', { p_city: city }), t('tw_declared_ok', { city }));
+
+  const applyToEvent = (warId: string, city: string) =>
+    runAction(() => supabase.rpc('apply_to_war_event', { p_war_id: warId }), t('tw_event_applied_ok', { city }));
 
   const attack = (warId: string) => {
     const bullets = Math.max(0, Math.min(100, parseInt(bulletsByWar[warId] || '0', 10) || 0));
@@ -245,6 +267,61 @@ export default function TerritoryBoard() {
           </div>
         );
       })}
+
+      {/* ---- pending war events (admin-hosted, apply-to-join) ---- */}
+      {pendingEvents.length > 0 && (
+        <div className="bg-zinc-900 border border-amber-800/60 rounded-xl overflow-hidden text-sm">
+          <div className="bg-gradient-to-r from-amber-950 to-zinc-900 px-4 py-2 flex items-center justify-between">
+            <h2 className="font-bold tracking-tight">📯 {t('tw_events_title')}</h2>
+            <span className="text-[10px] text-zinc-400 uppercase tracking-wider">{t('tw_events_subtitle')}</span>
+          </div>
+          <div className="divide-y divide-zinc-800">
+            {pendingEvents.map((ev) => {
+              const applicants = (ev.applicant_1 ? 1 : 0) + (ev.applicant_2 ? 1 : 0);
+              const applyMs = new Date(ev.apply_ends_at).getTime() - now;
+              const canApply = myRole === 'boss' || myRole === 'underboss';
+              return (
+                <div key={ev.id} className="px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
+                  <div className="min-w-0">
+                    <div className="font-semibold">
+                      {t('tw_war_over_city', { city: ev.city })}{' '}
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-700 text-white font-bold">{t('tw_event_pending')}</span>
+                    </div>
+                    <div className="text-[11px] text-zinc-400 mt-0.5">
+                      {applicants === 0
+                        ? t('tw_event_need_two', { n: 0 })
+                        : (
+                          <span>
+                            {ev.applicant_1_name}
+                            {ev.applicant_2_name ? ` · ${ev.applicant_2_name}` : ''} — {t('tw_event_need_two', { n: applicants })}
+                          </span>
+                        )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-zinc-500 font-mono">
+                      {applyMs > 0 ? `${t('tw_event_apply_ends')} ${fmtCountdown(applyMs)}` : '—'}
+                    </span>
+                    {ev.my_family_applied ? (
+                      <span className="text-[10px] px-2 py-1 rounded bg-emerald-900/70 text-emerald-300 font-bold">{t('tw_event_applied')}</span>
+                    ) : canApply ? (
+                      <button
+                        onClick={() => applyToEvent(ev.id, ev.city)}
+                        disabled={busy || applicants >= 2}
+                        className="px-3 py-1 rounded bg-amber-700 hover:bg-amber-600 disabled:opacity-40 text-xs font-bold"
+                      >
+                        {t('tw_event_apply_btn')}
+                      </button>
+                    ) : (
+                      <span className="text-[10px] text-zinc-500">{t('tw_boss_only')}</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ---- territory table ---- */}
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden text-sm">

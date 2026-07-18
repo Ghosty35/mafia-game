@@ -29,6 +29,7 @@ export default function JoinFamilyPage() {
   const { inFamily, loading: famLoading } = useMyFamily();
 
   const [families, setFamilies] = useState<FamilySummary[]>([]);
+  const [topFamilies, setTopFamilies] = useState<FamilySummary[]>([]);
   const [myRequest, setMyRequest] = useState<{ request_id: string; family_id: string; family_name?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -41,11 +42,13 @@ export default function JoinFamilyPage() {
   const supabase = createClient();
 
   const load = async () => {
-    const [listRes, reqRes] = await Promise.all([
+    const [listRes, reqRes, topRes] = await Promise.all([
       supabase.rpc('list_families'),
       supabase.rpc('get_my_join_request'),
+      supabase.rpc('get_families_leaderboard'),
     ]);
     setFamilies(Array.isArray(listRes.data) ? listRes.data : []);
+    setTopFamilies(Array.isArray(topRes.data?.top) ? topRes.data.top.slice(0, 10) : []);
     setMyRequest(reqRes.data?.request_id ? reqRes.data : null);
     setLoading(false);
   };
@@ -243,6 +246,32 @@ export default function JoinFamilyPage() {
               {busy ? t('fj_creating') : t('fj_create_submit')}
             </button>
           </form>
+        )}
+      </Panel>
+
+      {/* Top 10 families leaderboard — shows the power players below the join controls */}
+      <Panel title={t('fj_top_title')} icon="👑" bodyClassName="p-0">
+        <div className="grid grid-cols-12 bg-zinc-950/60 px-4 py-1.5 text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">
+          <div className="col-span-1">#</div>
+          <div className="col-span-6">{t('famlb_family')}</div>
+          <div className="col-span-2 text-right">{t('famlb_respect')}</div>
+          <div className="col-span-1 text-center">{t('famlb_members')}</div>
+          <div className="col-span-2 text-right">{t('fam_stat_power')}</div>
+        </div>
+        {topFamilies.length === 0 ? (
+          <div className="px-4 py-6 text-center text-sm text-zinc-500">{t('fj_none')}</div>
+        ) : (
+          topFamilies.map((f, i) => (
+            <div key={f.id} className="grid grid-cols-12 px-4 py-2 border-t border-zinc-800 items-center text-sm hover:bg-zinc-800/40">
+              <div className="col-span-1 font-mono text-amber-400 text-xs">{i + 1}</div>
+              <div className="col-span-6 truncate">
+                <Link href={`/families/profile?id=${f.id}`} className="font-medium hover:text-red-400">{f.name}</Link>
+              </div>
+              <div className="col-span-2 text-right font-mono text-amber-400 text-xs tabular-nums">{f.respect.toLocaleString()}</div>
+              <div className="col-span-1 text-center font-mono text-xs">{f.member_count}</div>
+              <div className="col-span-2 text-right font-mono text-orange-400 text-xs tabular-nums">{(f as any).power?.toLocaleString?.() ?? '—'}</div>
+            </div>
+          ))
         )}
       </Panel>
     </div>

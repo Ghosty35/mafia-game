@@ -7,7 +7,6 @@ import GameNav from './GameNav';
 import Sidebar from './Sidebar';
 import RightSidebar from './RightSidebar';
 import PlayerInfoCard from './PlayerInfoCard';
-import LiveTracker from './LiveTracker';
 import LanguageSync from './LanguageSync';
 import Toast from './Toast';
 import { PlayerProvider, usePlayer } from './PlayerContext';
@@ -35,8 +34,9 @@ function LayoutContent({ children }: { children: ReactNode }) {
   }, [player?.death_until, player?.jailed_until, router]);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white relative overflow-x-hidden">
-      {/* Subtle crime-world atmosphere */}
+    <div className="min-h-screen bg-transparent text-white relative overflow-x-hidden">
+      {/* Live mafia-city atmosphere on top of the global skyline background */}
+      <div className="mafia-ambient" />
       <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,rgba(245,158,11,0.03),transparent_50%)]" />
       <LanguageSync />
       <Toast />
@@ -50,7 +50,6 @@ function LayoutContent({ children }: { children: ReactNode }) {
         <main className="flex-1 p-4 sm:p-6 min-w-0">
           <div className="max-w-5xl mx-auto">
             <PlayerInfoCard />
-            <LiveTracker />
             {children}
           </div>
         </main>

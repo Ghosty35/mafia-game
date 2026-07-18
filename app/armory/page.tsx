@@ -64,24 +64,43 @@ export default function ArmoryPage() {
         <p className="text-sm text-zinc-400">{t('armory_desc')}</p>
       </div>
 
+      {/* Power meter */}
+      <div className="card p-5 mb-6">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs uppercase tracking-wider text-zinc-400">{t('armory_your_power')}</span>
+          <span className="font-mono text-sm text-orange-400">
+            {currentPower.toLocaleString()} / {MAX_POWER.toLocaleString()}
+          </span>
+        </div>
+        <div className="h-3 rounded-full bg-zinc-800 overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-orange-600 to-amber-400 transition-all"
+            style={{ width: `${Math.min(100, (currentPower / MAX_POWER) * 100)}%` }}
+          />
+        </div>
+        {atPowerCap && (
+          <p className="text-xs text-amber-400 mt-2">⚠️ {t('armory_cap_reached')}</p>
+        )}
+      </div>
+
       {message && (
         <div className="mb-4 p-3 bg-zinc-900 border border-zinc-700 rounded text-sm">{message}</div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {powerPacks.map((pack, i) => (
-          <div key={i} className="card p-5">
+          <div key={i} className="card p-5 flex flex-col">
             <div className="text-3xl mb-2">⚔️</div>
             <h3 className="font-bold text-lg mb-1">{t(pack.labelKey)}</h3>
-            <div className="text-emerald-400 font-mono mb-3">
+            <div className="text-emerald-400 font-mono mb-4">
               {t('armory_power', { power: pack.power })}
             </div>
-            <div className="flex justify-between items-center">
+            <div className="mt-auto flex justify-between items-center">
               <span className="text-lg font-mono">{fm(pack.price)}</span>
               <button
                 onClick={() => buyPower(pack.power, pack.price)}
                 disabled={busy || atPowerCap}
-                title={atPowerCap ? t('armory_cap_reached') || 'Maximum power reached.' : undefined}
+                title={atPowerCap ? t('armory_cap_reached') : undefined}
                 className="px-4 py-2 bg-red-700 hover:bg-red-600 rounded text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {atPowerCap ? 'MAX' : t('armory_buy')}
@@ -90,10 +109,6 @@ export default function ArmoryPage() {
           </div>
         ))}
       </div>
-
-      {atPowerCap && (
-        <p className="text-xs text-amber-400 mt-2">⚠️ {t('armory_cap_reached') || 'Maximum power reached (10000).'}</p>
-      )}
 
       <div className="mt-6 text-xs text-zinc-500">{t('armory_footer')}</div>
 

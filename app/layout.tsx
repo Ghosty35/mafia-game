@@ -44,6 +44,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-zinc-950">
+        <div className="mafia-ambient" />
         <LanguageProvider>{children}</LanguageProvider>
       </body>
     </html>

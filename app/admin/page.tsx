@@ -16,6 +16,9 @@ export default function AdminPage() {
   const [economy, setEconomy] = useState<any>(null);
   const [pools, setPools] = useState<any>(null);
   const [govTax, setGovTax] = useState<number | null>(null);
+  const [lotteryPool, setLotteryPool] = useState<number | null>(null);
+  const [banks, setBanks] = useState<any>(null);
+  const [warEvents, setWarEvents] = useState<any>(null);
   const isAdmin = player?.username === 'YGhosty';
 
   const supabase = createClient();
@@ -45,6 +48,15 @@ export default function AdminPage() {
 
       const { data: gt } = await supabase.rpc('admin_get_gov_tax');
       if (gt) setGovTax(gt.balance ?? 0);
+
+      const { data: lot } = await supabase.rpc('admin_get_lottery');
+      if (lot) setLotteryPool(lot.pool ?? 0);
+
+      const { data: bk } = await supabase.rpc('admin_banks_overview');
+      if (bk) setBanks(bk);
+
+      const { data: we } = await supabase.rpc('get_war_events');
+      if (we) setWarEvents(we);
     } catch (e) {}
   };
 
@@ -150,6 +162,58 @@ export default function AdminPage() {
     await router.refresh();
   };
 
+  const lotDeposit = async (amt: number) => {
+    if (!amt || amt <= 0) return;
+    const { data, error } = await supabase.rpc('admin_deposit_lottery', { p_amount: amt });
+    if (error) { addLog('ERROR', error.message); return; }
+    setLotteryPool(data?.pool ?? 0);
+    addLog('LOTTERY', `Deposited ${fm(amt)} into Lottery pool. Pool: ${fm(data?.pool ?? 0)}`);
+  };
+
+  const lotWithdraw = async (amt: number) => {
+    if (!amt || amt <= 0) return;
+    const { data, error } = await supabase.rpc('admin_withdraw_lottery', { p_amount: amt });
+    if (error) {
+      addLog('ERROR', error.message.includes('NOT_ENOUGH_LOTTERY') ? 'Lottery pool has insufficient funds' : error.message);
+      return;
+    }
+    setLotteryPool(data?.pool ?? 0);
+    addLog('LOTTERY', `Withdrew ${fm(amt)} from Lottery pool. Pool: ${fm(data?.pool ?? 0)}`);
+    await refreshPlayer();
+    await router.refresh();
+  };
+
+  const lotDraw = async () => {
+    const { data, error } = await supabase.rpc('admin_draw_lottery');
+    if (error) {
+      addLog('ERROR', error.message.includes('LOTTERY_EMPTY') ? 'Lottery pool is empty' : error.message);
+      return;
+    }
+    setLotteryPool(data?.pool_left ?? 0);
+    addLog('LOTTERY', `Draw! Winner ${data?.winner} won ${fm(data?.prize || 0)}. Pool left: ${fm(data?.pool_left || 0)}`);
+    await refreshPlayer();
+    await router.refresh();
+  };
+
+  const openWarEvent = async (city: string) => {
+    const { data, error } = await supabase.rpc('admin_open_war_event', { p_city: city });
+    if (error) {
+      addLog('ERROR', error.message.includes('EVENT_ALREADY_OPEN') ? t('tw_event_admin_already', { city }) : error.message);
+      return;
+    }
+    addLog('WAR', t('tw_event_admin_opened', { city }));
+    const { data: we } = await supabase.rpc('get_war_events');
+    if (we) setWarEvents(we);
+  };
+
+  const cancelWarEvent = async (warId: string, city: string) => {
+    const { error } = await supabase.rpc('cancel_war_event', { p_war_id: warId });
+    if (error) { addLog('ERROR', error.message); return; }
+    addLog('WAR', t('tw_event_admin_cancelled', { city }));
+    const { data: we } = await supabase.rpc('get_war_events');
+    if (we) setWarEvents(we);
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-6">
       <h1 className="text-4xl font-bold mb-1">{t('admin_title')}</h1>
@@ -210,6 +274,72 @@ export default function AdminPage() {
             </div>
             <div className="text-[10px] text-zinc-500 mt-1">{t('admin_gov_footer')}</div>
           </div>
+
+          {/* Lottery Pool - Admin managed (mirrors Gov Tax Bank) */}
+          <div className="mt-4 pt-3 border-t border-zinc-800">
+            <div className="flex items-center justify-between mb-1">
+              <div className="font-semibold">🎟️ Lottery Pool</div>
+              <div className="text-sm font-mono text-amber-400">{lotteryPool !== null ? fm(lotteryPool) : '—'}</div>
+            </div>
+            <div className="flex gap-2 items-center text-sm flex-wrap">
+              <input id="lotAmt" type="number" defaultValue={50000} className="bg-zinc-900 px-2 py-1 border w-28" />
+              <button onClick={() => lotDeposit(parseInt((document.getElementById('lotAmt') as HTMLInputElement).value))} className="px-3 py-1 bg-emerald-700 hover:bg-emerald-600 rounded text-xs">{t('admin_lot_deposit')}</button>
+              <button onClick={() => lotWithdraw(parseInt((document.getElementById('lotAmt') as HTMLInputElement).value))} className="px-3 py-1 bg-red-700 hover:bg-red-600 rounded text-xs">{t('admin_lot_withdraw')}</button>
+              <button onClick={lotDraw} className="px-3 py-1 bg-yellow-700 hover:bg-yellow-600 rounded text-xs">{t('admin_lot_draw')}</button>
+            </div>
+            <div className="text-[10px] text-zinc-500 mt-1">{t('admin_lot_footer')}</div>
+          </div>
+
+          {/* All Banks Overview submenu */}
+          <div className="mt-4 pt-3 border-t border-zinc-800">
+            <div className="font-semibold mb-1">🏦 {t('admin_banks_title')}</div>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
+              <div className="flex justify-between"><span className="text-zinc-400">{t('admin_banks_personal')}</span><span className="font-mono text-blue-400">{banks ? fm(banks.personal_bank_total) : '—'}</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">{t('admin_banks_family')}</span><span className="font-mono text-amber-400">{banks ? fm(banks.family_bank_total) : '—'}</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">{t('admin_banks_family_pending')}</span><span className="font-mono text-orange-400">{banks ? fm(banks.family_pending_total) : '—'}</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">{t('admin_banks_gov')}</span><span className="font-mono text-red-400">{banks ? fm(banks.gov_tax) : '—'}</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">{t('admin_banks_lottery')}</span><span className="font-mono text-amber-300">{banks ? fm(banks.lottery_pool) : '—'}</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">{t('admin_banks_bj')}</span><span className="font-mono text-zinc-300">{banks ? fm(banks.casino_blackjack) : '—'}</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">{t('admin_banks_roulette')}</span><span className="font-mono text-zinc-300">{banks ? fm(banks.casino_roulette) : '—'}</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">{t('admin_banks_general')}</span><span className="font-mono text-zinc-300">{banks ? fm(banks.casino_general) : '—'}</span></div>
+            </div>
+            <div className="text-[10px] text-zinc-500 mt-1">{t('admin_banks_footer')}</div>
+          </div>
+
+          {/* War Events - Admin hosted */}
+          <div className="mt-4 pt-3 border-t border-zinc-800">
+            <div className="font-semibold mb-1">📯 {t('tw_events_title')}</div>
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {['New York', 'Chicago', 'Los Angeles', 'Miami', 'Las Vegas'].map((c) => (
+                <button key={c} onClick={() => openWarEvent(c)} className="px-2.5 py-1 rounded bg-amber-700 hover:bg-amber-600 text-[10px] font-bold">
+                  {t('tw_event_admin_open')}: {c}
+                </button>
+              ))}
+            </div>
+            {(warEvents?.pending?.length ?? 0) > 0 && (
+              <div className="space-y-1">
+                {warEvents.pending.map((ev: any) => (
+                  <div key={ev.id} className="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded px-2 py-1 text-[11px]">
+                    <span>
+                      <span className="font-semibold">{ev.city}</span>{' '}
+                      <span className="text-amber-400">{t('tw_event_pending')}</span>{' '}
+                      <span className="text-zinc-500">
+                        {ev.applicant_1_name && `${ev.applicant_1_name}`}
+                        {ev.applicant_2_name && ` · ${ev.applicant_2_name}`}
+                        {!ev.applicant_1_name && !ev.applicant_2_name && t('tw_event_need_two', { n: 0 })}
+                      </span>
+                    </span>
+                    <button onClick={() => cancelWarEvent(ev.id, ev.city)} className="px-2 py-0.5 rounded bg-red-800 hover:bg-red-700 text-[10px]">
+                      {t('tw_event_admin_cancel')}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="text-[10px] text-zinc-500 mt-1">{t('tw_events_subtitle')}</div>
+          </div>
+
+          {/* Give Money - FULL WORKING */}
 
           {/* Give Money - FULL WORKING */}
           <div className="mt-4 pt-3 border-t">

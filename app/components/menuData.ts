@@ -61,6 +61,7 @@ export const leftMenuCategories: MenuCategory[] = [
       { labelKey: 'menu_marketplace', href: '/marketplace', icon: '🏛️' },
       { labelKey: 'menu_shop', href: '/shop', icon: '🛒' },
       { labelKey: 'menu_vip_store', href: '/shop/vip', icon: '👑' },
+      { labelKey: 'menu_tax_bank', href: '/reputations/tax-bank', icon: '🏛️' },
     ],
   },
   {

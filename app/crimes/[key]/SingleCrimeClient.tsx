@@ -8,6 +8,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { formatCash, formatSeconds } from '@/lib/format';
 import { streetEventText } from '@/lib/streetEvents';
 import { usePlayer } from '../../components/PlayerContext';
+import { useActionLock, isTooFastError } from '../../components/useActionLock';
 import type { Crime, Player, CrimeResult } from '@/lib/types';
 
 export default function SingleCrimeClient({
@@ -32,6 +33,7 @@ export default function SingleCrimeClient({
   );
   const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState(false);
+  const { guard, locked: actionLocked } = useActionLock();
 
   useEffect(() => {
     const interval = setInterval(() => setNow(Date.now()), 1000);
@@ -48,13 +50,16 @@ export default function SingleCrimeClient({
   const locked = player.level < crime.min_level;
   const inJail = player.jailed_until && new Date(player.jailed_until).getTime() > now;
   const heat = player.heat || 0;
-  const disabled = locked || coolingDown || inJail || busy;
+  const disabled = locked || coolingDown || inJail || busy || actionLocked;
 
   // Remaining time comes from the server (available_at), not a client
   // recomputation, so it matches what commit_crime enforces.
   const effectiveCooldown = crime.cooldown_seconds;
 
   const doSingleCrime = async () => {
+    // Client-side anti-autoclick backstop (server also enforces TOO_FAST).
+    if (guard()) return;
+
     setBusy(true);
 
     const supabase = createClient();
@@ -65,7 +70,8 @@ export default function SingleCrimeClient({
 
     if (error) {
       let text = t('error_generic');
-      if (error.message.includes('ON_COOLDOWN')) text = t('error_on_cooldown');
+      if (isTooFastError(error.message)) text = t('error_too_fast');
+      else if (error.message.includes('ON_COOLDOWN')) text = t('error_on_cooldown');
       else if (error.message.includes('IN_JAIL')) text = t('error_in_jail');
       else if (error.message.includes('LEVEL_TOO_LOW')) text = t('error_level_too_low');
       else if (error.message.includes('NOT_ENOUGH_STAMINA')) text = t('error_no_stamina');

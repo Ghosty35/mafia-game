@@ -8,6 +8,7 @@ import { usePlayer } from '../components/PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useRouter } from 'next/navigation';
 import Panel from '../components/Panel';
+import CityImage from '../components/CityImage';
 
 type Destination = {
   city: string;
@@ -234,13 +235,16 @@ export default function TravelPage() {
 
           return (
             <div key={d.city} className="border-t first:border-t-0 border-zinc-800 px-4 py-3 hover:bg-zinc-800/30">
-              <div className="flex items-center gap-3 flex-wrap">
-                <div className="min-w-0 flex-1">
-                  <div className="font-semibold">🏙️ {d.city}</div>
-                  <div className="text-[11px] text-zinc-500">{d.km.toLocaleString()} km</div>
-                </div>
+               <div className="flex items-center gap-3 flex-wrap">
+                 <div className="shrink-0">
+                   <CityImage city={d.city} size={64} />
+                 </div>
+                 <div className="min-w-0 flex-1">
+                   <div className="font-semibold">🏙️ {d.city}</div>
+                   <div className="text-[11px] text-zinc-500">{d.km.toLocaleString()} km</div>
+                 </div>
 
-                <div className="text-right w-28">
+                 <div className="text-right w-28">
                   <div className="text-[10px] uppercase tracking-wider text-zinc-500">{t('tv_col_price')}</div>
                   <div className={`font-mono tabular-nums text-sm ${mode === 'car' && !enoughFuel ? 'text-red-400' : 'text-emerald-400'}`}>
                     {price}

@@ -113,6 +113,22 @@ export default function FamilyBankPage() {
         </div>
       </div>
 
+      {/* Power capacity bar */}
+      <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3">
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-[11px] uppercase tracking-wider text-zinc-400">{t('fb_power_capacity')}</span>
+          <span className="font-mono text-xs text-orange-400">
+            {Math.min(10000, fam.power ?? 0).toLocaleString()} / 10,000
+          </span>
+        </div>
+        <div className="h-2.5 rounded-full bg-zinc-800 overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-orange-600 to-amber-400"
+            style={{ width: `${Math.min(100, ((fam.power ?? 0) / 10000) * 100)}%` }}
+          />
+        </div>
+      </div>
+
       {/* Hourly pay — every member */}
       <Panel title={t('fb_hourly_title')} icon="⏰">
         <p className="text-xs text-zinc-400 mb-3">{t('fb_hourly_text')}</p>
