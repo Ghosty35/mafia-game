@@ -16,10 +16,12 @@ CREATE TABLE IF NOT EXISTS public.gov_tax_bank (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
--- Seed: pull the existing tax that players have collectively paid so the
--- Admin starts with the real accumulated amount (idempotent).
+-- Seed: pull the existing tax that players have collectively paid (the
+-- gov_tax_bank column lives on public.players, added in 035) so the Admin
+-- starts with the real accumulated amount (idempotent).
 INSERT INTO public.gov_tax_bank (id, balance, updated_at)
 SELECT 1, COALESCE(SUM(COALESCE(gov_tax_bank, 0)), 0), now()
+FROM public.players
 ON CONFLICT (id) DO UPDATE
   SET balance = EXCLUDED.balance,
       updated_at = now()
