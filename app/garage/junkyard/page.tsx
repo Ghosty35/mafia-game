@@ -8,6 +8,7 @@ import { usePlayer } from '../../components/PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import Panel from '../../components/Panel';
 import { useGarage, type GarageCar } from '../../components/useGarage';
+import CarImage from '../../components/CarImage';
 
 export const dynamic = 'force-dynamic';
 
@@ -64,6 +65,7 @@ export default function JunkyardPage() {
         ) : (
           cars.map((car) => (
             <div key={car.id} className="border-t first:border-t-0 border-zinc-800 px-4 py-3 flex items-center gap-3 flex-wrap hover:bg-zinc-800/30">
+              <CarImage catalogId={car.catalog_id ?? ''} name={car.name} size={64} />
               <div className="min-w-0 flex-1">
                 <div className="font-semibold text-sm">🚗 {car.name}</div>
                 <div className="text-[11px] text-zinc-500">

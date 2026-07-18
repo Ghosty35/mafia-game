@@ -6,6 +6,7 @@ import { usePlayer } from './PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useRouter } from 'next/navigation';
 import type { OwnedProperty } from '@/lib/types';
+import PropertyImage from './PropertyImage';
 
 // Mirror of public._property_launder_tier in 095_property_laundering.sql.
 // Kept in sync for display/validation only; the server is authoritative.
@@ -17,11 +18,6 @@ const tierFor = (ptype?: string): Tier => {
     case 'house':   return { feePct: 0.16, capacity: 5_000_000, washSeconds: 14400 };
     default:        return { feePct: 0.18, capacity: 8_000_000, washSeconds: 14400 };
   }
-};
-
-const PTYPE_ICON: Record<string, string> = {
-  mansion: '💎', villa: '🏛️', house: '🏠', agency: '🏢',
-  airport: '✈️', casino: '🎰', tuneshop: '🔧', redlight: '🌃',
 };
 
 function useNow(intervalMs = 1000) {
@@ -147,9 +143,12 @@ export default function PropertyLaunderBoard() {
             return (
               <div key={prop.id} className="rounded-lg border border-zinc-800 bg-zinc-950/40 p-3">
                 <div className="flex items-center justify-between gap-2 mb-2">
-                  <div className="font-semibold text-sm">
-                    {PTYPE_ICON[(prop.ptype || '').toLowerCase()] || '🏢'} {prop.name}
-                    <span className="text-[10px] text-zinc-500 ml-1">• {prop.city}</span>
+                  <div className="flex items-center gap-2">
+                    <PropertyImage catalogId={prop.id} ptype={prop.ptype} name={prop.name} size={28} />
+                    <div className="font-semibold text-sm">
+                      {prop.name}
+                      <span className="text-[10px] text-zinc-500 ml-1">• {prop.city}</span>
+                    </div>
                   </div>
                   <div className="text-[10px] text-zinc-500 text-right">
                     {t('pl_fee')} {Math.round(tier.feePct * 100)}% • {fmtDuration(tier.washSeconds)}

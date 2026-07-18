@@ -8,7 +8,7 @@ import { usePlayer } from '../components/PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import Panel from '../components/Panel';
 import { useGarage, maxCarsFor, type GarageCar } from '../components/useGarage';
-import CarArt from '../components/CarArt';
+import CarImage from '../components/CarImage';
 
 export const dynamic = 'force-dynamic';
 
@@ -147,7 +147,7 @@ export default function GaragePage() {
               >
                 {/* Car art (procedural SVG by catalog_id) */}
                 <div className="flex items-center justify-center py-2 mb-2 bg-zinc-900/40 rounded-lg border border-zinc-800/60">
-                  <CarArt catalogId={car.catalog_id ?? ''} tuned={car.tuned} size={120} />
+                  <CarImage catalogId={car.catalog_id ?? ''} name={car.name} tuned={car.tuned} size={120} />
                 </div>
 
                 {/* Condition */}

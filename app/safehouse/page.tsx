@@ -8,6 +8,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import type { OwnedProperty } from '@/lib/types';
 import HeatManager from '../components/HeatManager';
 import { useEconomy } from '@/lib/economy';
+import PropertyImage from '../components/PropertyImage';
 
 export default function SafehousePage() {
   const { player, refreshPlayer, showToast } = usePlayer();
@@ -117,7 +118,12 @@ export default function SafehousePage() {
         const piggy = prop.piggy_bank || 0;
         return (
           <div key={i} className="card p-6 mb-6">
-            <h2 className="text-2xl font-bold mb-2">{getWelcome(prop)}</h2>
+            <div className="flex items-start gap-4 mb-2">
+              <PropertyImage catalogId={prop.id} ptype={prop.ptype} name={prop.name} size={80} />
+              <div>
+                <h2 className="text-2xl font-bold mb-2">{getWelcome(prop)}</h2>
+              </div>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div>
                 <div>
@@ -335,7 +341,10 @@ export default function SafehousePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {businesses.map((prop, i) => (
               <div key={i} className="card p-5">
-                <h4 className="font-bold text-sm mb-2">{prop.name}</h4>
+                <div className="flex items-center gap-3 mb-2">
+                  <PropertyImage catalogId={prop.id} ptype={prop.ptype} name={prop.name} size={48} />
+                  <h4 className="font-bold text-sm">{prop.name}</h4>
+                </div>
                 <div className="text-xs text-zinc-400 space-y-1">
                   <div>Type: <span className="text-zinc-300">{prop.ptype}</span></div>
                   <div>City: <span className="text-zinc-300">{prop.city}</span></div>

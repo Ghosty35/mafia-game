@@ -10,6 +10,7 @@ import type { TranslationKey } from '@/lib/i18n/translations';
 import Panel from '../../components/Panel';
 import { useGarage, type GarageCar } from '../../components/useGarage';
 import { useEconomy } from '@/lib/economy';
+import CarImage from '../../components/CarImage';
 
 type TuningPart = {
   partId: string;
@@ -113,8 +114,13 @@ export default function TuneShopPage() {
                     {car.condition}% • +{car.speed_bonus ?? 0} 🏁
                   </span>
                 }
-              >
-                {/* Basic tune */}
+                >
+                  {/* Car image */}
+                  <div className="flex items-center justify-center py-2 mb-2 bg-zinc-900/40 rounded-lg border border-zinc-800/60">
+                    <CarImage catalogId={car.catalog_id ?? ''} name={car.name} size={120} />
+                  </div>
+
+                  {/* Basic tune */}
                 <div className="mb-3">
                   <button
                     onClick={() => tuneCar(car)}

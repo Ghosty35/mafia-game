@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { City } from '@/lib/cities';
 import type { OwnedProperty } from '@/lib/types';
+import PropertyImage from '../../components/PropertyImage';
 
 // Property display metadata with mafia-themed icons
 const PROPERTY_ICONS: Record<string, { icon: string; color: string; bg: string }> = {
@@ -176,8 +177,8 @@ export default function CityRealEstatePage() {
             return (
               <div key={prop.id} className={`${meta.bg} border border-zinc-800 rounded-xl p-5 transition-all hover:border-zinc-700`}>
                 <div className="flex items-center gap-3 mb-3">
-                  <div className={`w-12 h-12 rounded-lg ${meta.bg} border border-zinc-700 flex items-center justify-center text-2xl`}>
-                    {meta.icon}
+                  <div className={`w-12 h-12 rounded-lg ${meta.bg} border border-zinc-700 flex items-center justify-center overflow-hidden`}>
+                    <PropertyImage catalogId={prop.id} ptype={prop.ptype} name={prop.name} size={48} />
                   </div>
                   <div>
                     <h3 className="font-bold text-sm">{prop.name}</h3>
