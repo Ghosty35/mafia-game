@@ -19,7 +19,8 @@ set search_path = ''
 as $$
   select not exists (
     select 1 from public.players where lower(username) = lower(name)
-  );
+  )
+  and lower(name) != 'yghosty';
 $$;
 
 -- 3) Claim a name (one-time; renaming can become a shop item later)
