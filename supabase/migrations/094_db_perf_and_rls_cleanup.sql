@@ -8,28 +8,18 @@
 -- ============================================================
 -- Recovered from a discarded agent worktree (originally 038_...).
 -- Idempotent: safe to (re)apply.
+-- NOTE: public.family_pending_donations was dropped in 074_family_suite.sql,
+-- so no index/policy is created for it here.
 
 -- 1) Missing FK covering indexes
 CREATE INDEX IF NOT EXISTS crime_cooldowns_crime_key_idx ON public.crime_cooldowns (crime_key);
 CREATE INDEX IF NOT EXISTS family_members_player_id_idx ON public.family_members (player_id);
-CREATE INDEX IF NOT EXISTS family_pending_donations_family_id_idx ON public.family_pending_donations (family_id);
-CREATE INDEX IF NOT EXISTS family_pending_donations_player_id_idx ON public.family_pending_donations (player_id);
 CREATE INDEX IF NOT EXISTS messages_from_player_id_idx ON public.messages (from_player_id);
 CREATE INDEX IF NOT EXISTS messages_to_player_id_idx ON public.messages (to_player_id);
 CREATE INDEX IF NOT EXISTS players_family_id_idx ON public.players (family_id);
 CREATE INDEX IF NOT EXISTS properties_owner_id_idx ON public.properties (owner_id);
 
 -- 2) RLS initplan fixes
-DROP POLICY IF EXISTS "Family members can view their pending donations" ON public.family_pending_donations;
-CREATE POLICY "Family members can view their pending donations"
-  ON public.family_pending_donations FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.players p
-      WHERE p.id = (select auth.uid()) AND p.family_id = family_pending_donations.family_id
-    )
-  );
-
 DROP POLICY IF EXISTS "Players can view their messages" ON public.messages;
 CREATE POLICY "Players can view their messages" ON public.messages
   FOR SELECT USING ((select auth.uid()) = to_player_id);
