@@ -27,12 +27,12 @@ function bodyStyle(id: string): BodyStyle {
 
 function tierOf(id: string): Tier {
   const hyper = ['bugatti_chiron','ferrari_sf90','lamborghini_huracan','mclaren_720s','koenigsegg_jesko','pagani_huayra','rimac_nevera'];
-  const super = ['chevrolet_corvette','bmw_m4','nissan_gtr','porsche_911','mercedes_amg_gt','audi_r8','aston_vantage'];
+  const superTier = ['chevrolet_corvette','bmw_m4','nissan_gtr','porsche_911','mercedes_amg_gt','audi_r8','aston_vantage'];
   const luxury = ['mercedes_e','bmw_5','audi_a6','lexus_es','genesis_g80','jaguar_xf','porsche_macan'];
   const mid = ['bmw_3','audi_a4','volvo_s60','tesla_model3','lexus_is','mercedes_c','nissan_altima'];
   const low = ['honda_civic','toyota_corolla','ford_focus','vw_golf','mazda3','subaru_impreza','skoda_octavia'];
   if (hyper.includes(id)) return 'hyper';
-  if (super.includes(id)) return 'super';
+  if (superTier.includes(id)) return 'super';
   if (luxury.includes(id)) return 'luxury';
   if (mid.includes(id)) return 'mid';
   if (low.includes(id)) return 'low';
