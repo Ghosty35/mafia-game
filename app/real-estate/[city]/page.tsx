@@ -6,7 +6,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { usePlayer } from '../../components/PlayerContext';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
-import { CITIES, City } from '@/lib/cities';
+import { City } from '@/lib/cities';
+import type { OwnedProperty } from '@/lib/types';
 
 // Property display metadata with mafia-themed icons
 const PROPERTY_ICONS: Record<string, { icon: string; color: string; bg: string }> = {
@@ -72,9 +73,20 @@ export default function CityRealEstatePage() {
     load();
   }, [city]);
 
+  // Keyboard shortcut: Esc returns to the city overview
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') router.push('/real-estate');
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [router]);
+
+  const getTax = (prop: Property) => Math.floor(prop.price * 0.1);
+
   const buyProperty = async (prop: Property) => {
     if (!player) return;
-    const tax = Math.floor(prop.price * 0.1);
+    const tax = getTax(prop);
     if (player.cash < prop.price + tax) {
       showToast(t('re_no_cash_tax'));
       return;
@@ -121,11 +133,11 @@ export default function CityRealEstatePage() {
   const getMaintenance = (prop: Property) => Math.floor(prop.income * 0.12);
   const getProfit = (prop: Property) => prop.income - getMaintenance(prop);
 
-  const owned = player?.owned_properties || [];
-  const ownedIds = new Set(owned.map((p: any) => p?.catalog_id || p?.id));
+  const owned: OwnedProperty[] = player?.owned_properties || [];
+  const ownedIds = new Set(owned.map((p) => p?.catalog_id || p?.id));
   const isAtTotalCap = owned.length >= 4;
   const isPtypeMaxed = (ptype: string) => {
-    const count = owned.filter((p: any) => (p?.ptype || p?.name || '').toLowerCase() === ptype).length;
+    const count = owned.filter((p) => (p?.ptype || p?.name || '').toLowerCase() === ptype).length;
     if (ptype === 'mansion') return count >= 1;
     if (ptype === 'villa') return count >= 2;
     if (ptype === 'house') return count >= 4;
@@ -152,11 +164,12 @@ export default function CityRealEstatePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {catalog.map((prop) => {
             const meta = getIcon(prop.id, prop.ptype);
+            const tax = getTax(prop);
             const maint = getMaintenance(prop);
             const profit = getProfit(prop);
             const owned = ownedIds.has(prop.id);
             const blocked = owned || isAtTotalCap || isPtypeMaxed(prop.ptype);
-            const cantAfford = player.cash < prop.price + maint;
+            const cantAfford = player.cash < prop.price + tax;
 
             return (
               <div key={prop.id} className={`${meta.bg} border border-zinc-800 rounded-xl p-5 transition-all hover:border-zinc-700`}>
@@ -174,6 +187,10 @@ export default function CityRealEstatePage() {
                   <div className="flex justify-between">
                     <span className="text-zinc-400">{t('re_purchase')}</span>
                     <span className="font-mono text-white">{fm(prop.price)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-zinc-400">{t('re_tax')}</span>
+                    <span className="font-mono text-red-400">+{fm(tax)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-zinc-400">{t('re_avg_income')}</span>

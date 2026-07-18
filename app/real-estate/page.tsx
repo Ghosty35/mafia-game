@@ -8,24 +8,6 @@ import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { CITIES, City } from '@/lib/cities';
 
-// Property display metadata with mafia-themed icons (no placeholder images)
-const PROPERTY_META: Record<string, { icon: string; color: string; bg: string; desc: string }> = {
-  ts1:        { icon: '🚉', color: 'text-zinc-300', bg: 'bg-zinc-800/50', desc: 'Train Station' },
-  house1:     { icon: '🏠', color: 'text-emerald-400', bg: 'bg-emerald-950/30', desc: 'House • 2 spots' },
-  mf1:        { icon: '🏭', color: 'text-orange-400', bg: 'bg-orange-950/30', desc: 'Metal Factory' },
-  villa1:     { icon: '🏛️', color: 'text-amber-400', bg: 'bg-amber-950/30', desc: 'Villa • 4 spots' },
-  da1:        { icon: '🕵️', color: 'text-blue-400', bg: 'bg-blue-950/30', desc: 'Detective Agency' },
-  house_la:   { icon: '🏠', color: 'text-emerald-400', bg: 'bg-emerald-950/30', desc: 'House • 2 spots' },
-  h1:         { icon: '🏥', color: 'text-red-400', bg: 'bg-red-950/30', desc: 'Hospital' },
-  villa_mi:   { icon: '🏛️', color: 'text-amber-400', bg: 'bg-amber-950/30', desc: 'Villa • 4 spots' },
-  gb1:        { icon: '🏦', color: 'text-emerald-400', bg: 'bg-emerald-950/30', desc: 'General Bank' },
-  mansion1:   { icon: '💎', color: 'text-amber-300', bg: 'bg-amber-950/40', desc: 'Mansion • 8 spots' },
-  house_chi:  { icon: '🏠', color: 'text-emerald-400', bg: 'bg-emerald-950/30', desc: 'House • 2 spots' },
-  mansion_la: { icon: '💎', color: 'text-amber-300', bg: 'bg-amber-950/40', desc: 'Mansion • 8 spots' },
-  house_mi:   { icon: '🏠', color: 'text-emerald-400', bg: 'bg-emerald-950/30', desc: 'House • 2 spots' },
-  villa_lv:   { icon: '🏛️', color: 'text-amber-400', bg: 'bg-amber-950/30', desc: 'Villa • 4 spots' },
-};
-
 const CITY_COLORS: Record<string, { accent: string; bg: string }> = {
   'New York':     { accent: 'text-blue-400', bg: 'bg-blue-950/20' },
   'Chicago':      { accent: 'text-emerald-400', bg: 'bg-emerald-950/20' },

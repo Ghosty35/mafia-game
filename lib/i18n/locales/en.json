@@ -769,6 +769,7 @@
   "re_risk_label": "Risk: {risk}",
   "re_no_risk": "No risk (Mansion)",
   "re_purchase": "Purchase:",
+  "re_tax": "Tax (10%):",
   "re_avg_income": "Avg Income:",
   "re_avg_maint": "Avg Maintenance:",
   "re_avg_profit": "Avg Profit:",

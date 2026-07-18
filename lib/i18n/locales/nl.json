@@ -769,6 +769,7 @@
   "re_risk_label": "Risico: {risk}",
   "re_no_risk": "Geen risico (Mansion)",
   "re_purchase": "Aankoop:",
+  "re_tax": "Belasting (10%):",
   "re_avg_income": "Gem. Inkomen:",
   "re_avg_maint": "Gem. Onderhoud:",
   "re_avg_profit": "Gem. Winst:",
