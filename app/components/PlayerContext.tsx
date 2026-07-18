@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { Player } from '@/lib/types';
 
@@ -37,14 +37,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const refreshPlayer = async () => {
     const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
     const { data } = await supabase.rpc('get_my_player');
     if (data) {
       const p = data as Player;
-      // NOTE: the old client-side stat inflation for YGhosty was removed —
-      // it made components disagree with the DB (tracker desync). Admin
-      // stats are now persisted server-side by migration 035.
       if (p.death_until && new Date(p.death_until).getTime() <= Date.now()) {
-        // Death timer expired: respawn server-side, then re-fetch the real row
         await supabase.rpc('check_and_respawn');
         const { data: fresh } = await supabase.rpc('get_my_player');
         setPlayer((fresh as Player) || { ...p, health: 1, death_until: null, kill_protected_until: null });
@@ -64,14 +62,21 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const recordAction = () => setLastActionTime(Date.now());
 
+  const initialMountRef = useRef(true);
+
   useEffect(() => {
-    refreshPlayer();
+    if (initialMountRef.current) {
+      initialMountRef.current = false;
+      refreshPlayer();
+    }
   }, []);
 
   // Auto-refresh player data every 15 seconds across all pages (keeps live stats, cooldowns, etc. fresh)
   useEffect(() => {
-    const interval = setInterval(() => {
-      refreshPlayer();
+    const interval = setInterval(async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) refreshPlayer();
     }, 15000);
     return () => clearInterval(interval);
   }, []);

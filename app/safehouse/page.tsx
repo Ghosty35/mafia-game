@@ -120,7 +120,10 @@ export default function SafehousePage() {
       <HeatManager variant="laylow" />
 
       {safehouses.length === 0 && (
-        <div className="card p-6 text-center text-zinc-400 text-sm">{t('safehouse_none')}</div>
+        <div className="card p-6 text-center text-zinc-400 text-sm">
+          {t('safehouse_none')}{' '}
+          <Link href="/real-estate" className="text-red-400 hover:underline">{t('safehouse_none_link')}</Link>
+        </div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { usePlayer } from './PlayerContext';
@@ -112,7 +112,7 @@ export default function TerritoryBoard() {
   const [now, setNow] = useState(() => Date.now());
 
   const supabase = createClient();
-  const isHigherup = myRole === 'boss' || myRole === 'underboss';
+  const loadedRef = useRef(false);
 
   const load = async () => {
     // No unmount guard (dev StrictMode double-mount, see MostWantedBoard).
@@ -134,7 +134,10 @@ export default function TerritoryBoard() {
   };
 
   useEffect(() => {
-    load();
+    if (!loadedRef.current) {
+      loadedRef.current = true;
+      load();
+    }
     const poll = setInterval(load, 15000);
     const tick = setInterval(() => setNow(Date.now()), 1000);
     return () => {
@@ -163,12 +166,6 @@ export default function TerritoryBoard() {
     await router.refresh();
     setBusy(false);
   };
-
-  const claim = (city: string) =>
-    runAction(() => supabase.rpc('claim_territory', { p_city: city }), t('tw_claimed_ok', { city }));
-
-  const declareWar = (city: string) =>
-    runAction(() => supabase.rpc('declare_war', { p_city: city }), t('tw_declared_ok', { city }));
 
   const applyToEvent = (warId: string, city: string) =>
     runAction(() => supabase.rpc('apply_to_war_event', { p_war_id: warId }), t('tw_event_applied_ok', { city }));
@@ -202,7 +199,7 @@ export default function TerritoryBoard() {
           <div key={w.id} className="bg-zinc-900 border border-red-900/60 rounded-xl overflow-hidden text-sm">
             <div className="bg-gradient-to-r from-red-950 to-zinc-900 px-4 py-2 flex items-center justify-between">
               <h3 className="font-bold tracking-tight">
-                ⚔️ {t('tw_war_over_city', { city: w.city })}
+                ⚔️ {t('tw_active_war_title', { city: w.city })}
               </h3>
               <span className="font-mono text-xs text-orange-400 tabular-nums">
                 ⏳ {fmtCountdown(new Date(w.ends_at).getTime() - now)}
@@ -370,27 +367,9 @@ export default function TerritoryBoard() {
                     ✓ {t('tw_yours')}
                   </span>
                 ) : terr.owner_family_id == null ? (
-                  isHigherup ? (
-                    <button
-                      onClick={() => claim(terr.city)}
-                      disabled={busy}
-                      className="px-2.5 py-1 rounded bg-emerald-700 hover:bg-emerald-600 disabled:opacity-40 text-[10px] font-bold"
-                    >
-                      {t('tw_claim_btn')}
-                    </button>
-                  ) : (
-                    <span className="text-[10px] text-zinc-500">{t('tw_boss_only')}</span>
-                  )
-                ) : isHigherup ? (
-                  <button
-                    onClick={() => declareWar(terr.city)}
-                    disabled={busy}
-                    className="px-2.5 py-1 rounded bg-red-700 hover:bg-red-600 disabled:opacity-40 text-[10px] font-bold"
-                  >
-                    ⚔️ {t('tw_declare_btn')}
-                  </button>
+                  <span className="text-[10px] text-zinc-500">{t('tw_admin_managed')}</span>
                 ) : (
-                  <span className="text-[10px] text-zinc-500">{t('tw_boss_only')}</span>
+                  <span className="text-[10px] text-zinc-500">{t('tw_admin_managed')}</span>
                 )}
               </div>
             </div>

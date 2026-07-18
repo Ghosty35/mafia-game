@@ -25,6 +25,9 @@ export default function AdminPage() {
   const [topLevel, setTopLevel] = useState<any[]>([]);
   const [topActive, setTopActive] = useState<any[]>([]);
   const [nextDraw, setNextDraw] = useState<string | null>(null);
+  const [propTarget, setPropTarget] = useState('');
+  const [propList, setPropList] = useState<any[]>([]);
+  const [propLoading, setPropLoading] = useState(false);
   const isAdmin = player?.username === 'YGhosty';
 
   const supabase = createClient();
@@ -32,7 +35,56 @@ export default function AdminPage() {
   const addLog = (type: string, msg: string) => {
     const entry = { time: new Date().toISOString(), type, msg };
     setLogs(prev => [entry, ...prev].slice(0, 80));
-    // Persist simple to local for session
+  };
+
+  const inspectPlayerProperties = async () => {
+    if (!propTarget.trim()) return;
+    setPropLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('admin_list_player_properties', { p_target_username: propTarget.trim() });
+      if (error) {
+        addLog('ERROR', error.message);
+        setPropList([]);
+      } else if (data) {
+        setPropList(data.properties || []);
+        addLog('PROP', `Inspected ${data.username}: ${data.property_count} properties`);
+      }
+    } finally {
+      setPropLoading(false);
+    }
+  };
+
+  const giveProperty = async (propJson: string) => {
+    if (!propTarget.trim() || !propJson.trim()) return;
+    try {
+      const prop = JSON.parse(propJson);
+      const { data, error } = await supabase.rpc('admin_give_property', {
+        p_target_username: propTarget.trim(),
+        p_property: prop,
+      });
+      if (error) {
+        addLog('ERROR', error.message);
+        return;
+      }
+      addLog('PROP', `Gave ${prop.name || prop.id} to ${data?.username || propTarget}`);
+      inspectPlayerProperties();
+    } catch (e) {
+      addLog('ERROR', 'Invalid property JSON');
+    }
+  };
+
+  const sellProperty = async (propId: string) => {
+    if (!propTarget.trim() || !propId) return;
+    const { data, error } = await supabase.rpc('admin_sell_property', {
+      p_target_username: propTarget.trim(),
+      p_prop_id: propId,
+    });
+    if (error) {
+      addLog('ERROR', error.message);
+      return;
+    }
+    addLog('PROP', `Removed ${data?.removed_name || propId} from ${data?.username || propTarget}`);
+    inspectPlayerProperties();
   };
 
   const fetchPlayers = async (search?: string) => {
@@ -373,8 +425,6 @@ export default function AdminPage() {
           </div>
 
           {/* Give Money - FULL WORKING */}
-
-          {/* Give Money - FULL WORKING */}
           <div className="mt-4 pt-3 border-t">
             <div className="font-semibold mb-1">{t('admin_give_title')}</div>
             <div className="flex gap-2">
@@ -386,6 +436,39 @@ export default function AdminPage() {
                 giveCash(u, a);
               }} className="px-4 bg-emerald-600 rounded text-sm">{t('admin_give_button')}</button>
             </div>
+          </div>
+
+          {/* Property Management - Admin gives / sells any property */}
+          <div className="mt-4 pt-3 border-t">
+            <div className="font-semibold mb-1">🏠 Property Management</div>
+            <div className="flex gap-2 mb-2">
+              <input id="propTarget" placeholder="Target username" className="bg-zinc-900 px-2 py-1 text-sm border w-40" value={propTarget} onChange={e => setPropTarget(e.target.value)} />
+              <button onClick={inspectPlayerProperties} disabled={propLoading} className="px-3 py-1 bg-blue-700 hover:bg-blue-600 rounded text-xs">{propLoading ? 'Loading...' : 'Inspect Properties'}</button>
+            </div>
+
+            {propList.length > 0 && (
+              <div className="space-y-1 mb-3 max-h-[200px] overflow-auto">
+                {propList.map((prop: any, i: number) => (
+                  <div key={prop.id || i} className="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded px-2 py-1.5 text-[11px]">
+                    <div className="truncate pr-2">
+                      <span className="font-semibold">{prop.name || prop.id}</span>
+                      <span className="text-zinc-400 ml-1">{prop.city} • {prop.type}</span>
+                      {prop.income && <span className="text-emerald-400 ml-1">${prop.income}/h</span>}
+                    </div>
+                    <button onClick={() => sellProperty(prop.id)} className="px-2 py-0.5 bg-red-800 hover:bg-red-700 rounded text-[10px] shrink-0">Remove</button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex gap-2 items-start">
+              <textarea id="propJson" placeholder='{"id":"house1","name":"GhostHouse","city":"New York","type":"residential"}' className="bg-zinc-900 px-2 py-1 text-xs border w-96 h-16 font-mono" />
+              <button onClick={() => {
+                const json = (document.getElementById('propJson') as HTMLInputElement).value;
+                giveProperty(json);
+              }} className="px-3 py-1 bg-emerald-700 hover:bg-emerald-600 rounded text-xs shrink-0">Give Property</button>
+            </div>
+            <div className="text-[10px] text-zinc-500 mt-1">Paste a JSON property object. Admin only — bypasses all purchase checks.</div>
           </div>
           </div>
 

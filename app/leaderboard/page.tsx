@@ -69,57 +69,59 @@ export default function LeaderboardPage() {
           <div className="col-span-2">{t('lb_col_family')}</div>
         </div>
 
-        {loading ? (
-          <div className="p-8 text-center text-zinc-500 text-sm">{t('lb_loading')}</div>
-        ) : players.length === 0 ? (
-          <div className="p-8 text-center text-zinc-500 text-sm">{t('lb_empty')}</div>
-        ) : (
-          players.map((player) => {
-            const rankInfo = getRank(player.level);
-            const displayRank = t(rankInfo.key as any);
-            const hasFamily = !!player.family_tag;
+        <div className="max-h-[60vh] overflow-y-auto">
+          {loading ? (
+            <div className="p-8 text-center text-zinc-500 text-sm">{t('lb_loading')}</div>
+          ) : players.length === 0 ? (
+            <div className="p-8 text-center text-zinc-500 text-sm">{t('lb_empty')}</div>
+          ) : (
+            players.map((player) => {
+              const rankInfo = getRank(player.level);
+              const displayRank = t(rankInfo.key as any);
+              const hasFamily = !!player.family_tag;
 
-            return (
-              <div
-                key={player.username}
-                className={`grid grid-cols-12 px-3 py-1.5 border-t border-zinc-800 items-center hover:bg-zinc-800/60 transition-all ${
-                  me && player.username === me.username ? 'bg-red-950/20' : ''
-                }`}
-              >
-                <div className="col-span-1 text-center font-mono text-red-500 font-semibold text-xs">
-                  #{player.pos}
-                </div>
+              return (
+                <div
+                  key={player.username}
+                  className={`grid grid-cols-12 px-3 py-1.5 border-t border-zinc-800 items-center hover:bg-zinc-800/60 transition-all ${
+                    me && player.username === me.username ? 'bg-red-950/20' : ''
+                  }`}
+                >
+                  <div className="col-span-1 text-center font-mono text-red-500 font-semibold text-xs">
+                    #{player.pos}
+                  </div>
 
-                <div className="col-span-3 font-medium truncate pr-2">
-                  <Link href={`/profile?user=${player.username}`} className="hover:underline text-red-400">
-                    {player.username}
-                  </Link>
-                </div>
+                  <div className="col-span-3 font-medium truncate pr-2">
+                    <Link href={`/profile?user=${player.username}`} className="hover:underline text-red-400">
+                      {player.username}
+                    </Link>
+                  </div>
 
-                <div className="col-span-2 text-right font-mono font-semibold text-white tabular-nums">
-                  {formatPower(player.power, language)}
-                </div>
+                  <div className="col-span-2 text-right font-mono font-semibold text-white tabular-nums">
+                    {formatPower(player.power, language)}
+                  </div>
 
-                <div className="col-span-2 text-right font-mono text-emerald-400 tabular-nums">
-                  {formatCash(player.cash ?? 0, language)}
-                </div>
+                  <div className="col-span-2 text-right font-mono text-emerald-400 tabular-nums">
+                    {formatCash(player.cash ?? 0, language)}
+                  </div>
 
-                <div className="col-span-2 text-xs text-zinc-300 truncate">
-                  {displayRank}
-                </div>
+                  <div className="col-span-2 text-xs text-zinc-300 truncate">
+                    {displayRank}
+                  </div>
 
-                <div className="col-span-2 flex items-center justify-between gap-1 min-w-0">
-                  <span className="text-[10px] text-red-400 font-mono truncate">
-                    {hasFamily ? `${player.family_tag} — ${player.family_name}` : '—'}
-                  </span>
-                  <span className="shrink-0">
-                    <RipButton targetUsername={player.username} />
-                  </span>
+                  <div className="col-span-2 flex items-center justify-between gap-1 min-w-0">
+                    <span className="text-[10px] text-red-400 font-mono truncate">
+                      {hasFamily ? `${player.family_tag} — ${player.family_name}` : '—'}
+                    </span>
+                    <span className="shrink-0">
+                      <RipButton targetUsername={player.username} />
+                    </span>
+                  </div>
                 </div>
-              </div>
-            );
-          })
-        )}
+              );
+            })
+          )}
+        </div>
       </div>
 
       {me && (
