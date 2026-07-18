@@ -91,23 +91,23 @@ export default function RoulettePage() {
           <h1 className="text-2xl font-bold tracking-tight mb-1">🎡 {t('rl_title')}</h1>
           <p className="text-xs text-zinc-400">{t('rl_subtitle')}</p>
         </div>
-        <Link href="/casino" className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-xs">🎰 {t('menu_casino_floor')}</Link>
+        <Link href="/casino" className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-zinc-600 rounded-lg text-xs transition-all">🎰 {t('menu_casino_floor')}</Link>
       </div>
 
-      {error && <div className="bg-red-950/60 border border-red-800 text-red-300 px-4 py-2.5 rounded-lg text-sm">{error}</div>}
+      {error && <div className="bg-red-950/60 border border-red-800/50 rounded-xl px-4 py-3 text-sm text-red-300">{error}</div>}
 
       {/* Result */}
       {last && (
         <div className="flex items-center gap-4 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3">
           <div
-            className={`w-16 h-16 rounded-full flex items-center justify-center font-mono font-bold text-2xl shrink-0 ${
-              last.color === 'green' ? 'bg-emerald-700' : last.color === 'red' ? 'bg-red-700' : 'bg-zinc-950 border border-zinc-600'
+            className={`w-16 h-16 rounded-full flex items-center justify-center font-mono font-bold text-2xl shrink-0 border-2 ${
+              last.color === 'green' ? 'bg-emerald-700 border-emerald-500 text-white' : last.color === 'red' ? 'bg-red-700 border-red-500 text-white' : 'bg-zinc-950 border-zinc-600 text-zinc-300'
             }`}
           >
             {last.number}
           </div>
           <div className="min-w-0">
-            <div className={`font-bold ${last.won ? 'text-emerald-400' : 'text-red-400'}`}>
+            <div className={`font-bold text-sm ${last.won ? 'text-emerald-400' : 'text-red-400'}`}>
               {last.won ? t('rl_won', { payout: fm(last.payout) }) : t('rl_lost', { bet: fm(last.bet) })}
             </div>
             <div className="text-xs text-zinc-500">{t('rl_landed', { color: t(`rl_${last.color}` as 'rl_red') })}</div>
@@ -121,8 +121,8 @@ export default function RoulettePage() {
           {history.map((h, i) => (
             <span
               key={i}
-              className={`w-7 h-7 rounded flex items-center justify-center text-[11px] font-mono font-bold ${
-                h.color === 'green' ? 'bg-emerald-800 text-white' : h.color === 'red' ? 'bg-red-800 text-white' : 'bg-zinc-800 text-zinc-300'
+              className={`w-7 h-7 rounded flex items-center justify-center text-[11px] font-mono font-bold border ${
+                h.color === 'green' ? 'bg-emerald-800 text-white border-emerald-600' : h.color === 'red' ? 'bg-red-800 text-white border-red-600' : 'bg-zinc-800 text-zinc-300 border-zinc-700'
               }`}
             >
               {h.number}
@@ -132,17 +132,17 @@ export default function RoulettePage() {
       )}
 
       {/* Table */}
-      <Panel title={t('rl_pick_bet')} icon="🎡">
+      <Panel title={t('rl_pick_bet')} icon="🎡" variant="premium">
         {/* Numbers */}
         <div className="mb-4">
-          <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1.5">{t('rl_straight_up')} — 35:1</div>
+          <div className="text-[10px] uppercase tracking-[3px] text-zinc-500 mb-2">{t('rl_straight_up')} — 35:1</div>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(2rem,1fr))] gap-1">
             <button
               onClick={() => pick('straight', 0)}
               className={`h-8 rounded text-xs font-mono font-bold border ${
                 betType === 'straight' && betValue === 0
-                  ? 'bg-emerald-600 border-emerald-400 text-white'
-                  : 'bg-emerald-900/60 border-emerald-800 text-emerald-200 hover:border-emerald-500'
+                  ? 'bg-emerald-600 border-emerald-400 text-white shadow-[0_0_8px_rgba(16,185,129,0.3)]'
+                  : 'bg-emerald-950/60 border-emerald-800 text-emerald-300 hover:border-emerald-600'
               }`}
             >
               0
@@ -155,10 +155,10 @@ export default function RoulettePage() {
                   onClick={() => pick('straight', n)}
                   className={`h-8 rounded text-xs font-mono font-bold border ${
                     isSel
-                      ? 'bg-emerald-600 border-emerald-400 text-white'
+                      ? 'bg-emerald-600 border-emerald-400 text-white shadow-[0_0_8px_rgba(16,185,129,0.3)]'
                       : RED.has(n)
-                        ? 'bg-red-900/60 border-red-800 text-red-200 hover:border-red-500'
-                        : 'bg-zinc-950 border-zinc-700 text-zinc-300 hover:border-zinc-500'
+                        ? 'bg-red-950/60 border-red-800 text-red-300 hover:border-red-600'
+                        : 'bg-zinc-950 border-zinc-700 text-zinc-300 hover:border-zinc-600'
                   }`}
                 >
                   {n}
@@ -171,16 +171,16 @@ export default function RoulettePage() {
         {/* Dozens + columns */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
-            <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1.5">{t('rl_dozens')} — 2:1</div>
+            <div className="text-[10px] uppercase tracking-[3px] text-zinc-500 mb-2">{t('rl_dozens')} — 2:1</div>
             <div className="flex gap-1">
               {[1, 2, 3].map((d) => (
                 <button
                   key={d}
                   onClick={() => pick('dozen', d)}
-                  className={`flex-1 py-1.5 rounded text-[11px] font-semibold border ${
+                  className={`flex-1 py-2 rounded-lg text-[11px] font-semibold border ${
                     betType === 'dozen' && betValue === d
-                      ? 'bg-emerald-900/60 border-emerald-600 text-emerald-300'
-                      : 'bg-zinc-950 border-zinc-700 text-zinc-300 hover:border-zinc-500'
+                      ? 'bg-amber-700 border-amber-500 text-white shadow-[0_0_8px_rgba(245,158,11,0.2)]'
+                      : 'bg-zinc-950 border-zinc-700 text-zinc-300 hover:border-zinc-600'
                   }`}
                 >
                   {(d - 1) * 12 + 1}–{d * 12}
@@ -189,16 +189,16 @@ export default function RoulettePage() {
             </div>
           </div>
           <div>
-            <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1.5">{t('rl_columns')} — 2:1</div>
+            <div className="text-[10px] uppercase tracking-[3px] text-zinc-500 mb-2">{t('rl_columns')} — 2:1</div>
             <div className="flex gap-1">
               {[1, 2, 3].map((c) => (
                 <button
                   key={c}
                   onClick={() => pick('column', c)}
-                  className={`flex-1 py-1.5 rounded text-[11px] font-semibold border ${
+                  className={`flex-1 py-2 rounded-lg text-[11px] font-semibold border ${
                     betType === 'column' && betValue === c
-                      ? 'bg-emerald-900/60 border-emerald-600 text-emerald-300'
-                      : 'bg-zinc-950 border-zinc-700 text-zinc-300 hover:border-zinc-500'
+                      ? 'bg-amber-700 border-amber-500 text-white shadow-[0_0_8px_rgba(245,158,11,0.2)]'
+                      : 'bg-zinc-950 border-zinc-700 text-zinc-300 hover:border-zinc-600'
                   }`}
                 >
                   {t('rl_col_n', { n: c })}
@@ -210,18 +210,18 @@ export default function RoulettePage() {
 
         {/* Outside */}
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1.5">{t('rl_outside')}</div>
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-1">
+          <div className="text-[10px] uppercase tracking-[3px] text-zinc-500 mb-2">{t('rl_outside')}</div>
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
             {outside.map((o) => (
               <button
                 key={o.key}
                 onClick={() => pick(o.key)}
-                className={`py-2 rounded text-[11px] font-semibold border ${
+                className={`py-2 rounded-lg text-[11px] font-semibold border transition-all ${
                   betType === o.key
-                    ? 'bg-emerald-900/60 border-emerald-600 text-emerald-300'
+                    ? 'bg-amber-700 border-amber-500 text-white shadow-[0_0_8px_rgba(245,158,11,0.2)]'
                     : o.key === 'red'
-                      ? 'bg-red-900/40 border-red-800 text-red-200 hover:border-red-500'
-                      : 'bg-zinc-950 border-zinc-700 text-zinc-300 hover:border-zinc-500'
+                      ? 'bg-red-950/60 border-red-800 text-red-300 hover:border-red-600'
+                      : 'bg-zinc-950 border-zinc-700 text-zinc-300 hover:border-zinc-600'
                 }`}
               >
                 {o.label}
@@ -232,7 +232,7 @@ export default function RoulettePage() {
       </Panel>
 
       {/* Bet + spin */}
-      <Panel title={t('cas_place_bet')} icon="💰">
+      <Panel title={t('cas_place_bet')} icon="💰" variant="premium">
         <div className="mb-3 text-xs text-zinc-400">
           {t('rl_betting_on')}{' '}
           <span className="text-white font-semibold">
@@ -249,13 +249,13 @@ export default function RoulettePage() {
         <button
           onClick={spin}
           disabled={busy || needsNumber || (player.cash ?? 0) < bet}
-          className="w-full mt-3 py-3 bg-red-700 hover:bg-red-600 rounded-xl font-bold text-sm disabled:opacity-50"
+          className="w-full mt-3 py-3 bg-red-700 hover:bg-red-600 border border-red-600 rounded-xl font-bold text-sm disabled:opacity-50 transition-colors"
         >
           {busy ? t('rl_spinning') : t('rl_spin', { bet: fm(bet) })}
         </button>
       </Panel>
 
-      <div className="text-[11px] text-zinc-500">{t('rl_rules')}</div>
+      <div className="text-[10px] text-zinc-600 text-center">{t('rl_rules')}</div>
     </div>
   );
 }
