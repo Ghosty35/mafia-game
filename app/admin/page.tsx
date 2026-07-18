@@ -28,7 +28,11 @@ export default function AdminPage() {
   const [propTarget, setPropTarget] = useState('');
   const [propList, setPropList] = useState<any[]>([]);
   const [propLoading, setPropLoading] = useState(false);
-  const isAdmin = player?.username === 'YGhosty';
+  const [staffTarget, setStaffTarget] = useState('');
+  const [staffList, setStaffList] = useState<any[]>([]);
+  const [staffLoading, setStaffLoading] = useState(false);
+  const isCEO = (player as any)?.staff_role === 'ceo';
+  const isAdmin = isCEO || (player as any)?.staff_role === 'admin' || player?.username === 'YGhosty';
 
   const supabase = createClient();
 
@@ -87,6 +91,30 @@ export default function AdminPage() {
     inspectPlayerProperties();
   };
 
+  const loadStaff = async () => {
+    setStaffLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('admin_list_staff');
+      if (!error && data) setStaffList(data.staff || []);
+    } finally {
+      setStaffLoading(false);
+    }
+  };
+
+  const setStaffRole = async (username: string, role: string | null) => {
+    const { error } = await supabase.rpc('admin_set_staff_role', {
+      p_target_username: username,
+      p_staff_role: role,
+    });
+    if (error) {
+      addLog('ERROR', error.message);
+      return;
+    }
+    addLog('STAFF', `Set ${username} role to ${role || 'none'}`);
+    loadStaff();
+    fetchPlayers();
+  };
+
   const fetchPlayers = async (search?: string) => {
     setLoadingPlayers(true);
     // RLS only allows reading your own row directly; the roster goes
@@ -140,6 +168,7 @@ export default function AdminPage() {
     if (!isAdmin) return;
     fetchPlayers();
     fetchEconomy();
+    if (isCEO) loadStaff();
     addLog('INFO', 'Admin data refreshed');
   };
 
@@ -596,6 +625,7 @@ export default function AdminPage() {
                   <th>{t('admin_col_rebirths')}</th>
                   <th>{t('admin_col_kill')}</th>
                   <th>{t('admin_col_donator')}</th>
+                  <th className="text-[10px]">Staff Role</th>
                   <th>{t('admin_col_status')}</th>
                   <th>{t('admin_col_warnings')}</th>
                   <th>{t('admin_col_mod_status')}</th>
@@ -618,6 +648,28 @@ export default function AdminPage() {
                     </td>
                     <td>{p.rebirths}</td>
                     <td>{((p.murder_skill || 0) * 5).toFixed(0)}%</td>
+                    <td>
+                      <button onClick={() => setDonator(p.username, !p.is_donator)} className={`px-1.5 rounded text-[10px] ${p.is_donator ? 'bg-amber-600' : 'bg-zinc-700'}`}>
+                        {p.is_donator ? 'VIP' : t('admin_set_vip')}
+                      </button>
+                    </td>
+                    <td className="text-[10px]">
+                      {isCEO ? (
+                        <select
+                          value={p.staff_role || ''}
+                          onChange={(e) => setStaffRole(p.username, e.target.value || null)}
+                          className="bg-zinc-900 border border-zinc-700 rounded px-1 py-0.5 text-[10px]"
+                        >
+                          <option value="">—</option>
+                          <option value="admin">Admin</option>
+                          <option value="jr_admin">Jr-Admin</option>
+                          <option value="game_mod">Game-Mod</option>
+                          <option value="support">Support</option>
+                        </select>
+                      ) : (
+                        <span className="text-zinc-400">{p.staff_role || '—'}</span>
+                      )}
+                    </td>
                     <td>
                       <button onClick={() => setDonator(p.username, !p.is_donator)} className={`px-1.5 rounded text-[10px] ${p.is_donator ? 'bg-amber-600' : 'bg-zinc-700'}`}>
                         {p.is_donator ? 'VIP' : t('admin_set_vip')}
@@ -655,6 +707,66 @@ export default function AdminPage() {
           </div>
           <div className="text-[10px] text-zinc-500 mt-2">{t('admin_edits_note')}</div>
         </div>
+
+        {/* Staff Management - CEO only */}
+        {isCEO && (
+          <div className="lg:col-span-3 card p-5">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-bold">🛡️ Staff Management</h3>
+              <button onClick={loadStaff} disabled={staffLoading} className="text-xs px-3 py-1 bg-zinc-800 rounded">Refresh</button>
+            </div>
+            <div className="text-[10px] text-zinc-400 mb-3">Manage your admin team. Only CEO can assign roles.</div>
+
+            <div className="space-y-1 mb-4 max-h-[200px] overflow-auto">
+              {staffList.length === 0 && <div className="text-zinc-500 text-xs">No staff members assigned yet.</div>}
+              {staffList.map((s: any) => (
+                <div key={s.username} className="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded px-2 py-1.5 text-[11px]">
+                  <div className="truncate pr-2">
+                    <span className="font-semibold">{s.username}</span>
+                    <span className="text-zinc-400 ml-1">Lvl {s.level}</span>
+                  </div>
+                  <div className="flex gap-1 shrink-0">
+                    <span className="px-1.5 py-0.5 rounded bg-amber-900/50 text-amber-300 text-[10px] font-bold uppercase">{s.staff_role || 'none'}</span>
+                    {s.staff_role !== 'ceo' && (
+                      <button onClick={() => setStaffRole(s.username, null)} className="px-1.5 py-0.5 bg-red-900 hover:bg-red-800 rounded text-[10px]">Remove</button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="border-t border-zinc-800 pt-3">
+              <div className="font-semibold mb-2 text-xs">Promote / Assign Role</div>
+              <div className="flex gap-2 mb-2">
+                <input
+                  placeholder="Username"
+                  className="bg-zinc-900 border px-2 py-1 text-xs w-32"
+                  value={staffTarget}
+                  onChange={e => setStaffTarget(e.target.value)}
+                />
+                <select
+                  className="bg-zinc-900 border px-2 py-1 text-xs"
+                  defaultValue=""
+                  onChange={(e) => {
+                    const username = staffTarget.trim();
+                    if (!username) return;
+                    const role = e.target.value || null;
+                    setStaffRole(username, role);
+                    setStaffTarget('');
+                    e.target.value = '';
+                  }}
+                >
+                  <option value="">Select role...</option>
+                  <option value="admin">Admin</option>
+                  <option value="jr_admin">Jr-Admin</option>
+                  <option value="game_mod">Game-Modder</option>
+                  <option value="support">Customer Support</option>
+                </select>
+              </div>
+              <div className="text-[10px] text-zinc-500">Roles: Admin → Jr-Admin → Game-Modder → Customer Support. CEO can remove any role.</div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="mt-4 text-xs">
