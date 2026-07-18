@@ -79,23 +79,23 @@ export default function RpsPage() {
           <h1 className="text-2xl font-bold tracking-tight mb-1">✊ {t('rps_title')}</h1>
           <p className="text-xs text-zinc-400">{t('rps_subtitle')}</p>
         </div>
-        <Link href="/casino" className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 rounded-lg text-xs">🎰 {t('menu_casino_floor')}</Link>
+        <Link href="/casino" className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-zinc-600 rounded-lg text-xs transition-all">🎰 {t('menu_casino_floor')}</Link>
       </div>
 
-      {error && <div className="bg-red-950/60 border border-red-800 text-red-300 px-4 py-2.5 rounded-lg text-sm">{error}</div>}
+      {error && <div className="bg-red-950/60 border border-red-800/50 rounded-xl px-4 py-3 text-sm text-red-300">{error}</div>}
 
       {/* Showdown */}
       {last && (
-        <div className={`border rounded-xl px-4 py-4 ${tone}`}>
-          <div className="flex items-center justify-center gap-6 mb-2">
+        <div className={`border rounded-xl px-4 py-5 ${tone}`}>
+          <div className="flex items-center justify-center gap-6 mb-3">
             <div className="text-center">
-              <div className="text-4xl">{emojiFor(last.choice)}</div>
-              <div className="text-[10px] uppercase tracking-wider mt-1 opacity-70">{t('rps_you')}</div>
+              <div className="text-5xl">{emojiFor(last.choice)}</div>
+              <div className="text-[10px] uppercase tracking-[3px] mt-2 opacity-70">{t('rps_you')}</div>
             </div>
-            <div className="text-xl font-bold opacity-50">VS</div>
+            <div className="text-2xl font-bold opacity-50">VS</div>
             <div className="text-center">
-              <div className="text-4xl">{emojiFor(last.house)}</div>
-              <div className="text-[10px] uppercase tracking-wider mt-1 opacity-70">{t('rps_house')}</div>
+              <div className="text-5xl">{emojiFor(last.house)}</div>
+              <div className="text-[10px] uppercase tracking-[3px] mt-2 opacity-70">{t('rps_house')}</div>
             </div>
           </div>
           <div className="text-center text-sm font-semibold">
@@ -115,8 +115,8 @@ export default function RpsPage() {
             <span
               key={i}
               title={`${s.choice} vs ${s.house}`}
-              className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold ${
-                s.result === 'win' ? 'bg-emerald-800 text-white' : s.result === 'draw' ? 'bg-zinc-700 text-zinc-300' : 'bg-red-900 text-red-200'
+              className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold border ${
+                s.result === 'win' ? 'bg-emerald-800 text-white border-emerald-600' : s.result === 'draw' ? 'bg-zinc-700 text-zinc-300 border-zinc-600' : 'bg-red-900 text-red-200 border-red-800'
               }`}
             >
               {s.result === 'win' ? 'W' : s.result === 'draw' ? 'D' : 'L'}
@@ -126,28 +126,28 @@ export default function RpsPage() {
       )}
 
       {/* Bet */}
-      <Panel title={t('cas_place_bet')} icon="💰">
+      <Panel title={t('cas_place_bet')} icon="💰" variant="premium">
         <BetInput bet={bet} setBet={setBet} disabled={busy} max={player.cash} />
       </Panel>
 
       {/* Throw */}
-      <Panel title={t('rps_throw')} icon="✊">
-        <div className="grid grid-cols-3 gap-2">
+      <Panel title={t('rps_throw')} icon="✊" variant="default">
+        <div className="grid grid-cols-3 gap-3">
           {HANDS.map((h) => (
             <button
               key={h.key}
               onClick={() => play(h.key)}
               disabled={busy || (player.cash ?? 0) < bet}
-              className="py-5 bg-zinc-950 border border-zinc-700 hover:border-red-600 rounded-xl disabled:opacity-40 transition"
+              className="py-6 bg-zinc-950 border border-zinc-800 hover:border-amber-700/50 rounded-xl disabled:opacity-40 transition-all hover:shadow-[0_0_15px_rgba(245,158,11,0.06)]"
             >
-              <div className="text-4xl mb-1">{h.emoji}</div>
-              <div className="text-xs font-semibold">{t(`rps_${h.key}` as 'rps_rock')}</div>
+              <div className="text-5xl mb-2">{h.emoji}</div>
+              <div className="text-xs font-semibold text-zinc-300">{t(`rps_${h.key}` as 'rps_rock')}</div>
             </button>
           ))}
         </div>
       </Panel>
 
-      <div className="text-[11px] text-zinc-500">{t('rps_rules')}</div>
+      <div className="text-[10px] text-zinc-600 text-center">{t('rps_rules')}</div>
     </div>
   );
 }
