@@ -9,6 +9,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import Panel from '../components/Panel';
 import { useGarage, maxCarsFor, type GarageCar } from '../components/useGarage';
 import CarImage from '../components/CarImage';
+import PageHeader from '../components/PageHeader';
 
 export const dynamic = 'force-dynamic';
 
@@ -104,21 +105,18 @@ export default function GaragePage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-4">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight mb-1">🚙 {t('garage_title')}</h1>
-          <p className="text-xs text-zinc-400">
-            {t('gr_slots', { used: cars.length, max: maxCars })}
-            {fuelPrice != null && (
-              <span className="ml-2 text-zinc-500">• ⛽ {t('gr_pump_price', { price: fm(fuelPrice) })}</span>
-            )}
-          </p>
-        </div>
-        <div className="flex gap-2 text-xs">
-          <Link href="/garage/tune-shop" className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-zinc-600 rounded-lg transition-all">🔧 {t('menu_tune_shop')}</Link>
-          <Link href="/garage/junkyard" className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-zinc-600 rounded-lg transition-all">🗜️ {t('menu_junkyard')}</Link>
-        </div>
-      </div>
+      <PageHeader
+        title={t('garage_title')}
+        subtitle={t('gr_slots', { used: cars.length, max: maxCars }) + (fuelPrice != null ? ` • ⛽ ${t('gr_pump_price', { price: fm(fuelPrice) })}` : '')}
+        icon="🚙"
+        variant="default"
+        actions={
+          <div className="flex gap-2 text-xs">
+            <Link href="/garage/tune-shop" className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-zinc-600 rounded-lg transition-all">🔧 {t('menu_tune_shop')}</Link>
+            <Link href="/garage/junkyard" className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-zinc-600 rounded-lg transition-all">🗜️ {t('menu_junkyard')}</Link>
+          </div>
+        }
+      />
 
       {message && <div className="bg-zinc-900 border border-amber-800/50 rounded-xl px-4 py-3 text-sm text-amber-300">{message}</div>}
 
