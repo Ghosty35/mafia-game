@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import PageHeader from '../components/PageHeader';
 
 export default function HospitalPage() {
   const { t, fm } = useLanguage();
@@ -70,11 +71,13 @@ export default function HospitalPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">🏥 {t('hospital_title')}</h1>
-        <p className="text-sm text-zinc-400">{t('hospital_desc')}</p>
-      </div>
+    <div className="max-w-3xl mx-auto p-6 space-y-4">
+      <PageHeader
+        title={t('hospital_title')}
+        subtitle={t('hospital_desc')}
+        icon="🏥"
+        variant="default"
+      />
 
       {message && (
         <div className="mb-4 p-3 rounded bg-zinc-900 border border-zinc-700 text-sm text-center">
