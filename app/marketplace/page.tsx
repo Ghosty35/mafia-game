@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 
 type Listing = {
   id: string;
+  item_type: 'car' | 'property';
   title: string;
   seller: string;
   is_mine: boolean;
@@ -22,15 +23,21 @@ type Listing = {
   ends_at: string;
   bid_count: number;
   min_next: number;
-  condition: number;
-  tuned: boolean;
-  speed_bonus: number;
-  value: number;
+  // car-only
+  condition: number | null;
+  tuned: boolean | null;
+  speed_bonus: number | null;
+  value: number | null;
+  // property-only
+  city: string | null;
+  income: number | null;
+  prop_type: string | null;
 };
 
-type Sale = { title: string; price: number; buyer: string | null; seller: string; settled_at: string };
+type Sale = { item_type: 'car' | 'property'; title: string; price: number; buyer: string | null; seller: string; settled_at: string };
 type Board = { me: string; my_cash: number; live: Listing[]; recent: Sale[] };
 type ListableCar = { id: string; name: string; condition: number; tuned: boolean; value: number };
+type ListableProperty = { id: string; name: string; city: string; income: number; ptype: string };
 
 export const dynamic = 'force-dynamic';
 
@@ -45,15 +52,19 @@ export default function MarketplacePage() {
 
   const [board, setBoard] = useState<Board | null>(null);
   const [myCars, setMyCars] = useState<ListableCar[]>([]);
+  const [myProps, setMyProps] = useState<ListableProperty[]>([]);
   const [bids, setBids] = useState<Record<string, number>>({});
   const [tab, setTab] = useState<'browse' | 'sell'>('browse');
+  const [browseFilter, setBrowseFilter] = useState<'all' | 'car' | 'property'>('all');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [now, setNow] = useState(() => Date.now());
 
   // sell form
+  const [sellType, setSellType] = useState<'car' | 'property'>('car');
   const [carId, setCarId] = useState('');
+  const [propId, setPropId] = useState('');
   const [startPrice, setStartPrice] = useState(10000);
   const [buyNow, setBuyNow] = useState<number | ''>('');
   const [hours, setHours] = useState(6);
@@ -61,11 +72,18 @@ export default function MarketplacePage() {
   const supabase = createClient();
 
   const load = useCallback(async () => {
-    const [b, c] = await Promise.all([supabase.rpc('get_auctions'), supabase.rpc('get_listable_cars')]);
+    const [b, c, pr] = await Promise.all([
+      supabase.rpc('get_auctions'),
+      supabase.rpc('get_listable_cars'),
+      supabase.rpc('get_listable_properties'),
+    ]);
     if (b.data) setBoard(b.data as Board);
     const cars = Array.isArray(c.data) ? (c.data as ListableCar[]) : [];
     setMyCars(cars);
     setCarId((prev) => prev || cars[0]?.id || '');
+    const props = Array.isArray(pr.data) ? (pr.data as ListableProperty[]) : [];
+    setMyProps(props);
+    setPropId((prev) => prev || props[0]?.id || '');
   }, []);
 
   useEffect(() => {
@@ -86,6 +104,7 @@ export default function MarketplacePage() {
     const map: Record<string, TranslationKey> = {
       NOT_ENOUGH_CASH: 'common_not_enough_cash',
       GARAGE_FULL: 'mk_err_garage_full',
+      PROPERTY_LIMIT_REACHED: 'mk_err_prop_limit',
       BID_TOO_LOW: 'mk_err_bid_low',
       CANNOT_BID_OWN: 'mk_err_own',
       ALREADY_HIGH_BIDDER: 'mk_err_already_high',
@@ -151,29 +170,48 @@ export default function MarketplacePage() {
 
       {tab === 'browse' ? (
         <>
+          {/* Category filter */}
+          <div className="flex gap-1.5">
+            {([['all', '🗂️', t('mk_filter_all')], ['car', '🚗', t('mk_filter_cars')], ['property', '🏠', t('mk_filter_props')]] as const).map(([k, icon, label]) => (
+              <button
+                key={k}
+                onClick={() => setBrowseFilter(k as 'all' | 'car' | 'property')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
+                  browseFilter === k ? 'bg-zinc-800 border-zinc-600 text-zinc-100' : 'bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-700'
+                }`}
+              >
+                {icon} {label}
+              </button>
+            ))}
+          </div>
+
           <Panel title={t('mk_live_title')} icon="🔨" bodyClassName="p-0">
-            {board.live.length === 0 ? (
+            {board.live.filter((l) => browseFilter === 'all' || l.item_type === browseFilter).length === 0 ? (
               <div className="px-4 py-8 text-center text-sm text-zinc-500">{t('mk_none_live')}</div>
             ) : (
-              board.live.map((l) => {
+              board.live.filter((l) => browseFilter === 'all' || l.item_type === browseFilter).map((l) => {
                 const ended = new Date(l.ends_at).getTime() <= now;
                 const bidVal = bids[l.id] ?? l.min_next;
+                const isProp = l.item_type === 'property';
                 return (
                   <div key={l.id} className={`border-t first:border-t-0 border-zinc-800 px-4 py-3 ${l.is_mine ? 'bg-red-950/20' : 'hover:bg-zinc-800/30'}`}>
                     <div className="flex flex-wrap items-center gap-3">
-                      <div className="w-11 h-11 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-xl shrink-0">🚗</div>
+                      <div className="w-11 h-11 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-xl shrink-0">{isProp ? '🏠' : '🚗'}</div>
 
                       <div className="min-w-0 flex-1">
                         <div className="font-semibold truncate">
                           {l.title}
-                          {l.tuned && <span className="ml-2 text-[10px] px-1.5 py-px bg-blue-900/60 text-blue-300 rounded uppercase">{t('gr_tuned')}</span>}
+                          {!isProp && l.tuned && <span className="ml-2 text-[10px] px-1.5 py-px bg-blue-900/60 text-blue-300 rounded uppercase">{t('gr_tuned')}</span>}
                           {l.is_mine && <span className="ml-2 text-[10px] px-1.5 py-px bg-red-900/60 text-red-300 rounded uppercase">{t('race_yours')}</span>}
                           {l.im_high && <span className="ml-2 text-[10px] px-1.5 py-px bg-emerald-900/60 text-emerald-300 rounded uppercase">{t('mk_you_lead')}</span>}
                         </div>
                         <div className="text-[11px] text-zinc-500">
                           {t('market_seller')}: <span className="text-zinc-300">{l.seller}</span>
-                          {' • '}{l.condition}% {l.speed_bonus > 0 && <>• +{l.speed_bonus} 🏁</>}
-                          {' • '}{t('mk_book_value', { value: fm(l.value) })}
+                          {isProp ? (
+                            <>{' • '}{l.city}{l.income != null && <>{' • '}{t('mk_prop_income', { income: fm(l.income) })}</>}</>
+                          ) : (
+                            <>{' • '}{l.condition}% {l.speed_bonus != null && l.speed_bonus > 0 && <>• +{l.speed_bonus} 🏁</>}{l.value != null && <>{' • '}{t('mk_book_value', { value: fm(l.value) })}</>}</>
+                          )}
                         </div>
                       </div>
 
@@ -249,7 +287,7 @@ export default function MarketplacePage() {
               {board.recent.map((s, i) => (
                 <div key={i} className="border-t first:border-t-0 border-zinc-800 px-4 py-2 flex items-center justify-between text-xs hover:bg-zinc-800/40">
                   <span className="text-zinc-400 truncate">
-                    🚗 {s.title} — <span className="text-zinc-300">{s.buyer ?? '?'}</span> {t('mk_bought_from', { seller: s.seller })}
+                    {s.item_type === 'property' ? '🏠' : '🚗'} {s.title} — <span className="text-zinc-300">{s.buyer ?? '?'}</span> {t('mk_bought_from', { seller: s.seller })}
                   </span>
                   <span className="font-mono text-emerald-400 shrink-0">{fm(s.price)}</span>
                 </div>
@@ -259,7 +297,23 @@ export default function MarketplacePage() {
         </>
       ) : (
         <Panel title={t('mk_sell_title')} icon="🏷️">
-          {myCars.length === 0 ? (
+          {/* Car / Property toggle */}
+          <div className="flex gap-1.5 mb-4">
+            {([['car', '🚗', t('mk_sell_car')], ['property', '🏠', t('mk_sell_property')]] as const).map(([k, icon, label]) => (
+              <button
+                key={k}
+                onClick={() => setSellType(k as 'car' | 'property')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
+                  sellType === k ? 'bg-red-900/50 border-red-700 text-red-300' : 'bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-700'
+                }`}
+              >
+                {icon} {label}
+              </button>
+            ))}
+          </div>
+
+          {sellType === 'car' ? (
+          myCars.length === 0 ? (
             <p className="text-sm text-zinc-500">
               {t('mk_no_cars')} <Link href="/garage" className="text-red-400 hover:underline">{t('menu_garage')}</Link>
             </p>
@@ -335,6 +389,85 @@ export default function MarketplacePage() {
 
               <p className="text-[11px] text-zinc-500">{t('mk_sell_note')}</p>
             </div>
+          )
+          ) : (
+          myProps.length === 0 ? (
+            <p className="text-sm text-zinc-500">
+              {t('mk_no_props')} <Link href="/real-estate" className="text-red-400 hover:underline">{t('menu_real_estate')}</Link>
+            </p>
+          ) : (
+            <div className="space-y-3 max-w-md">
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider text-zinc-500 mb-1">{t('mk_pick_property')}</label>
+                <select
+                  value={propId}
+                  onChange={(e) => setPropId(e.target.value)}
+                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm"
+                >
+                  {myProps.map((pr) => (
+                    <option key={pr.id} value={pr.id}>
+                      {pr.name} — {pr.city} — {t('mk_prop_income', { income: fm(pr.income) })}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider text-zinc-500 mb-1">{t('mk_start_price')}</label>
+                <input
+                  type="number"
+                  value={startPrice}
+                  min={100}
+                  onChange={(e) => setStartPrice(Math.max(100, parseInt(e.target.value) || 100))}
+                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider text-zinc-500 mb-1">{t('mk_buy_now_optional')}</label>
+                <input
+                  type="number"
+                  value={buyNow}
+                  onChange={(e) => setBuyNow(e.target.value === '' ? '' : Math.max(1, parseInt(e.target.value) || 1))}
+                  placeholder={t('mk_buy_now_placeholder')}
+                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-sm font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] uppercase tracking-wider text-zinc-500 mb-1">{t('mk_duration')}</label>
+                <div className="flex gap-1.5">
+                  {DURATIONS.map((h) => (
+                    <button
+                      key={h}
+                      onClick={() => setHours(h)}
+                      className={`flex-1 py-1.5 rounded text-xs font-semibold border ${
+                        hours === h ? 'bg-emerald-900/60 border-emerald-700 text-emerald-300' : 'bg-zinc-950 border-zinc-700 text-zinc-300 hover:border-zinc-500'
+                      }`}
+                    >
+                      {h}h
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                onClick={() =>
+                  run(
+                    'auction_list_property',
+                    { p_property_id: propId, p_start_price: startPrice, p_buy_now: buyNow === '' ? null : buyNow, p_hours: hours },
+                    t('mk_listed'),
+                  )
+                }
+                disabled={busy || !propId}
+                className="w-full py-2.5 bg-red-700 hover:bg-red-600 rounded-lg text-sm font-semibold disabled:opacity-50"
+              >
+                🏷️ {t('mk_list_button')}
+              </button>
+
+              <p className="text-[11px] text-zinc-500">{t('mk_sell_note_prop')}</p>
+            </div>
+          )
           )}
         </Panel>
       )}
