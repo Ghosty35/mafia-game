@@ -54,7 +54,7 @@ export default function RoulettePage() {
       const m = err.message || '';
       if (m.includes('NOT_ENOUGH_CASH')) setError(t('common_not_enough_cash'));
       else if (m.includes('IN_JAIL')) setError(t('error_in_jail'));
-      else if (m.includes('INVALID_BET_VALUE')) setError(t('rl_pick_number'));
+      else if (m.includes('INVALID_BET_VALUE')) setError(t('roulette_pick_number'));
       else if (m.includes('INVALID_BET')) setError(t('cas_invalid_bet'));
       else setError(t('cas_failed'));
       return;
@@ -67,10 +67,10 @@ export default function RoulettePage() {
   };
 
   const outside: Array<{ key: string; label: string; pays: string }> = [
-    { key: 'red', label: t('rl_red'), pays: '1:1' },
-    { key: 'black', label: t('rl_black'), pays: '1:1' },
-    { key: 'odd', label: t('rl_odd'), pays: '1:1' },
-    { key: 'even', label: t('rl_even'), pays: '1:1' },
+    { key: 'red', label: t('roulette_red'), pays: '1:1' },
+    { key: 'black', label: t('roulette_black'), pays: '1:1' },
+    { key: 'odd', label: t('roulette_odd'), pays: '1:1' },
+    { key: 'even', label: t('roulette_even'), pays: '1:1' },
     { key: 'low', label: '1–18', pays: '1:1' },
     { key: 'high', label: '19–36', pays: '1:1' },
   ];
@@ -88,8 +88,8 @@ export default function RoulettePage() {
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight mb-1">🎡 {t('rl_title')}</h1>
-          <p className="text-xs text-zinc-400">{t('rl_subtitle')}</p>
+          <h1 className="text-2xl font-bold tracking-tight mb-1">🎡 {t('roulette_title')}</h1>
+          <p className="text-xs text-zinc-400">{t('roulette_subtitle')}</p>
         </div>
         <Link href="/casino" className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 hover:border-zinc-600 rounded-lg text-xs transition-all">🎰 {t('menu_casino_floor')}</Link>
       </div>
@@ -108,9 +108,9 @@ export default function RoulettePage() {
           </div>
           <div className="min-w-0">
             <div className={`font-bold text-sm ${last.won ? 'text-emerald-400' : 'text-red-400'}`}>
-              {last.won ? t('rl_won', { payout: fm(last.payout) }) : t('rl_lost', { bet: fm(last.bet) })}
+              {last.won ? t('roulette_won', { payout: fm(last.payout) }) : t('roulette_lost', { bet: fm(last.bet) })}
             </div>
-            <div className="text-xs text-zinc-500">{t('rl_landed', { color: t(`rl_${last.color}` as 'rl_red') })}</div>
+            <div className="text-xs text-zinc-500">{t('roulette_landed', { color: t(`roulette_${last.color}` as 'roulette_red') })}</div>
           </div>
         </div>
       )}
@@ -132,10 +132,10 @@ export default function RoulettePage() {
       )}
 
       {/* Table */}
-      <Panel title={t('rl_pick_bet')} icon="🎡" variant="premium">
+      <Panel title={t('roulette_pick_bet')} icon="🎡" variant="premium">
         {/* Numbers */}
         <div className="mb-4">
-          <div className="text-[10px] uppercase tracking-[3px] text-zinc-500 mb-2">{t('rl_straight_up')} — 35:1</div>
+          <div className="text-[10px] uppercase tracking-[3px] text-zinc-500 mb-2">{t('roulette_straight_up')} — 35:1</div>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(2rem,1fr))] gap-1">
             <button
               onClick={() => pick('straight', 0)}
@@ -171,7 +171,7 @@ export default function RoulettePage() {
         {/* Dozens + columns */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
-            <div className="text-[10px] uppercase tracking-[3px] text-zinc-500 mb-2">{t('rl_dozens')} — 2:1</div>
+            <div className="text-[10px] uppercase tracking-[3px] text-zinc-500 mb-2">{t('roulette_dozens')} — 2:1</div>
             <div className="flex gap-1">
               {[1, 2, 3].map((d) => (
                 <button
@@ -189,7 +189,7 @@ export default function RoulettePage() {
             </div>
           </div>
           <div>
-            <div className="text-[10px] uppercase tracking-[3px] text-zinc-500 mb-2">{t('rl_columns')} — 2:1</div>
+            <div className="text-[10px] uppercase tracking-[3px] text-zinc-500 mb-2">{t('roulette_columns')} — 2:1</div>
             <div className="flex gap-1">
               {[1, 2, 3].map((c) => (
                 <button
@@ -201,7 +201,7 @@ export default function RoulettePage() {
                       : 'bg-zinc-950 border-zinc-700 text-zinc-300 hover:border-zinc-600'
                   }`}
                 >
-                  {t('rl_col_n', { n: c })}
+                  {t('roulette_col_n', { n: c })}
                 </button>
               ))}
             </div>
@@ -210,7 +210,7 @@ export default function RoulettePage() {
 
         {/* Outside */}
         <div>
-          <div className="text-[10px] uppercase tracking-[3px] text-zinc-500 mb-2">{t('rl_outside')}</div>
+          <div className="text-[10px] uppercase tracking-[3px] text-zinc-500 mb-2">{t('roulette_outside')}</div>
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
             {outside.map((o) => (
               <button
@@ -234,14 +234,14 @@ export default function RoulettePage() {
       {/* Bet + spin */}
       <Panel title={t('cas_place_bet')} icon="💰" variant="premium">
         <div className="mb-3 text-xs text-zinc-400">
-          {t('rl_betting_on')}{' '}
+          {t('roulette_betting_on')}{' '}
           <span className="text-white font-semibold">
             {betType === 'straight'
-              ? t('rl_number_n', { n: betValue ?? '—' })
+              ? t('roulette_number_n', { n: betValue ?? '—' })
               : betType === 'dozen'
                 ? `${((betValue ?? 1) - 1) * 12 + 1}–${(betValue ?? 1) * 12}`
                 : betType === 'column'
-                  ? t('rl_col_n', { n: betValue ?? 1 })
+                  ? t('roulette_col_n', { n: betValue ?? 1 })
                   : outside.find((o) => o.key === betType)?.label}
           </span>
         </div>
@@ -251,11 +251,11 @@ export default function RoulettePage() {
           disabled={busy || needsNumber || (player.cash ?? 0) < bet}
           className="w-full mt-3 py-3 bg-red-700 hover:bg-red-600 border border-red-600 rounded-xl font-bold text-sm disabled:opacity-50 transition-colors"
         >
-          {busy ? t('rl_spinning') : t('rl_spin', { bet: fm(bet) })}
+          {busy ? t('roulette_spinning') : t('roulette_spin', { bet: fm(bet) })}
         </button>
       </Panel>
 
-      <div className="text-[10px] text-zinc-600 text-center">{t('rl_rules')}</div>
+      <div className="text-[10px] text-zinc-600 text-center">{t('roulette_rules')}</div>
     </div>
   );
 }

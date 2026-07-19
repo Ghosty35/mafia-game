@@ -35,7 +35,7 @@ export default function CasinoPage() {
 
   const games: Array<{ href: string; icon: string; label: TranslationKey; sub: TranslationKey }> = [
     { href: '/casino/blackjack', icon: '🃏', label: 'menu_blackjack', sub: 'bj_subtitle' },
-    { href: '/casino/roulette', icon: '🎡', label: 'menu_roulette', sub: 'rl_subtitle' },
+    { href: '/casino/roulette', icon: '🎡', label: 'menu_roulette', sub: 'roulette_subtitle' },
     { href: '/casino/poker', icon: '🎴', label: 'menu_poker', sub: 'vp_subtitle' },
     { href: '/casino/rps', icon: '✊', label: 'menu_rps', sub: 'rps_subtitle' },
   ];
