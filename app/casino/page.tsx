@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import type { TranslationKey } from '@/lib/i18n/translations';
 import Panel from '../components/Panel';
+import PageHeader from '../components/PageHeader';
 
 type CasinoPools = { blackjack: number; roulette: number; lottery: number; general: number };
 
@@ -50,16 +51,18 @@ export default function CasinoPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-4">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight mb-1">🎰 {t('casino_title')}</h1>
-          <p className="text-xs text-zinc-400">{t('casino_desc')}</p>
-        </div>
-        <div className="text-right">
-          <div className="text-[10px] uppercase tracking-[3px] text-zinc-500">{t('casino_your_cash')}</div>
-          <div className="font-mono text-emerald-400 text-sm font-semibold">{fm(player?.cash ?? 0)}</div>
-        </div>
-      </div>
+      <PageHeader
+        title={t('casino_title')}
+        subtitle={t('casino_desc')}
+        icon="🎰"
+        variant="premium"
+        badge={
+          <div className="text-right">
+            <div className="text-[10px] uppercase tracking-[3px] text-zinc-500">{t('casino_your_cash')}</div>
+            <div className="font-mono text-emerald-400 text-sm font-semibold">{fm(player?.cash ?? 0)}</div>
+          </div>
+        }
+      />
 
       {/* The tables */}
       <Panel title={t('casino_games_title')} icon="🃏" variant="default">
