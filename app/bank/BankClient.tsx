@@ -38,8 +38,9 @@ export default function BankClient({ initialPlayer }: { initialPlayer: Player | 
   }
 
   const currentBank = (player as unknown as { personal_bank: number }).personal_bank ?? 0;
-  // Use server-computed total_wealth as the authoritative figure to avoid triple-counting cash + bank + total_wealth.
-  const totalWealth = player.total_wealth ?? (player.cash || 0) + currentBank;
+  // NOTE: total_wealth likely represents non-cash/bank assets. Keep cash+bank+total_wealth
+  // until the server schema clarifies whether total_wealth already includes them.
+  const totalWealth = (player.cash || 0) + currentBank + (player.total_wealth || 0);
   const govTax = (player as unknown as { gov_tax_bank: number }).gov_tax_bank ?? 0;
 
   // Track previous gov_tax_bank so we can derive the actual tax from server state

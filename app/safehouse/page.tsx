@@ -180,7 +180,7 @@ export default function SafehousePage() {
                       }
                       if (refreshPlayer) await refreshPlayer();
                       router.refresh();
-                      showToast(t('safehouse_hired', { num: data?.bodyguards, cost: fm(data?.cost ?? 0), chance: 30 - (data?.bodyguards || 1) * 4 }), 'success');
+                      showToast(t('safehouse_hired', { num: data?.bodyguards, cost: fm(data?.cost ?? 0) }), 'success');
                     }}
                     disabled={(prop.bodyguards || 0) >= 10}
                     className="px-3 py-1 bg-blue-700 hover:bg-blue-600 rounded text-xs font-semibold disabled:opacity-40"
