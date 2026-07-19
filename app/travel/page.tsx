@@ -50,9 +50,13 @@ export default function TravelPage() {
   const [info, setInfo] = useState<TravelInfo | null>(null);
   const [mode, setMode] = useState<Mode>('train');
   const [carId, setCarId] = useState('');
+  const [bribe, setBribe] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [now, setNow] = useState(() => Date.now());
+
+  // How much product you're carrying — drives the smuggling risk (139).
+  const carriedKg = Object.values(player?.drug_storage ?? {}).reduce((a, b) => a + Number(b || 0), 0);
 
   const supabase = createClient();
 
@@ -89,6 +93,8 @@ export default function TravelPage() {
     if (raw.includes('CAR_TOO_DAMAGED')) return t('tv_err_damaged');
     if (raw.includes('CAR_NOT_FOUND')) return t('tv_err_no_car');
     if (raw.includes('ALREADY_THERE')) return t('tv_err_already');
+    if (raw.includes('NOT_ENOUGH_CASH_BRIBE')) return t('tv_err_bribe_cash');
+    if (raw.includes('UNKNOWN_CITY')) return t('tv_err_unknown_city');
     return t('travel_failed');
   };
 
@@ -98,10 +104,10 @@ export default function TravelPage() {
 
     const call =
       mode === 'train'
-        ? supabase.rpc('travel_to_city', { city: dest.city })
+        ? supabase.rpc('travel_to_city', { city: dest.city, p_bribe: bribe })
         : mode === 'car'
-          ? supabase.rpc('travel_by_car', { p_city: dest.city, p_car_id: carId })
-          : supabase.rpc('travel_by_plane', { p_city: dest.city });
+          ? supabase.rpc('travel_by_car', { p_city: dest.city, p_car_id: carId, p_bribe: bribe })
+          : supabase.rpc('travel_by_plane', { p_city: dest.city, p_bribe: bribe });
 
     const { data, error } = await call;
     setBusy(false);
@@ -123,6 +129,15 @@ export default function TravelPage() {
             cost: fm(data.cost ?? 0),
             mode: t(data.mode === 'plane' ? 'tv_mode_plane' : 'tv_mode_train'),
           });
+
+    // Smuggling outcome (139) — only when you were actually carrying.
+    const sm = data.smuggle;
+    if (sm && sm.carried > 0) {
+      if (sm.busted && sm.bribed) text += ` ${t('tv_smuggle_bribe_busted', { fee: fm(sm.bribe_fee ?? 0) })}`;
+      else if (sm.busted) text += ` ${t('tv_smuggle_busted')}`;
+      else if (sm.bribed) text += ` ${t('tv_smuggle_bribed_safe', { fee: fm(sm.bribe_fee ?? 0) })}`;
+      else text += ` ${t('tv_smuggle_safe')}`;
+    }
 
     const evText = streetEventText(data?.event, t, language);
     if (evText) text += ` ${evText}`;
@@ -222,6 +237,20 @@ export default function TravelPage() {
             </div>
           )}
         </Panel>
+      )}
+
+      {/* Smuggling risk — only when carrying drugs (139) */}
+      {carriedKg > 0 && (
+        <div className="bg-amber-950/30 border border-amber-800/50 rounded-xl px-4 py-3 space-y-2">
+          <div className="text-sm text-amber-300 font-semibold">
+            🚨 {t('tv_smuggle_warning', { kg: carriedKg })}
+          </div>
+          <p className="text-[11px] text-zinc-400">{t('tv_smuggle_hint')}</p>
+          <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+            <input type="checkbox" checked={bribe} onChange={(e) => setBribe(e.target.checked)} className="accent-amber-600" />
+            <span>{t('tv_smuggle_bribe')}</span>
+          </label>
+        </div>
       )}
 
       {/* Destinations */}
