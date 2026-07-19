@@ -8,6 +8,7 @@ import { usePlayer } from '../components/PlayerContext';
 import { useRouter } from 'next/navigation';
 import Panel from '../components/Panel';
 import { useEconomy } from '@/lib/economy';
+import PageHeader from '../components/PageHeader';
 
 // Normal shop: everyday cash items only. Everything VIP/donator/diamond
 // lives in the VIP Store (/shop/vip) per the bug-inspectie split.
@@ -63,10 +64,12 @@ export default function ShopPage() {
 
   return (
     <main className="flex-1 px-4 py-6 max-w-5xl mx-auto w-full space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight mb-1">🛒 {t('nav_shop')}</h1>
-        <p className="text-xs text-zinc-400">{t('shop_subtitle')}</p>
-      </div>
+      <PageHeader
+        title={t('nav_shop')}
+        subtitle={t('shop_subtitle')}
+        icon="🛒"
+        variant="default"
+      />
 
       {message && <div className="bg-zinc-900 border border-amber-800/50 rounded-xl px-4 py-3 text-sm text-amber-300">{message}</div>}
 
