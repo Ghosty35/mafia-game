@@ -26,6 +26,7 @@ export const leftMenuCategories: MenuCategory[] = [
   {
     titleKey: 'side_journey',
     items: [
+      { labelKey: 'menu_login_bonus', href: '/login-bonus', icon: '🎁' },
       { labelKey: 'menu_hustlers_way', href: '/hustlers-way', icon: '🛤️' },
       { labelKey: 'menu_roadmap', href: '/journey/roadmap', icon: '🚀' },
       { labelKey: 'menu_menus', href: '/journey/menus', icon: '🧭' },
