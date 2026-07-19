@@ -114,7 +114,7 @@ export default function RedLightPage() {
       else if (m.includes('INVALID_AMOUNT')) setMessage(t('rl_err_invalid_amount'));
       else setMessage(m);
     } else if (okMsg && d) {
-      setMessage(okMsg(d));
+      setMessage(okMsg(d as Record<string, unknown>));
     }
     await load();
     if (refreshPlayer) await refreshPlayer();
@@ -200,7 +200,7 @@ export default function RedLightPage() {
           <button
             onClick={() => run(
               () => createClient().rpc('buy_bitch', { p_city: buyCity, p_name: buyName || null }),
-              (d) => t('rl_bought', { name: d.name, city: d.city, tax: fmt(Number(d.tax)) })
+              (d) => t('rl_bought', { name: String(d.name), city: String(d.city), tax: fmt(Number(d.tax)) })
             )}
             disabled={busy || (data?.bitch_limit_reached ?? false)}
             className="px-5 py-2 bg-red-700 hover:bg-red-600 disabled:opacity-40 rounded font-bold text-sm whitespace-nowrap"
@@ -256,13 +256,15 @@ export default function RedLightPage() {
 
                   <div className="flex flex-wrap items-center gap-2 mt-3">
                     {inRL ? (
-                      <button onClick={() => run(() => createClient().rpc('recall_bitch', { p_bitch_id: b.id }), (d) => t('rl_recalled', { name: d.name }))}
+                      <button onClick={() => run(() => createClient().rpc('recall_bitch', { p_bitch_id: b.id }), (d) => t('rl_recalled', { name: String(d.name) }))}
                         disabled={busy} className="px-3 py-1.5 rounded bg-zinc-700 hover:bg-zinc-600 disabled:opacity-40 text-xs font-bold">
                         {t('rl_recall')}
                       </button>
                     ) : (
-                      <button onClick={() => run(() => createClient().rpc('place_bitch_red_light', { p_bitch_id: b.id, p_city: b.city }), (d) => t('rl_placed', { name: d.name, city: d.city }))}
+                      <button onClick={() => run(() => createClient().rpc('place_bitch_red_light', { p_bitch_id: b.id, p_city: b.city }), (d) => t('rl_placed', { name: String(d.name), city: String(d.city) }))}
                         disabled={busy || (data?.rl_occupancy?.[b.city] ?? 0) >= rlCap}
+                        className="px-3 py-1.5 rounded bg-pink-700 hover:bg-pink-600 disabled:opacity-40 text-xs font-bold">
+                        {t('rl_place_rl')}
                       </button>
                     )}
                     <div className="flex items-center gap-1 ml-auto">
@@ -278,7 +280,7 @@ export default function RedLightPage() {
                         const qty = feedQty;
                         run(() => createClient().rpc('feed_bitch', { p_bitch_id: b.id, p_qty: qty }), (d) => {
                           setFeedQty(1);
-                          return t('rl_fed', { name: d.name, qty: d.coke_used });
+                          return t('rl_fed', { name: String(d.name), qty: Number(d.coke_used) });
                         });
                       }}
                         disabled={busy || coke <= 0}
@@ -316,11 +318,11 @@ export default function RedLightPage() {
                   />
                 </div>
                 <button onClick={() => run(() => createClient().rpc('rld_deposit', { p_city: bk.city, p_amount: depAmount }), () => t('rl_deposited', { city: bk.city }))}
-                  disabled={busy} className="px-4 py-2 rounded bg-emerald-700 hover:bg-emerald-600 disabled:opacity-40 text-sm font-bold">
+                  disabled={busy || (player?.cash || 0) < depAmount} className="px-4 py-2 rounded bg-emerald-700 hover:bg-emerald-600 disabled:opacity-40 text-sm font-bold">
                   {t('rl_deposit_btn')}
                 </button>
                 <button onClick={() => run(() => createClient().rpc('rld_withdraw', { p_city: bk.city, p_amount: depAmount }), (d) => t('rl_withdrawn', { city: bk.city, amount: fm(Number(d.withdrawn)) }))}
-                  disabled={busy || bk.balance <= 0} className="px-4 py-2 rounded bg-amber-700 hover:bg-amber-600 disabled:opacity-40 text-sm font-bold">
+                  disabled={busy || bk.balance < depAmount} className="px-4 py-2 rounded bg-amber-700 hover:bg-amber-600 disabled:opacity-40 text-sm font-bold">
                   {t('rl_withdraw_btn')}
                 </button>
               </div>
@@ -341,10 +343,10 @@ export default function RedLightPage() {
             className="flex-1 min-w-[180px] bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm"
           />
           <button onClick={() => run(() => createClient().rpc('raid_bitches', { p_target_username: raidTarget }), (d) => {
-            if (d.blocked) return t('rl_raided_blocked', { target: d.target });
-            if (d.killed) return t('rl_raided_kill', { name: d.bitch_name, target: d.target, heat: d.new_heat });
-            if (d.stole) return t('rl_raided_steal', { name: d.bitch_name, target: d.target, heat: d.new_heat });
-            return t('rl_raided_fail', { heat: d.new_heat });
+            if (d.blocked) return t('rl_raided_blocked', { target: String(d.target) });
+            if (d.killed) return t('rl_raided_kill', { name: String(d.bitch_name), target: String(d.target), heat: Number(d.new_heat) });
+            if (d.stole) return t('rl_raided_steal', { name: String(d.bitch_name), target: String(d.target), heat: Number(d.new_heat) });
+            return t('rl_raided_fail', { heat: Number(d.new_heat) });
           })}
             disabled={busy || !raidTarget.trim()}
             className="px-5 py-2 bg-red-800 hover:bg-red-700 disabled:opacity-40 rounded font-bold text-sm">

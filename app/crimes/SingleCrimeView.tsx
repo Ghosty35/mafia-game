@@ -162,10 +162,12 @@ export default function SingleCrimeView({ crimeKey }: { crimeKey: string }) {
       </div>
 
       <div className="card bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
-        {crime.key === 'pickpocket' && (
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="https://picsum.photos/id/1011/300/120" alt="Pickpocket" className="w-full h-24 object-cover rounded mb-3" />
-        )}
+         {crime.key === 'pickpocket' && (
+           <>
+             {/* eslint-disable-next-line @next/next/no-img-element */}
+             <img src="https://picsum.photos/id/1011/300/120" alt="Pickpocket" className="w-full h-24 object-cover rounded mb-3" />
+           </>
+         )}
         <div className="flex items-start justify-between mb-1">
           <div>
             <div className="font-semibold text-lg">{t(`crime_${crime.key}` as TranslationKey)}</div>

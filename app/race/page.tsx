@@ -44,7 +44,7 @@ export default function RacePage() {
   const [busy, setBusy] = useState(false);
   const [now, setNow] = useState(() => Date.now());
 
-  const cars: RaceCar[] = player?.cars || [];
+  const cars: RaceCar[] = (player?.cars as RaceCar[] | undefined) || [];
   const validCars = cars.filter((c) => (c.condition || 100) >= 75);
 
   const supabase = createClient();

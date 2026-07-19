@@ -512,7 +512,7 @@
   "safehouse_harvest_failed": "Failed Harvest Total: {kg} Kg's",
   "safehouse_shed_trackers_note": "Live trackers: Progress, quality % (see Weed Grow for details). Cooldowns sync globally.",
   "safehouse_upgrade_shed": "Upgrade Shed ({cost})",
-  "safehouse_simulate_earnings": "Collect income (up to 24h, 20% tax)",
+    "safehouse_collect_earnings": "Collect Earnings",
   "safehouse_shed_max": "Max shed level 3.",
   "safehouse_shed_confirm": "Confirm shed upgrade to lvl {level} for {cost}?",
   "safehouse_shed_upgrade_no_cash": "Not enough cash for upgrade.",

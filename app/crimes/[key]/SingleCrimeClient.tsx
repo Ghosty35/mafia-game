@@ -103,7 +103,7 @@ export default function SingleCrimeClient({
     }
 
     // Random street event (071)
-    const evText = streetEventText((res as unknown as { event: string }).event, t, language);
+    const evText = streetEventText((res as { event?: { key: string; amount?: number; heat_delta?: number } | null }).event, t, language);
     if (evText) baseText += ` • ${evText}`;
 
     if (res.leveled_up) {

@@ -10,6 +10,7 @@ import { getRank, getNextRank } from '@/lib/ranks';
 import Panel from '../components/Panel';
 import type { TranslationKey } from '@/lib/i18n/translations';
 import { useRouter } from 'next/navigation';
+import type { PublicProfile } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +37,7 @@ function ProfileContent() {
     await router.refresh();
   };
 
-  const [publicProfile, setPublicProfile] = useState<Record<string, unknown> | null>(null);
+  const [publicProfile, setPublicProfile] = useState<PublicProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [now, setNow] = useState(() => Date.now());
@@ -106,9 +107,9 @@ function ProfileContent() {
     );
   }
 
-  const rank = getRank(p.level ?? 1);
-  const nextRank = getNextRank(p.level ?? 1);
-  const online = p.last_active && now - new Date(p.last_active).getTime() < 15 * 60 * 1000;
+  const rank = getRank(Number(p.level ?? 1));
+  const nextRank = getNextRank(Number(p.level ?? 1));
+  const online = p.last_active && now - new Date(p.last_active as string).getTime() < 15 * 60 * 1000;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
@@ -117,14 +118,14 @@ function ProfileContent() {
         <div className="w-16 h-16 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-center text-3xl overflow-hidden shrink-0">
           {p.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={p.avatar_url} alt="" className="w-full h-full object-cover" />
+            <img src={p.avatar_url as string} alt="" className="w-full h-full object-cover" />
           ) : (
             '👤'
           )}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-2xl font-bold tracking-tight truncate">{p.username || t('profile_unknown')}</h1>
+            <h1 className="text-2xl font-bold tracking-tight truncate">{String(p.username) || t('profile_unknown')}</h1>
             {p.is_donator && <span className="px-2 py-0.5 text-[10px] bg-amber-500 text-black rounded font-bold uppercase">{t('profile_donator_badge')}</span>}
             {(p.rebirths ?? 0) > 0 && <span className="px-2 py-0.5 text-[10px] bg-purple-900/70 text-purple-300 rounded font-bold">♻️ {p.rebirths}</span>}
             {p.last_active != null && (

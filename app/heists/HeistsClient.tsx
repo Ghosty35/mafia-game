@@ -130,7 +130,7 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: Player 
 
       // Load potential PvP targets via RPC (RLS blocks reading other players directly)
       const { data: targetData } = await supabase.rpc('list_pvp_targets');
-      setTargets((targetData as unknown[]) || []);
+      setTargets((targetData as Array<{ id: string; username: string; level?: number; power?: number }>) || []);
 
       // Load the real heist list (was hardcoded before — admin-added/DB heists like
       // casino_vault never showed up because this component ignored the heists table).

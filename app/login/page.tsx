@@ -6,14 +6,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import LanguageSwitcher from '../components/LanguageSwitcher';
-
-type LeaderboardEntry = {
-  username: string;
-  cash: number;
-  power: number;
-  level: number;
-  family_tag?: string;
-};
+import type { LeaderboardEntry } from '@/lib/types';
 
 type ServerStats = {
   online_now: number;
@@ -45,7 +38,7 @@ export default function LoginPage() {
         supabase.rpc('get_leaderboard'),
         supabase.rpc('get_server_stats'),
       ]);
-      if (lb) setLeaderboard((lb as unknown as { username: string; cash: number }[]).slice(0, 8));
+      if (lb) setLeaderboard((lb as unknown as LeaderboardEntry[]).slice(0, 8));
       if (ss) setServerStats(ss as ServerStats);
     } catch {
       // ignore

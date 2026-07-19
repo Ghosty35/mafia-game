@@ -10,6 +10,7 @@ type AdminPlayer = Record<string, unknown> & {
   id: string;
   username: string;
   cash: number;
+  diamonds: number;
   level: number;
   power: number;
   rebirths: number;
@@ -26,6 +27,8 @@ type AdminPlayer = Record<string, unknown> & {
   personal_bank: number;
   weed_progress?: number;
   bullets?: number;
+  rank?: number;
+  last_active?: string;
 };
 
 type AdminProperty = Record<string, unknown> & {
@@ -543,7 +546,7 @@ export default function AdminPage() {
             </div>
             {(warEvents?.pending?.length ?? 0) > 0 && (
               <div className="space-y-1">
-                {warEvents.pending.map((ev: AdminWarEvent) => (
+                {warEvents?.pending?.map((ev: AdminWarEvent) => (
                   <div key={ev.id} className="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded px-2 py-1 text-[11px]">
                     <span>
                       <span className="font-semibold">{ev.city}</span>{' '}

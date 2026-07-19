@@ -62,7 +62,7 @@ export default function RebirthPage() {
 
       {/* The actual rebirth action (only at Godfather) */}
       {eligible && player && (
-        <RebirthPanel player={player} onPlayerUpdate={updatePlayer} onReborn={setRebornMessage} />
+        <RebirthPanel onPlayerUpdate={updatePlayer} onReborn={setRebornMessage} />
       )}
 
       {/* Info cards */}

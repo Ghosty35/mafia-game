@@ -8,6 +8,7 @@ import type { TranslationKey } from '@/lib/i18n/translations';
 import { formatCash, formatSeconds } from '@/lib/format';
 import type { CooldownRow, Crime, Player } from '@/lib/types';
 import { createClient } from '@/lib/supabase/client';
+import PageHeader from '../components/PageHeader';
 
 export default function CrimesClient({
   initialPlayer,
@@ -70,10 +71,12 @@ export default function CrimesClient({
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight mb-1">{player.username || 'Boss'}, Welcome.</h1>
-        <p className="text-zinc-500 text-sm">Commit crimes to build your empire.</p>
-      </div>
+      <PageHeader
+        title={`${player.username || 'Boss'}, Welcome.`}
+        subtitle="Commit crimes to build your empire."
+        icon="🔫"
+        variant="danger"
+      />
 
       {(!hideHeader || crimes.length > 1) && inJail && (
         <div className="bg-orange-950/60 border border-orange-800/50 rounded-xl px-4 py-3 flex items-center justify-between text-sm">

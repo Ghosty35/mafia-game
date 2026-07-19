@@ -86,7 +86,7 @@ export default function CrimesPanel({
           .replace('{xp}', String(res.xp_gained))
       : t('crime_result_fail');
 
-    const resExtra = res as unknown as { murder_skill_gained?: number; health_lost?: number; event?: string };
+    const resExtra = res as unknown as { murder_skill_gained?: number; health_lost?: number; event?: { key: string; amount?: number; heat_delta?: number } | null };
 
     if (resExtra.murder_skill_gained) {
       baseText += ` • +${resExtra.murder_skill_gained} KillSkill`;
@@ -101,7 +101,7 @@ export default function CrimesPanel({
     }
 
     // Random street event (071)
-    const evText = streetEventText(resExtra.event ?? '', t, language);
+    const evText = streetEventText(resExtra.event, t, language);
     if (evText) baseText += `  •  ${evText}`;
 
     if (res.leveled_up) {

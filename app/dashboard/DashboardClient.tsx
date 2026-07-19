@@ -10,6 +10,7 @@ import HeatManager from '../components/HeatManager';
 import MostWantedBoard from '../components/MostWantedBoard';
 import { usePlayer } from '../components/PlayerContext';
 import { useRouter } from 'next/navigation';
+import PageHeader from '../components/PageHeader';
 
 
 export default function DashboardClient({
@@ -164,24 +165,25 @@ export default function DashboardClient({
       )}
 
       {/* Hero Welcome */}
-      <div className="text-center py-8 relative">
-        <div className="inline-flex items-center gap-2 bg-amber-950/40 text-amber-400 px-5 py-1.5 rounded-full text-xs font-bold tracking-[4px] mb-4 border border-amber-900/40">
-          MAFIA GAME 2026
-        </div>
-        <h1 className="text-4xl md:text-5xl font-black tracking-tighter mb-3">
-          Welcome back, <span className="text-amber-400">{player.username ?? 'Boss'}</span>
-        </h1>
-        <p className="text-xl text-zinc-400 max-w-lg mx-auto">
-          The city is yours to take. But first — get up to speed.
-        </p>
-        <div className="mt-4 flex items-center justify-center gap-4 text-xs">
-          <div className="flex items-center gap-1.5">
-            <span className="text-zinc-500">Heat:</span>
-            <span className="font-mono text-red-400 font-bold">{player.heat ?? 0}/100</span>
+      <PageHeader
+        title={`Welcome back, ${player.username ?? 'Boss'}`}
+        subtitle="The city is yours to take. But first — get up to speed."
+        icon="🏠"
+        variant="premium"
+        badge={
+          <div className="flex items-center gap-3 text-xs text-zinc-400">
+            <span>Heat: <span className="font-mono text-red-400 font-bold">{player.heat ?? 0}/100</span></span>
+            {(player.heat ?? 0) > 40 && <span className="text-orange-400">(Police watching)</span>}
           </div>
-          {(player.heat ?? 0) > 40 && <span className="text-orange-400">(Police watching)</span>}
-        </div>
-      </div>
+        }
+        actions={
+          <div className="hidden sm:flex items-center gap-2 text-xs text-zinc-500">
+            <span className="font-mono text-amber-400">{serverTimes.europe}</span>
+            <span className="text-zinc-700">|</span>
+            <span className="font-mono text-amber-400">{serverTimes.us}</span>
+          </div>
+        }
+      />
 
       {/* === HOME PAGE CONTENT === */}
 

@@ -9,6 +9,7 @@ import type { OwnedProperty } from '@/lib/types';
 import HeatManager from '../components/HeatManager';
 import { useEconomy } from '@/lib/economy';
 import PropertyImage from '../components/PropertyImage';
+import PageHeader from '../components/PageHeader';
 
 export default function SafehousePage() {
   const { player, refreshPlayer, showToast } = usePlayer();
@@ -101,20 +102,20 @@ export default function SafehousePage() {
 
   return (
     <div className="max-w-5xl mx-auto p-4 sm:p-6">
-      <div className="flex items-center justify-between gap-4 mb-1">
-        <h1 className="text-3xl font-bold tracking-tight">🏠 {t('safehouse_title')}</h1>
-        {safehouses.length > 0 && (
-          <div className="hidden sm:flex items-center gap-2 text-xs">
-            <span className="px-2.5 py-1 rounded bg-zinc-800 border border-zinc-700 text-zinc-300">
-              🏠 {safehouses.length}
-            </span>
-            <span className="px-2.5 py-1 rounded bg-zinc-800 border border-zinc-700 text-zinc-300">
-              🏢 {businesses.length}
-            </span>
-          </div>
-        )}
-      </div>
-      <p className="text-sm text-zinc-400 mb-5">{t('safehouse_desc')}</p>
+      <PageHeader
+        title={t('safehouse_title')}
+        subtitle={t('safehouse_desc')}
+        icon="🏠"
+        variant="property"
+        badge={
+          safehouses.length > 0 ? (
+            <div className="hidden sm:flex items-center gap-2 text-xs text-zinc-400">
+              <span className="px-2.5 py-1 rounded bg-zinc-800 border border-zinc-700 text-zinc-300">🏠 {safehouses.length}</span>
+              <span className="px-2.5 py-1 rounded bg-zinc-800 border border-zinc-700 text-zinc-300">🏢 {businesses.length}</span>
+            </div>
+          ) : null
+        }
+      />
 
       {/* Lay low here to shed your heat */}
       <HeatManager variant="laylow" />
@@ -252,7 +253,7 @@ export default function SafehousePage() {
                     {t('safehouse_upgrade_shed', { cost: fm((economy?.shed?.upgrade_cost_per_level ?? 50000) * (prop.shed_level || 1)) })}
                   </button>
                   <button onClick={() => collectEarnings(prop.id)} className="px-3 py-1 bg-emerald-700 hover:bg-emerald-600 rounded text-xs font-semibold">
-                    {t('safehouse_simulate_earnings')}
+                    {t('safehouse_collect_earnings')}
                   </button>
                 </div>
               </div>

@@ -16,12 +16,11 @@ export async function renderSingleCrime(crimeKey: string) {
     redirect('/login');
   }
 
-  const [{ data: player }, { data: allCrimes }, { data: cooldowns }, { data: familyStatus }] =
+  const [{ data: player }, { data: allCrimes }, { data: cooldowns }] =
     await Promise.all([
       supabase.rpc('get_my_player'),
       supabase.from('crimes').select('*').order('sort_order'),
       supabase.from('crime_cooldowns').select('*'),
-      supabase.rpc('get_my_family_status'),
     ]);
 
   const crime = (allCrimes as Crime[] | null)?.find((c) => c.key === crimeKey);
@@ -35,7 +34,6 @@ export async function renderSingleCrime(crimeKey: string) {
       initialPlayer={(player as Player) ?? null}
       crime={crime}
       initialCooldowns={(cooldowns as CooldownRow[]) ?? []}
-      familyStatus={(familyStatus as unknown) ?? null}
     />
   );
 }

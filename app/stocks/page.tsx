@@ -62,6 +62,12 @@ export default function StocksPage() {
   const setShares = (ticker: string, v: number) =>
     setSharesInput((prev) => ({ ...prev, [ticker]: Math.max(1, Math.floor(v)) }));
 
+  const getBuyCost = (ticker: string) => {
+    const s = stocks.find(x => x.ticker === ticker);
+    const shares = getShares(ticker);
+    return s ? s.current_price * shares : 0;
+  };
+
   const buy = async (ticker: string) => {
     if (!player) return;
     const shares = getShares(ticker);
@@ -182,8 +188,8 @@ export default function StocksPage() {
                 />
                 <button
                   onClick={() => buy(s.ticker)}
-                  disabled={busy}
-                  className="flex-1 py-1.5 bg-emerald-700 rounded text-sm"
+                  disabled={busy || (player?.cash || 0) < getBuyCost(s.ticker)}
+                  className="flex-1 py-1.5 bg-emerald-700 rounded text-sm disabled:opacity-50"
                 >
                   {t('stocks_buy')}
                 </button>

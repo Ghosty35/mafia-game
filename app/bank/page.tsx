@@ -14,5 +14,5 @@ export default async function BankPage() {
 
   const { data: player } = await supabase.rpc('get_my_player');
 
-  return <BankClient initialPlayer={player} email={user.email ?? ''} />;
+  return <BankClient initialPlayer={player} />;
 }

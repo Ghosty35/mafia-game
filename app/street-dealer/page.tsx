@@ -44,8 +44,8 @@ export default function StreetDealerPage() {
     if (!player) return;
     const loadData = async () => {
       const supabase = createClient();
-      const { data } = await supabase.rpc<Record<string, number>>('get_drug_storage');
-      if (data) setDrugStorage(data);
+      const { data } = await supabase.rpc('get_drug_storage');
+      if (data) setDrugStorage(data as Record<string, number>);
       // Load murder cooldown etc if in player
       if (player.murder_cooldown) {
         const end = new Date(player.murder_cooldown).getTime();
@@ -196,7 +196,7 @@ export default function StreetDealerPage() {
                   min={1}
                   max={9999}
                   value={qty}
-                  onChange={(e) => setQty(drug, parseInt(e.target.value) || 1)}
+                  onChange={(e) => setQty(drug, String(parseInt(e.target.value) || 1))}
                   className="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 font-mono text-sm focus:outline-none focus:border-amber-700"
                 />
               </label>

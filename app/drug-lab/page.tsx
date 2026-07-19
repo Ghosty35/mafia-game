@@ -85,7 +85,7 @@ export default function DrugLabPage() {
       else if (m.includes('GUARDS_MAX')) setMessage(t('dl_guards_max'));
       else setMessage(m);
     } else if (okMsg && d) {
-      setMessage(okMsg(d));
+      setMessage(okMsg(d as Record<string, unknown>));
     }
     await load();
     if (refreshPlayer) await refreshPlayer();
@@ -180,7 +180,7 @@ export default function DrugLabPage() {
               const canUpgrade = lab.level < 10;
               const upgCost = upgradeCost(lab.level);
               const isRaided = lab.raided_until && new Date(lab.raided_until).getTime() > Date.now();
-              const raidLeft = isRaided ? Math.max(0, Math.ceil((new Date(lab.raided_until).getTime() - Date.now()) / 60000)) : 0;
+              const raidLeft = isRaided ? Math.max(0, Math.ceil((new Date(lab.raided_until!).getTime() - Date.now()) / 60000)) : 0;
               const guards = lab.guards ?? 0;
               const raidPct = lab.raid_pct ?? 0;
               const nextGuardCost = guards < 5 ? GUARD_COSTS[guards] : 0;

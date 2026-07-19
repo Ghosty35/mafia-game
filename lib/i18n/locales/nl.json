@@ -514,7 +514,7 @@
   "safehouse_harvest_failed": "Totaal Mislukte Oogst: {kg} kg",
   "safehouse_shed_trackers_note": "Live trackers: voortgang, kwaliteit % (zie Wietkwekerij voor details). Cooldowns lopen overal synchroon.",
   "safehouse_upgrade_shed": "Upgrade Schuur ({cost})",
-  "safehouse_simulate_earnings": "Inkomsten innen (tot 24u, 20% belasting)",
+    "safehouse_collect_earnings": "Inkomsten Innemen",
   "safehouse_shed_max": "Max schuurniveau 3.",
   "safehouse_shed_confirm": "Bevestig schuur-upgrade naar lvl {level} voor {cost}?",
   "safehouse_shed_upgrade_no_cash": "Niet genoeg geld voor de upgrade.",

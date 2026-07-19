@@ -2,6 +2,7 @@
 
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { getRank } from '@/lib/ranks';
+import type { LeaderboardData } from '@/lib/types';
 
 export default function RankingsClient({ 
   leaderboard, 

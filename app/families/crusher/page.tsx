@@ -86,7 +86,7 @@ export default function CrusherPage() {
     const { data: res, error: err } = await supabase.rpc(fn, args);
     setBusy(false);
     if (err) return fail(err.message || '');
-    setMessage(ok(res));
+    setMessage(ok(res as Record<string, unknown>));
     await refreshPlayer();
     await router.refresh();
     await load();
@@ -133,7 +133,7 @@ export default function CrusherPage() {
                 {t('cr_buy_cost', { cost: fm(data.upgrade_cost ?? 0), bank: fm(data.family_bank ?? 0) })}
               </div>
               <button
-                onClick={() => run('family_upgrade_crusher', {}, (d) => t('cr_installed', { name: d.name, cost: fm(d.cost) }))}
+                onClick={() => run('family_upgrade_crusher', {}, (d) => t('cr_installed', { name: String(d.name), cost: fm(Number(d.cost)) }))}
                 disabled={busy || (data.family_bank ?? 0) < (data.upgrade_cost ?? 0)}
                 className="px-5 py-2.5 bg-red-700 hover:bg-red-600 rounded-lg text-sm font-semibold disabled:opacity-50"
               >
@@ -208,7 +208,7 @@ export default function CrusherPage() {
                     const car = data.my_cars!.find((c) => c.id === carId);
                     if (!car) return;
                     if (!confirm(t('cr_confirm', { name: car.name, count: data.per_car ?? 0, price: fm(car.value) }))) return;
-                    run('family_crush_car', { p_car_id: carId }, (d) => t('cr_crushed', { car: d.car, count: d.bullets_gained }));
+                    run('family_crush_car', { p_car_id: carId }, (d) => t('cr_crushed', { car: String(d.car), count: String(d.bullets_gained) }));
                   }}
                   disabled={busy || !carId}
                   className="px-4 py-2 bg-red-800 hover:bg-red-700 rounded-lg text-sm font-semibold disabled:opacity-40"
@@ -245,7 +245,7 @@ export default function CrusherPage() {
                     className="bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 w-28 text-sm font-mono"
                   />
                   <button
-                    onClick={() => run('family_give_bullets', { p_username: giveTo, p_amount: giveAmount }, (d) => t('cr_given', { count: d.amount, name: d.to }))}
+                    onClick={() => run('family_give_bullets', { p_username: giveTo, p_amount: giveAmount }, (d) => t('cr_given', { count: Number(d.amount), name: String(d.to) }))}
                     disabled={busy || !giveTo || (data.bullets ?? 0) < giveAmount}
                     className="px-4 py-2 bg-emerald-700 hover:bg-emerald-600 rounded-lg text-sm font-semibold disabled:opacity-40"
                   >
@@ -263,7 +263,7 @@ export default function CrusherPage() {
                 {t('cr_upgrade_text', { next: data.next_name ?? '', cost: fm(data.upgrade_cost ?? 0), bank: fm(data.family_bank ?? 0) })}
               </p>
               <button
-                onClick={() => run('family_upgrade_crusher', {}, (d) => t('cr_installed', { name: d.name, cost: fm(d.cost) }))}
+                onClick={() => run('family_upgrade_crusher', {}, (d) => t('cr_installed', { name: String(d.name), cost: fm(Number(d.cost)) }))}
                 disabled={busy || (data.family_bank ?? 0) < (data.upgrade_cost ?? 0)}
                 className="px-4 py-2 bg-blue-800 hover:bg-blue-700 rounded-lg text-sm font-semibold disabled:opacity-40"
               >

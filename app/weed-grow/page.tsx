@@ -19,7 +19,7 @@ export default function WeedGrowPage() {
   const [cooldown, setCooldown] = useState(0); // seconds left until next water
 
   const owned = player?.owned_properties || [];
-  const hasHouse = owned.some((p: Record<string, unknown>) => p.name && (p.name.toLowerCase().includes('house') || p.name.toLowerCase().includes('villa') || p.name.toLowerCase().includes('mansion')));
+  const hasHouse = owned.some((p: Record<string, unknown>) => p.name && ((p.name as string).toLowerCase().includes('house') || (p.name as string).toLowerCase().includes('villa') || (p.name as string).toLowerCase().includes('mansion')));
 
   useEffect(() => {
     if (player?.weed_progress !== undefined) setWeedProgress(player.weed_progress);
@@ -34,7 +34,7 @@ export default function WeedGrowPage() {
       setCooldown(0);
       return;
     }
-    const readyAt = new Date(lastWatered).getTime() + 60 * 60 * 1000;
+    const readyAt = new Date(lastWatered as string).getTime() + 60 * 60 * 1000;
     const tick = () => setCooldown(Math.max(0, Math.ceil((readyAt - Date.now()) / 1000)));
     tick();
     const iv = setInterval(tick, 1000);

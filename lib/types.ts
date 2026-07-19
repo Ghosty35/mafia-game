@@ -68,7 +68,7 @@ export type Player = {
   money_rank?: string;
   total_wealth?: number;
   last_active?: string;            // for online / server status
-  transaction_log?: Array<unknown>;    // last transactions
+  transaction_log?: Array<{ icon: string; desc: string; tax?: number; amount: number }>;    // last transactions
   autopay_bills?: boolean;
   bill_history?: Array<unknown>;
   total_taxes?: number;
@@ -92,6 +92,9 @@ export type Player = {
   successful_harvest_kg?: number;
   failed_harvest_kg?: number;
   weed_plants?: Record<string, unknown>;  // { quality: number } — grow quality persists here
+  weed_last_watered?: string;             // timestamp for cooldown countdown
+  family_name?: string;
+  family_tag?: string | null;
   // Profile customization (Bulletstar style)
   avatar_url?: string;
   bio?: string;
@@ -152,6 +155,7 @@ export type CrimeResult = {
   in_family?: boolean;
   health_lost?: number;
   murder_skill_gained?: number;
+  event?: { key: string; amount?: number; heat_delta?: number };
 };
 
 // =====================
@@ -192,4 +196,25 @@ export type FamiliesLeaderboardData = {
 export type PlayerWithFamily = Player & {
   family_id: string | null;
   family?: Family | null;
+};
+
+// Public profile data returned by get_public_profile
+export type PublicProfile = {
+  username: string;
+  avatar_url?: string;
+  is_donator?: boolean;
+  rebirths?: number;
+  last_active?: string | null;
+  level?: number;
+  family_name?: string;
+  family_id?: string;
+  family_tag?: string;
+  bio?: string;
+  health?: number;
+  power?: number;
+  protection?: number;
+  crimes_succeeded?: number;
+  crimes_failed?: number;
+  murder_skill?: number;
+  created_at?: string;
 };
