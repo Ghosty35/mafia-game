@@ -93,7 +93,10 @@ export default function RedLightPage() {
     return () => clearInterval(poll);
   }, [load]);
 
-  const run = async (fn: () => PromiseLike<{ error: { message: string } | null; data: unknown }>, okMsg?: (d: Record<string, unknown>) => string) => {
+  const run = async <T extends Record<string, unknown>>(
+    fn: () => PromiseLike<{ error: { message: string } | null; data: unknown }>,
+    okMsg?: (d: T) => string
+  ) => {
     setBusy(true);
     setMessage('');
     const { error, data: d } = await fn();
@@ -115,7 +118,7 @@ export default function RedLightPage() {
       else if (m.includes('INVALID_AMOUNT')) setMessage(t('rl_err_invalid_amount'));
       else setMessage(m);
     } else if (okMsg && d) {
-      setMessage(okMsg(d as Record<string, unknown>));
+      setMessage(okMsg(d as T));
     }
     await load();
     if (refreshPlayer) await refreshPlayer();

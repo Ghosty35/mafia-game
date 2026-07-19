@@ -19,17 +19,17 @@ export default function WeedGrowPage() {
   const [cooldown, setCooldown] = useState(0); // seconds left until next water
 
   const owned = player?.owned_properties || [];
-  const hasHouse = owned.some((p: Record<string, unknown>) => p.name && ((p.name as string).toLowerCase().includes('house') || (p.name as string).toLowerCase().includes('villa') || (p.name as string).toLowerCase().includes('mansion')));
+  const hasHouse = owned.some((p) => p.name && ((p.name as string).toLowerCase().includes('house') || (p.name as string).toLowerCase().includes('villa') || (p.name as string).toLowerCase().includes('mansion')));
 
   useEffect(() => {
     if (player?.weed_progress !== undefined) setWeedProgress(player.weed_progress);
-    const quality = (player?.weed_plants as Record<string, unknown>)?.quality;
+    const quality = (player?.weed_plants as { quality?: number } | undefined)?.quality;
     if (typeof quality === 'number') setHarvestPercent(quality);
   }, [player]);
 
   // Live countdown from the server-persisted weed_last_watered timestamp
   useEffect(() => {
-    const lastWatered = (player as Record<string, unknown>)?.weed_last_watered;
+    const lastWatered = player?.weed_last_watered;
     if (!lastWatered) {
       setCooldown(0);
       return;

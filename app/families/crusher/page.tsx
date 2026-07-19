@@ -79,14 +79,14 @@ export default function CrusherPage() {
     setError(t(hit ? map[hit] : 'garage_action_failed'));
   };
 
-  const run = async (fn: string, args: Record<string, unknown>, ok: (d: Record<string, unknown>) => string) => {
+  const run = async <T extends Record<string, unknown>>(fn: string, args: Record<string, unknown>, ok: (d: T) => string) => {
     setBusy(true);
     setError('');
     setMessage('');
     const { data: res, error: err } = await supabase.rpc(fn, args);
     setBusy(false);
     if (err) return fail(err.message || '');
-    setMessage(ok(res as Record<string, unknown>));
+    setMessage(ok(res as T));
     await refreshPlayer();
     await router.refresh();
     await load();

@@ -65,7 +65,10 @@ export default function DrugLabPage() {
     return () => clearInterval(poll);
   }, []);
 
-  const run = async (fn: () => PromiseLike<{ error: { message: string } | null; data: unknown }>, okMsg?: (d: Record<string, unknown>) => string) => {
+  const run = async <T extends Record<string, unknown>>(
+    fn: () => PromiseLike<{ error: { message: string } | null; data: unknown }>,
+    okMsg?: (d: T) => string
+  ) => {
     setBusy(true);
     setMessage('');
     const { error, data: d } = await fn();
@@ -85,7 +88,7 @@ export default function DrugLabPage() {
       else if (m.includes('GUARDS_MAX')) setMessage(t('dl_guards_max'));
       else setMessage(m);
     } else if (okMsg && d) {
-      setMessage(okMsg(d as Record<string, unknown>));
+      setMessage(okMsg(d as T));
     }
     await load();
     if (refreshPlayer) await refreshPlayer();
