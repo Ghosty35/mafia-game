@@ -54,7 +54,9 @@ export type Player = {
   murder_cooldown?: string;    // ISO for cooldown
   owned_properties?: OwnedProperty[];
   heist_gear?: { tier?: string; label?: string; bonus?: number } | null; // server-set via buy_heist_gear
-  weapons?: string[];          // owned heist weapon ids (buy_weapon)
+  equipped_weapon?: string | null; // armory catalog key (135)
+  equipped_vest?: string | null;   // armory catalog key (135)
+  rip_points?: number;             // Powerrip kill-score total (136)
   heat_updated_at?: string;    // anchor for passive heat decay (062)
   has_corrupt_lawyer?: boolean;// permanent +50% heat decay upgrade (062)
   dirty_cash?: number;         // criminal income awaiting laundering (066)

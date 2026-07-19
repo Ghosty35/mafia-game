@@ -7,16 +7,10 @@ import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useRouter } from 'next/navigation';
-import type { TranslationKey } from '@/lib/i18n/translations';
 
-// Weapon bonus % matches the server's attempt_murder() logic (077_leave_family_bounty.sql):
-//   Rifle +20, SMG +10, Pistol (and any other) +0. No weapon is purchased/charged
-//   in a murder — weapons are selected, not bought here — so there is no price.
-const WEAPONS: { name: string; labelKey: TranslationKey; descKey: TranslationKey; bonus: number }[] = [
-  { name: 'Pistol', labelKey: 'murder_weapon_pistol', descKey: 'murder_weapon_pistol_desc', bonus: 0 },
-  { name: 'SMG', labelKey: 'murder_weapon_smg', descKey: 'murder_weapon_smg_desc', bonus: 10 },
-  { name: 'Rifle', labelKey: 'murder_weapon_rifle', descKey: 'murder_weapon_rifle_desc', bonus: 20 },
-];
+// 135: the weapon you fire is the one you carry — bought in the Armory,
+// read server-side from players.equipped_weapon. No client weapon choice.
+type ArmoryItem = { key: string; kind: string; label: string; power: number };
 
 export default function MurderPage() {
   return (
@@ -33,10 +27,10 @@ function MurderContent() {
   // The detective's "act now" link hands the target over (076).
   const searchParams = useSearchParams();
   const [targetName, setTargetName] = useState(searchParams.get('target') ?? '');
-  const [selectedWeapon, setSelectedWeapon] = useState(WEAPONS[0].name);
   const [bulletsUsed, setBulletsUsed] = useState(50);
   const [busy, setBusy] = useState(false);
   const [cooldown, setCooldown] = useState(0); // seconds left
+  const [gear, setGear] = useState<{ weapon: ArmoryItem | null; vest: ArmoryItem | null } | null>(null);
 
   // Cooldown timer - MUST be declared before any early returns (Rules of Hooks)
   useEffect(() => {
@@ -54,14 +48,28 @@ function MurderContent() {
     return () => clearInterval(iv);
   }, [player?.murder_cooldown]);
 
+  // Loadout card: resolve equipped keys to labels via the armory catalog.
+  useEffect(() => {
+    const load = async () => {
+      const supabase = createClient();
+      const { data } = await supabase.rpc('get_armory');
+      if (data) {
+        const items: ArmoryItem[] = data.items ?? [];
+        setGear({
+          weapon: items.find((i) => i.key === data.equipped_weapon) ?? null,
+          vest: items.find((i) => i.key === data.equipped_vest) ?? null,
+        });
+      }
+    };
+    load();
+  }, []);
+
   if (!player) return <div className="p-8">{t('loading')}</div>;
 
   const hitmanLevel = 16;
   const murderSkillPercent = Math.min(100, Math.floor((player.murder_skill || 0) * 5));
   const isUnlocked = player.level >= hitmanLevel && murderSkillPercent >= 50;
   const canCleanHit = murderSkillPercent >= 75;
-
-  const currentWeapon = WEAPONS.find(w => w.name === selectedWeapon)!;
 
   const attemptMurder = async () => {
     if (!isUnlocked) {
@@ -80,7 +88,6 @@ function MurderContent() {
 
       const { data, error } = await supabase.rpc('attempt_murder', {
         target_username: targetName,
-        weapon: selectedWeapon,
         bullets_used: bulletsUsed
       });
 
@@ -100,9 +107,12 @@ function MurderContent() {
         const message = data.blocked
           ? t('murder_blocked')
           : data.success
-            ? `Hit successful! Stole ${fm(data.stolen || 0)} and gained ${data.skill_gained} KillSkill.`
-            : `The hit failed — target got away. Heat increased.`;
+            ? t('murder_success_toast', { stolen: fm(data.stolen || 0), score: (data.rip_score || 0).toLocaleString() })
+            : t('murder_failed_toast');
         showToast(message, data.success ? 'success' : 'fail');
+        if (data.bounty?.claimed) {
+          showToast(t('murder_bounty_claimed', { amount: fm(data.bounty.amount || 0) }), 'success');
+        }
         if (refreshPlayer) await refreshPlayer();
         router.refresh();
       }
@@ -158,25 +168,25 @@ function MurderContent() {
           />
         </div>
 
+        {/* Loadout (read-only): what you carry is what you shoot with. */}
         <div>
-          <label className="block text-xs text-zinc-400 uppercase tracking-wider mb-2">{t('murder_weapon_label')}</label>
-          <div className="flex gap-2">
-            {WEAPONS.map(w => (
-              <button
-                key={w.name}
-                onClick={() => setSelectedWeapon(w.name)}
-                className={`flex-1 p-3 rounded-lg text-sm font-semibold transition-all ${
-                  selectedWeapon === w.name
-                    ? 'bg-red-700 text-white border border-red-600 shadow-[0_0_10px_rgba(220,38,38,0.2)]'
-                    : 'bg-zinc-800 text-zinc-300 border border-zinc-700 hover:border-zinc-600'
-                }`}
-              >
-                {w.name === 'Rifle' && '🎯 '}{w.name === 'SMG' && '🔫 '}{w.name === 'Pistol' && '🔫 '}
-                {t(w.labelKey)} (+{w.bonus}%)
-              </button>
-            ))}
+          <label className="block text-xs text-zinc-400 uppercase tracking-wider mb-2">{t('murder_loadout_label')}</label>
+          <div className="flex flex-col sm:flex-row gap-2 text-sm">
+            <div className={`flex-1 p-3 rounded-lg border ${gear?.weapon ? 'bg-zinc-800 border-zinc-700' : 'bg-red-950/30 border-red-900/50'}`}>
+              🔫 {gear?.weapon
+                ? <>{gear.weapon.label} <span className="text-emerald-400 font-mono text-xs">+{gear.weapon.power}</span></>
+                : t('murder_no_weapon')}
+            </div>
+            <div className="flex-1 p-3 rounded-lg border bg-zinc-800 border-zinc-700">
+              🦺 {gear?.vest
+                ? <>{gear.vest.label} <span className="text-emerald-400 font-mono text-xs">+{gear.vest.power}</span></>
+                : t('murder_no_vest')}
+            </div>
           </div>
-          <p className="text-xs text-zinc-500 mt-2">{t(currentWeapon.descKey)}</p>
+          <p className="text-xs text-zinc-500 mt-2">
+            {t('murder_loadout_hint')}{' '}
+            <Link href="/armory" className="text-amber-400 hover:text-amber-300 transition-colors">{t('armory_title')}</Link>
+          </p>
         </div>
 
         <div>
@@ -202,7 +212,7 @@ function MurderContent() {
           disabled={busy || !targetName.trim() || !isUnlocked || bulletsUsed < 10 || cooldown > 0}
           className="w-full py-3 bg-red-700 hover:bg-red-600 disabled:bg-zinc-800 disabled:text-zinc-500 disabled:cursor-not-allowed rounded-lg font-bold text-sm tracking-wide transition-colors"
         >
-          {busy ? t('murder_attempting') : cooldown > 0 ? t('murder_on_cooldown') : !isUnlocked ? t('murder_locked_button') : t('murder_attempt_button', { weapon: t(currentWeapon.labelKey), bullets: bulletsUsed })}
+          {busy ? t('murder_attempting') : cooldown > 0 ? t('murder_on_cooldown') : !isUnlocked ? t('murder_locked_button') : t('murder_attempt_button_gear', { bullets: bulletsUsed })}
         </button>
       </div>
 

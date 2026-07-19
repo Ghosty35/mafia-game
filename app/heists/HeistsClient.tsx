@@ -61,8 +61,10 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
   const [cooldowns, setCooldowns] = useState<Record<string, number>>({});
   const [crew, setCrew] = useState(2);
   const [bulletsUsed, setBulletsUsed] = useState(100);
-  const [selectedWeapon, setSelectedWeapon] = useState('pistol');
   const [gearBonus, setGearBonus] = useState(0);
+  // 135: the heist weapon is whatever you carry (players.equipped_weapon,
+  // bought in the Armory). Boxing gloves (no heist_class) can't run a heist.
+  const [armoryWeapon, setArmoryWeapon] = useState<{ key: string; label: string; power: number; heist_class: string | null } | null>(null);
   const [busy, setBusy] = useState(false);
   const [targets, setTargets] = useState<any[]>([]);
   const [cars, setCars] = useState<Array<{ id: string; name: string; condition: number }>>([]);
@@ -71,13 +73,20 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
 
   const supabase = createClient();
 
-  // Weapon catalog (mirrors buy_weapon / _weapon_bonus server-side), served live.
-  const WEAPONS: Array<{ id: string; label: string; bonus: number; price: number }> = (economy?.weapons ?? [
-    { id: 'pistol', cost: 2500, bonus: 4 },
-    { id: 'smg', cost: 12000, bonus: 9 },
-    { id: 'rifle', cost: 35000, bonus: 16 },
-  ]).map((w) => ({ id: w.id, label: w.id.charAt(0).toUpperCase() + w.id.slice(1), bonus: w.bonus, price: w.cost }));
-  const ownedWeapons: string[] = Array.isArray(player?.weapons) ? (player!.weapons as string[]) : [];
+  // Equipped weapon from the Armory (server-authoritative catalog).
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const { data } = await supabase.rpc('get_armory');
+      if (active && data) {
+        const items = (data.items ?? []) as Array<{ key: string; label: string; power: number; heist_class: string | null }>;
+        setArmoryWeapon(items.find((i) => i.key === data.equipped_weapon) ?? null);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [supabase]);
 
   // Load the player's cars for the getaway-driver selector.
   useEffect(() => {
@@ -94,28 +103,6 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
       active = false;
     };
   }, [supabase]);
-
-  const buyWeapon = async (weaponId: string) => {
-    if (!player) return;
-    const { data, error } = await supabase.rpc('buy_weapon', { weapon_id: weaponId });
-    if (error) {
-      showToast(
-        error.message.includes('NOT_ENOUGH_CASH')
-          ? 'Not enough cash for this weapon.'
-          : error.message.includes('ALREADY_OWNED')
-            ? 'You already own that weapon.'
-            : error.message,
-        'error',
-      );
-      return;
-    }
-    const updated = { ...player, cash: data.new_cash, weapons: [...ownedWeapons, weaponId] } as Player;
-    setPlayer(updated);
-    updatePlayer(updated);
-    if (refreshPlayer) await refreshPlayer();
-    router.refresh();
-    setSelectedWeapon(weaponId);
-  };
 
   // Reflect the persistent, server-authoritative gear bonus.
   useEffect(() => {
@@ -184,8 +171,8 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
       return;
     }
 
-    if (!ownedWeapons.includes(selectedWeapon)) {
-      showToast('Select a weapon you own — buy one in the Armory first.', 'error');
+    if (!armoryWeapon?.heist_class) {
+      showToast('You need a real gun equipped — buy one in the Armory first.', 'error');
       return;
     }
     if (!selectedCarId) {
@@ -199,7 +186,6 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
       heist_key: heist.key,
       crew_size: crew,
       bullets_used: bulletsUsed,
-      weapon: selectedWeapon,
       car_id: selectedCarId,
     });
 
@@ -310,33 +296,23 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
         <p className="text-[10px] text-zinc-500 mt-2">Gear is permanent and applies to your future heists (server-side).</p>
       </section>
 
-      {/* Weapons + Getaway driver (required to run a heist) */}
+      {/* Weapon + Getaway driver (required to run a heist) */}
       <section className="card p-5">
-        <h2 className="font-bold mb-3">🔫 Weapons (own one to run a heist)</h2>
-        <div className="flex flex-wrap gap-3 items-center">
-          {WEAPONS.map((w) => {
-            const owned = ownedWeapons.includes(w.id);
-            return (
-              <div key={w.id} className="flex items-center gap-1">
-                {owned ? (
-                  <button
-                    onClick={() => setSelectedWeapon(w.id)}
-                    className={`px-4 py-2 rounded text-sm ${selectedWeapon === w.id ? 'bg-red-700' : 'bg-zinc-800 hover:bg-zinc-700'}`}
-                  >
-                    {w.label} (+{w.bonus}%){selectedWeapon === w.id ? ' ✓' : ''}
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => buyWeapon(w.id)}
-                    className="px-4 py-2 bg-emerald-800 hover:bg-emerald-700 rounded text-sm"
-                  >
-                    Buy {w.label} (+{w.bonus}%) — {fm(w.price)}
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
+        <h2 className="font-bold mb-3">🔫 Your weapon (equipped in the Armory)</h2>
+        {armoryWeapon?.heist_class ? (
+          <p className="text-sm">
+            <span className="font-semibold text-emerald-400">{armoryWeapon.label}</span>{' '}
+            <span className="text-xs text-zinc-400">
+              (+{Math.min(20, Math.round((armoryWeapon.power / 8) * 10) / 10)}% heist bonus)
+            </span>
+          </p>
+        ) : (
+          <p className="text-xs text-amber-400">
+            {armoryWeapon
+              ? <>Your {armoryWeapon.label} won&apos;t cut it for a heist. Buy a real gun in the <Link href="/armory" className="underline">Armory</Link>.</>
+              : <>No weapon equipped. Buy one in the <Link href="/armory" className="underline">Armory</Link> to run heists.</>}
+          </p>
+        )}
 
         <h2 className="font-bold mt-4 mb-2">🚗 Getaway driver</h2>
         {cars.length === 0 ? (
@@ -369,9 +345,7 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
           // Mirror the server formula (commit_heist): base + gear + crew +
           // bullets + weapon + getaway - heat penalty, capped at 90%.
           const bulletPct = Math.min(15, bulletsUsed / 10);
-          const weaponPct = ownedWeapons.includes(selectedWeapon)
-            ? (WEAPONS.find((w) => w.id === selectedWeapon)?.bonus ?? 0)
-            : 0;
+          const weaponPct = armoryWeapon?.heist_class ? Math.min(20, armoryWeapon.power / 8) : 0;
           const gcar = cars.find((c) => c.id === selectedCarId);
           const getawayPct = gcar ? Math.min(10, Math.floor(gcar.condition / 12)) : 0;
           const successEst = Math.round(
@@ -424,13 +398,11 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
                 </button>
               </div>
 
-              {/* Loadout summary — weapon + getaway are picked in the Armory above */}
+              {/* Loadout summary — weapon comes from the Armory equipment */}
               <div className="text-xs text-zinc-400 mb-2">
                 Loadout:{' '}
-                <span className={ownedWeapons.includes(selectedWeapon) ? 'text-emerald-400 font-semibold' : 'text-red-400'}>
-                  {ownedWeapons.includes(selectedWeapon)
-                    ? WEAPONS.find((w) => w.id === selectedWeapon)?.label
-                    : '⚠ no weapon'}
+                <span className={armoryWeapon?.heist_class ? 'text-emerald-400 font-semibold' : 'text-red-400'}>
+                  {armoryWeapon?.heist_class ? armoryWeapon.label : '⚠ no weapon'}
                 </span>{' '}
                 · Getaway:{' '}
                 <span className={selectedCarId ? 'text-emerald-400 font-semibold' : 'text-red-400'}>

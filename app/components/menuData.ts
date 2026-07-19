@@ -155,6 +155,7 @@ export const rightMenuCategories: MenuCategory[] = [
       { labelKey: 'menu_leaderboard', href: '/leaderboard', icon: '🏆' },
       { labelKey: 'menu_crime_leaderboard', href: '/crime-leaderboard', icon: '🔫' },
       { labelKey: 'menu_most_wanted', href: '/most-wanted', icon: '🚨' },
+      { labelKey: 'menu_powerrip', href: '/reputations/powerrip', icon: '💀' },
       { labelKey: 'menu_families_leaderboard', href: '/families/leaderboard', icon: '👑' },
       { labelKey: 'menu_tax_bank', href: '/reputations/tax-bank', icon: '🏛️' },
     ],
