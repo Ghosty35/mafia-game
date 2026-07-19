@@ -872,6 +872,8 @@
   "armory_level_too_low": "You need level {level} for this item.",
   "armory_already_equipped": "You already carry that item.",
   "armory_item_bought": "{label} bought for {price}!",
+  "armory_your_loadout": "Your Loadout",
+  "armory_packs_hint": "Raw power that applies to every fight, heist and crime. No restrictions — just raw strength.",
   "re_title": "Real Estate",
   "re_load_failed": "Failed to load properties. Please refresh the page.",
   "re_desc": "Own the city. Grow your empire (and weed). Pay your bills on time or lose it all.",

@@ -872,6 +872,8 @@
   "armory_level_too_low": "Je hebt level {level} nodig voor dit item.",
   "armory_already_equipped": "Je draagt dat item al.",
   "armory_item_bought": "{label} gekocht voor {price}!",
+  "armory_your_loadout": "Je Uitrusting",
+  "armory_packs_hint": "Ruwe kracht die van toepassing is op elke vechtpartij, overval en misdaad. Geen beperkingen — alleen pure kracht.",
   "re_title": "Vastgoed",
   "re_load_failed": "Kon panden niet laden. Vernieuw de pagina.",
   "re_desc": "Bezit de stad. Laat je imperium (en wiet) groeien. Betaal je rekeningen op tijd of raak alles kwijt.",

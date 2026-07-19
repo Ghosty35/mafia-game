@@ -7,6 +7,7 @@ import { usePlayer } from '../components/PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useRouter } from 'next/navigation';
 import type { TranslationKey } from '@/lib/i18n/translations';
+import PageHeader from '../components/PageHeader';
 
 // Weapon/vest shop (135, Bulletstar "Wapen-power winkel" reference).
 // Catalog + prices are server-authoritative via get_armory / buy_armory_item;
@@ -149,79 +150,96 @@ export default function ArmoryPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 sm:p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">🔫 {t('armory_title')}</h1>
-        <p className="text-sm text-zinc-400">{t('armory_desc')}</p>
-      </div>
-
-      {/* Loadout summary: what you're carrying = what defends you (Powerrip). */}
-      <div className="card p-5 mb-6">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-          <div>
-            <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">{t('armory_your_weapon')}</div>
-            <div className="font-semibold">
-              {equippedWeapon ? `${WEAPON_ICONS[equippedWeapon.key] ?? '🔫'} ${equippedWeapon.label}` : `— ${t('armory_none')}`}
-            </div>
-            {equippedWeapon && <div className="text-xs text-emerald-400 font-mono">+{equippedWeapon.power} {t('armory_stat_power')}</div>}
+    <div className="max-w-5xl mx-auto p-4 sm:p-6 space-y-6">
+      <PageHeader
+        title={t('armory_title')}
+        subtitle={t('armory_desc')}
+        icon="🗡️"
+        variant="danger"
+        badge={
+          <div className="flex items-center gap-3 text-xs text-zinc-400">
+            <span className="text-orange-400 font-mono font-bold">⚔️ {gearPower.toLocaleString()} {t('armory_stat_power')}</span>
           </div>
-          <div>
-            <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">{t('armory_your_vest')}</div>
-            <div className="font-semibold">{equippedVest ? `🦺 ${equippedVest.label}` : `— ${t('armory_none')}`}</div>
-            {equippedVest && <div className="text-xs text-emerald-400 font-mono">+{equippedVest.power} {t('armory_stat_power')}</div>}
-          </div>
-          <div>
-            <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">{t('armory_gear_power')}</div>
-            <div className="font-mono font-bold text-xl text-orange-400">{gearPower.toLocaleString()}</div>
-          </div>
-        </div>
-        <p className="text-[11px] text-zinc-500 mt-3">{t('armory_gear_hint')}</p>
-      </div>
+        }
+      />
 
       {message && (
-        <div className="mb-4 p-3 bg-zinc-900 border border-zinc-700 rounded text-sm">{message}</div>
+        <div className="p-3 bg-zinc-900 border border-zinc-700 rounded-lg text-sm">{message}</div>
       )}
 
       {loading ? (
         <div className="text-sm text-zinc-500 py-8 text-center">{t('loading')}</div>
       ) : (
         <>
-          <h2 className="text-lg font-bold mb-3">🔫 {t('armory_weapons_title')}</h2>
-          <p className="text-xs text-zinc-500 mb-3">{t('armory_weapons_hint')}</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-8">
-            {weapons.map((w) => renderItem(w, armory?.equipped_weapon ?? null))}
+          {/* Loadout Summary */}
+          <div className="card p-5">
+            <h2 className="text-sm font-bold mb-3 uppercase tracking-wider text-zinc-400">{t('armory_your_loadout')}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+                <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">{t('armory_your_weapon')}</div>
+                <div className="font-semibold text-lg">
+                  {equippedWeapon ? `${WEAPON_ICONS[equippedWeapon.key] ?? '🔫'} ${equippedWeapon.label}` : `— ${t('armory_none')}`}
+                </div>
+                {equippedWeapon && <div className="text-xs text-emerald-400 font-mono mt-1">+{equippedWeapon.power} {t('armory_stat_power')}</div>}
+              </div>
+              <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4">
+                <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">{t('armory_your_vest')}</div>
+                <div className="font-semibold text-lg">{equippedVest ? `🦺 ${equippedVest.label}` : `— ${t('armory_none')}`}</div>
+                {equippedVest && <div className="text-xs text-emerald-400 font-mono mt-1">+{equippedVest.power} {t('armory_stat_power')}</div>}
+              </div>
+              <div className="bg-zinc-950 border border-orange-900/50 rounded-xl p-4">
+                <div className="text-[10px] uppercase tracking-wider text-zinc-500 mb-1">{t('armory_gear_power')}</div>
+                <div className="font-mono font-bold text-2xl text-orange-400">{gearPower.toLocaleString()}</div>
+                <p className="text-[10px] text-zinc-500 mt-1">{t('armory_gear_hint')}</p>
+              </div>
+            </div>
           </div>
 
-          <h2 className="text-lg font-bold mb-3">🦺 {t('armory_vests_title')}</h2>
-          <p className="text-xs text-zinc-500 mb-3">{t('armory_vests_hint')}</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-8">
-            {vests.map((v) => renderItem(v, armory?.equipped_vest ?? null))}
+          {/* Weapons */}
+          <div>
+            <h2 className="text-lg font-bold mb-3 flex items-center gap-2">🔫 {t('armory_weapons_title')}</h2>
+            <p className="text-xs text-zinc-500 mb-3">{t('armory_weapons_hint')}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+              {weapons.map((w) => renderItem(w, armory?.equipped_weapon ?? null))}
+            </div>
+          </div>
+
+          {/* Vests */}
+          <div>
+            <h2 className="text-lg font-bold mb-3 flex items-center gap-2">🦺 {t('armory_vests_title')}</h2>
+            <p className="text-xs text-zinc-500 mb-3">{t('armory_vests_hint')}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+              {vests.map((v) => renderItem(v, armory?.equipped_vest ?? null))}
+            </div>
           </div>
         </>
       )}
 
-      {/* Raw power packs (buy_power) — kept from the old armory. */}
-      <h2 className="text-lg font-bold mb-3">⚔️ {t('armory_packs_title')}</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {powerPacks.map((pack, i) => (
-          <div key={i} className="card p-5 flex flex-col">
-            <div className="text-3xl mb-2">⚔️</div>
-            <h3 className="font-bold text-lg mb-1">{t(pack.labelKey)}</h3>
-            <div className="text-emerald-400 font-mono mb-4">
-              {t('armory_power', { power: pack.power })}
+      {/* Power Packs */}
+      <div>
+        <h2 className="text-lg font-bold mb-3 flex items-center gap-2">⚔️ {t('armory_packs_title')}</h2>
+        <p className="text-xs text-zinc-500 mb-3">{t('armory_packs_hint')}</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {powerPacks.map((pack, i) => (
+            <div key={i} className="card p-4 flex flex-col bg-zinc-900 border border-zinc-800">
+              <div className="text-2xl mb-2">⚔️</div>
+              <h3 className="font-bold text-sm mb-1">{t(pack.labelKey)}</h3>
+              <div className="text-emerald-400 font-mono text-xs mb-3">
+                {t('armory_power', { power: pack.power })}
+              </div>
+              <div className="mt-auto flex justify-between items-center">
+                <span className="font-mono text-sm">{fm(pack.price)}</span>
+                <button
+                  onClick={() => buyPower(pack.power, pack.price)}
+                  disabled={busy}
+                  className="px-3 py-1.5 bg-red-700 hover:bg-red-600 rounded text-xs font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {t('armory_buy')}
+                </button>
+              </div>
             </div>
-            <div className="mt-auto flex justify-between items-center">
-              <span className="text-lg font-mono">{fm(pack.price)}</span>
-              <button
-                onClick={() => buyPower(pack.power, pack.price)}
-                disabled={busy}
-                className="px-4 py-2 bg-red-700 hover:bg-red-600 rounded text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                {t('armory_buy')}
-              </button>
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       <div className="mt-6 text-xs text-zinc-500">{t('armory_footer')}</div>
