@@ -30,6 +30,44 @@ function fmt(secs: number): string {
   return `${s}s`;
 }
 
+type RowItem = { icon: string; label: string; secs: number };
+
+const Row = ({ icon, label, secs, t }: RowItem & { t: (k: TranslationKey) => string }) => (
+  <div className="flex items-center justify-between gap-2 p-2 bg-zinc-950 rounded border border-zinc-800 text-xs">
+    <span className="flex items-center gap-2 truncate">
+      <span>{icon}</span>
+      <span className="truncate">{label}</span>
+    </span>
+    {secs > 0 ? (
+      <span className="font-mono text-orange-400 tabular-nums shrink-0">{fmt(secs)}</span>
+    ) : (
+      <span className="text-emerald-500 shrink-0">{t('cd_ready')}</span>
+    )}
+  </div>
+);
+
+const Group = ({
+  titleKey,
+  items,
+  t,
+}: {
+  titleKey: TranslationKey;
+  items: RowItem[];
+  t: (k: TranslationKey) => string;
+}) => {
+  if (items.length === 0) return null;
+  return (
+    <div>
+      <h3 className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">{t(titleKey)}</h3>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {items.map((it, i) => (
+          <Row key={`${it.label}-${i}`} {...it} t={t} />
+        ))}
+      </div>
+    </div>
+  );
+};
+
 export default function WaitTimesBoard() {
   const { player } = usePlayer();
   const { t } = useLanguage();
@@ -51,10 +89,11 @@ export default function WaitTimesBoard() {
     };
   }, []);
 
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const groups = useMemo(() => {
-    const actions: Array<{ icon: string; label: string; secs: number }> = [];
-    const crimes: Array<{ icon: string; label: string; secs: number }> = [];
-    const heists: Array<{ icon: string; label: string; secs: number }> = [];
+    const actions: RowItem[] = [];
+    const crimes: RowItem[] = [];
+    const heists: RowItem[] = [];
 
     const remaining = (at: string | null) =>
       at ? Math.max(0, Math.floor((new Date(at).getTime() - now) / 1000)) : 0;
@@ -79,34 +118,6 @@ export default function WaitTimesBoard() {
     return { actions, crimes, heists };
   }, [cooldowns, now, player?.weed_progress, player?.bullets, t]);
 
-  const Row = ({ icon, label, secs }: { icon: string; label: string; secs: number }) => (
-    <div className="flex items-center justify-between gap-2 p-2 bg-zinc-950 rounded border border-zinc-800 text-xs">
-      <span className="flex items-center gap-2 truncate">
-        <span>{icon}</span>
-        <span className="truncate">{label}</span>
-      </span>
-      {secs > 0 ? (
-        <span className="font-mono text-orange-400 tabular-nums shrink-0">{fmt(secs)}</span>
-      ) : (
-        <span className="text-emerald-500 shrink-0">{t('cd_ready')}</span>
-      )}
-    </div>
-  );
-
-  const Group = ({ titleKey, items }: { titleKey: TranslationKey; items: Array<{ icon: string; label: string; secs: number }> }) => {
-    if (items.length === 0) return null;
-    return (
-      <div>
-        <h3 className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-1.5">{t(titleKey)}</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {items.map((it, i) => (
-            <Row key={`${it.label}-${i}`} {...it} />
-          ))}
-        </div>
-      </div>
-    );
-  };
-
   const empty = groups.actions.length === 0 && groups.crimes.length === 0 && groups.heists.length === 0;
 
   return (
@@ -119,9 +130,9 @@ export default function WaitTimesBoard() {
         <p className="text-sm text-zinc-500 py-4 text-center">{t('cd_none')}</p>
       ) : (
         <>
-          <Group titleKey="cd_group_actions" items={groups.actions} />
-          <Group titleKey="cd_group_crimes" items={groups.crimes} />
-          <Group titleKey="cd_group_heists" items={groups.heists} />
+          <Group titleKey="cd_group_actions" items={groups.actions} t={t} />
+          <Group titleKey="cd_group_crimes" items={groups.crimes} t={t} />
+          <Group titleKey="cd_group_heists" items={groups.heists} t={t} />
         </>
       )}
     </div>

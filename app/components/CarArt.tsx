@@ -16,7 +16,6 @@ const TIER_COLOR: Record<Tier, { body: string; glass: string; glow: string; trim
 type BodyStyle = 'sedan' | 'hatch' | 'suv' | 'sports' | 'exotic';
 
 function bodyStyle(id: string): BodyStyle {
-  const sedan = ['old_sedan','honda_civic','toyota_corolla','ford_focus','vw_golf','nissan_altima','lexus_is','mercedes_c','bmw_3','audi_a4','volvo_s60','tesla_model3','mercedes_e','bmw_5','audi_a6','lexus_es','genesis_g80','jaguar_xf','porsche_macan'];
   const hatch = ['dacia_logan','hyundai_accent','kia_rio','nissan_versa','chevrolet_spark','mazda3','subaru_impreza','skoda_octavia'];
   const exotic = ['porsche_911','audi_r8','mercedes_amg_gt','chevrolet_corvette','nissan_gtr','bmw_m4','aston_vantage'];
   if (hatch.includes(id)) return 'hatch';

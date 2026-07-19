@@ -8,7 +8,8 @@ import { formatCash, formatSeconds } from '@/lib/format';
 import { streetEventText } from '@/lib/streetEvents';
 import { usePlayer } from '../components/PlayerContext';
 import { useRouter } from 'next/navigation';
-import type { Crime, Player } from '@/lib/types';
+import type { TranslationKey } from '@/lib/i18n/translations';
+import type { Crime, CrimeResult, Player } from '@/lib/types';
 
 type ResultBanner = {
   kind: 'success' | 'fail' | 'levelup' | 'error';
@@ -22,13 +23,15 @@ export default function SingleCrimeView({ crimeKey }: { crimeKey: string }) {
   const [player, setPlayer] = useState<Player | null>(null);
   const [crime, setCrime] = useState<Crime | null>(null);
   const [cooldowns, setCooldowns] = useState<Record<string, number>>({});
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(() => Date.now());
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<ResultBanner | null>(null);
   const [crimeStats, setCrimeStats] = useState({ tries: 0, wins: 0, earnings: 0 });
 
   useEffect(() => {
-    const interval = setInterval(() => setNow(Date.now()), 1000);
+    const interval = setInterval(() => {
+      setNow(Date.now());
+    }, 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -43,7 +46,7 @@ export default function SingleCrimeView({ crimeKey }: { crimeKey: string }) {
       if (c) setCrime(c);
       if (p) setPlayer(p as Player);
       if (cds) {
-        setCooldowns(Object.fromEntries((cds as any[]).map((row) => [row.crime_key, Date.parse(row.available_at)])));
+        setCooldowns(Object.fromEntries((cds as Array<{ crime_key: string; available_at: string }>).map((row) => [row.crime_key, Date.parse(row.available_at)])));
       }
     };
     load();
@@ -85,7 +88,7 @@ export default function SingleCrimeView({ crimeKey }: { crimeKey: string }) {
       return;
     }
 
-    const res = data as any;
+    const res = data as CrimeResult;
     setPlayer(res.player);
     updatePlayer(res.player);
     setCooldowns(prev => ({ ...prev, [crime.key]: Date.parse(res.available_at) }));
@@ -154,17 +157,18 @@ export default function SingleCrimeView({ crimeKey }: { crimeKey: string }) {
         <Link href="/crimes" className="text-sm text-red-400 hover:underline">← Back to Crime Status</Link>
       </div>
       <div className="mb-4">
-        <h1 className="text-2xl font-bold">{t(`crime_${crime.key}` as any)}</h1>
-        <p className="text-sm text-zinc-500">{t(`crime_${crime.key}_desc` as any)}</p>
+        <h1 className="text-2xl font-bold">{t(`crime_${crime.key}` as TranslationKey)}</h1>
+        <p className="text-sm text-zinc-500">{t(`crime_${crime.key}_desc` as TranslationKey)}</p>
       </div>
 
       <div className="card bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
         {crime.key === 'pickpocket' && (
-          <img src="https://picsum.photos/id/1011/300/120" alt="Pickpocket" className="w-full h-24 object-cover rounded mb-3" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="https://picsum.photos/id/1011/300/120" alt="Pickpocket" className="w-full h-24 object-cover rounded mb-3" />
         )}
         <div className="flex items-start justify-between mb-1">
           <div>
-            <div className="font-semibold text-lg">{t(`crime_${crime.key}` as any)}</div>
+            <div className="font-semibold text-lg">{t(`crime_${crime.key}` as TranslationKey)}</div>
           </div>
           <span className="text-sm text-zinc-400">⏱ {formatSeconds(effectiveCooldown)}</span>
         </div>

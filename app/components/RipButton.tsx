@@ -47,8 +47,7 @@ export default function RipButton({ targetUsername }: { targetUsername: string }
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [targetUsername]);
+  }, [targetUsername, loadStatus]);
 
   const mapError = (msg: string): string => {
     if (msg.includes('ON_COOLDOWN')) return t('rip_err_cooldown', { target: targetUsername });

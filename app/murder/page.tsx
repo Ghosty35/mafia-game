@@ -35,6 +35,7 @@ function MurderContent() {
   // Cooldown timer - MUST be declared before any early returns (Rules of Hooks)
   useEffect(() => {
     if (!player?.murder_cooldown) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCooldown(0);
       return;
     }
@@ -52,7 +53,11 @@ function MurderContent() {
   useEffect(() => {
     const load = async () => {
       const supabase = createClient();
-      const { data } = await supabase.rpc('get_armory');
+      const { data, error } = await supabase.rpc('get_armory');
+      if (error) {
+        showToast(error.message || t('common_error'), 'error');
+        return;
+      }
       if (data) {
         const items: ArmoryItem[] = data.items ?? [];
         setGear({
@@ -116,8 +121,9 @@ function MurderContent() {
         if (refreshPlayer) await refreshPlayer();
         router.refresh();
       }
-    } catch (e: any) {
-      showToast(e.message || t('common_error'), 'error');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : t('common_error');
+      showToast(msg, 'error');
     }
 
     setBusy(false);
@@ -193,7 +199,7 @@ function MurderContent() {
           <label className="block text-xs text-zinc-400 uppercase tracking-wider mb-2">{t('murder_bullets_label')}</label>
           <input
             type="range"
-            min="0"
+            min="10"
             max="500"
             value={bulletsUsed}
             onChange={e => setBulletsUsed(parseInt(e.target.value))}

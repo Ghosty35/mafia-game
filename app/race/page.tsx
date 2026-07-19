@@ -54,7 +54,7 @@ export default function RacePage() {
     setOpenRaces((open as PostedRace[]) || []);
     const { data: hist } = await supabase.rpc('get_race_history');
     setHistory((hist as PostedRace[]) || []);
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
     if (!player) return;

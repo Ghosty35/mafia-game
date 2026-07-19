@@ -86,11 +86,13 @@ export default function CrimesPanel({
           .replace('{xp}', String(res.xp_gained))
       : t('crime_result_fail');
 
-    if ((res as any).murder_skill_gained) {
-      baseText += ` • +${(res as any).murder_skill_gained} KillSkill`;
+    const resExtra = res as unknown as { murder_skill_gained?: number; health_lost?: number; event?: string };
+
+    if (resExtra.murder_skill_gained) {
+      baseText += ` • +${resExtra.murder_skill_gained} KillSkill`;
     }
-    if ((res as any).health_lost) {
-      baseText += ` • -${(res as any).health_lost} Health`;
+    if (resExtra.health_lost) {
+      baseText += ` • -${resExtra.health_lost} Health`;
     }
 
     // Show family respect gain (makes being in a family feel valuable)
@@ -99,7 +101,7 @@ export default function CrimesPanel({
     }
 
     // Random street event (071)
-    const evText = streetEventText((res as any).event, t, language);
+    const evText = streetEventText(resExtra.event ?? '', t, language);
     if (evText) baseText += `  •  ${evText}`;
 
     if (res.leveled_up) {

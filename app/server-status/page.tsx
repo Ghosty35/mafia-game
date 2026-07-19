@@ -45,6 +45,8 @@ export default function ServerStatusPage() {
   };
 
   useEffect(() => {
+    // Standard data-fetching effect on mount
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadStats();
     const interval = setInterval(loadStats, 25000); // live refresh
     return () => clearInterval(interval);

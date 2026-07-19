@@ -1,7 +1,7 @@
 'use client';
 import { useRouter } from 'next/navigation';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { usePlayer } from '../components/PlayerContext';
 import { createClient } from '@/lib/supabase/client';
@@ -33,34 +33,29 @@ export default function StocksPage() {
 
   const supabase = createClient();
 
-  const loadMarket = async () => {
+  const loadMarket = useCallback(async () => {
     try {
-      const { data, error } = await supabase.rpc('get_stock_market');
-      if (error) throw error;
-      if (data) setStocks(data as Stock[]);
-      // Advance market a bit on load for live feel (economy based)
+      const supabase = createClient();
       try {
         await supabase.rpc('advance_stock_market');
       } catch {}
       const { data: d2 } = await supabase.rpc('get_stock_market');
       if (d2) setStocks(d2 as Stock[]);
     } catch (e) {
-      // Market is live server-side; if it can't load, say so honestly rather
-      // than showing invented prices someone might try to trade on.
       setMigrationMissing(true);
       setStocks([]);
       setMsg(`${t('stocks_migration_error')} ${e instanceof Error ? e.message : ''}`);
     }
-  };
+  }, [t]);
 
-  const loadHoldings = () => {
+  const loadHoldings = useCallback(() => {
     if (player?.stock_holdings) setHoldings(player.stock_holdings);
-  };
+  }, [player]);
 
   useEffect(() => {
     loadMarket();
     loadHoldings();
-  }, [player]);
+  }, [player, loadMarket, loadHoldings]);
 
   const getShares = (ticker: string) => sharesInput[ticker] || 1;
 
@@ -113,7 +108,7 @@ export default function StocksPage() {
     return v;
   };
 
-  const isAdmin = !!(player as any)?.staff_role;
+  const isAdmin = player?.staff_role === 'ceo' || player?.staff_role === 'admin';
 
   const nudgeStock = async (ticker: string, pct: number) => {
     // Admin-only market mover via RPC (direct table writes are blocked by RLS)

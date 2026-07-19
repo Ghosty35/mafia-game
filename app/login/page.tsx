@@ -25,7 +25,7 @@ type ServerStats = {
 };
 
 export default function LoginPage() {
-  const { t, fm } = useLanguage();
+  const { t } = useLanguage();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -45,7 +45,7 @@ export default function LoginPage() {
         supabase.rpc('get_leaderboard'),
         supabase.rpc('get_server_stats'),
       ]);
-      if (lb) setLeaderboard((lb as any[]).slice(0, 8));
+      if (lb) setLeaderboard((lb as unknown as { username: string; cash: number }[]).slice(0, 8));
       if (ss) setServerStats(ss as ServerStats);
     } catch {
       // ignore
@@ -55,10 +55,13 @@ export default function LoginPage() {
   };
 
   useEffect(() => {
-    loadPublicData();
+    const doLoad = async () => {
+      await loadPublicData();
+    };
+    doLoad();
     const poll = setInterval(loadPublicData, 30000);
     return () => clearInterval(poll);
-  }, []);
+  }, [loadPublicData]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

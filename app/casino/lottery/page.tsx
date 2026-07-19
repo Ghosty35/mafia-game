@@ -44,15 +44,21 @@ export default function LotteryPage() {
   const load = useCallback(async () => {
     const { data } = await supabase.rpc('get_lottery_info');
     if (data) setInfo(data as LotteryInfo);
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
-    if (player) load();
+    if (player) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      load();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [player?.id, load]);
 
   // Drives the cooldown countdown.
   useEffect(() => {
-    const iv = setInterval(() => setNow(Date.now()), 1000);
+    const iv = setInterval(() => {
+      setNow(Date.now());
+    }, 1000);
     return () => clearInterval(iv);
   }, []);
 

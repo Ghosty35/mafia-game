@@ -40,7 +40,7 @@ export default function LeaveFamilyPage() {
   const load = useCallback(async () => {
     const { data } = await supabase.rpc('get_leave_info');
     if (data) setInfo(data as LeaveInfo);
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
     load();

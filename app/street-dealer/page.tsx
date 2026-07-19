@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
-import { CITIES, City } from '@/lib/cities';
+import { City } from '@/lib/cities';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import HeatManager from '../components/HeatManager';
 import DrugMarketBoard from '../components/DrugMarketBoard';
@@ -13,7 +13,7 @@ import { useEconomy } from '@/lib/economy';
 
 const DRUGS = ['Coke', 'Weed', 'Meth', 'Pills'] as const;
 
-type DrugPrices = Record<typeof DRUGS[number], number>;
+  type DrugPrices = Record<string, number>;
 
 export default function StreetDealerPage() {
   const { player, refreshPlayer, canPerformAction, recordAction, showToast } = usePlayer();
@@ -21,15 +21,14 @@ export default function StreetDealerPage() {
   const router = useRouter();
   const economy = useEconomy();
   const [prices, setPrices] = useState<DrugPrices>({ Coke: 0, Weed: 0, Meth: 0, Pills: 0 });
-  const [city, setCity] = useState<City>('New York');
   const [drugStorage, setDrugStorage] = useState<Record<string, number>>({});
-  const [cooldowns, setCooldowns] = useState<Record<string, number>>({});
   const [quantities, setQuantities] = useState<Record<string, number>>(
     Object.fromEntries(DRUGS.map(d => [d, 1]))
   );
+  const [cooldowns, setCooldowns] = useState<Record<string, number>>({});
 
-  const setQty = (drug: string, value: number) =>
-    setQuantities(prev => ({ ...prev, [drug]: Math.max(1, Math.min(9999, parseInt(value as any) || 1)) }));
+  const setQty = (drug: string, value: string) =>
+    setQuantities(prev => ({ ...prev, [drug]: Math.max(1, Math.min(9999, parseInt(value) || 1)) }));
 
   const drugMeta: Record<string, { icon: string; color: string; bg: string; border: string; label: string }> = {
     Coke:    { icon: '❄️', color: 'text-zinc-100', bg: 'bg-zinc-100/5', border: 'border-zinc-400/30', label: 'Cocaine' },
@@ -45,8 +44,8 @@ export default function StreetDealerPage() {
     if (!player) return;
     const loadData = async () => {
       const supabase = createClient();
-      const { data } = await supabase.rpc('get_drug_storage');
-      if (data) setDrugStorage(data as any);
+      const { data } = await supabase.rpc<Record<string, number>>('get_drug_storage');
+      if (data) setDrugStorage(data);
       // Load murder cooldown etc if in player
       if (player.murder_cooldown) {
         const end = new Date(player.murder_cooldown).getTime();
@@ -78,7 +77,7 @@ export default function StreetDealerPage() {
   useEffect(() => {
     const iv = setInterval(() => {
       setCooldowns(prev => {
-        const next: any = {};
+        const next: Record<string, number> = {};
         Object.keys(prev).forEach(k => {
           next[k] = Math.max(0, prev[k] - 1);
         });

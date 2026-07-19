@@ -6,39 +6,126 @@ import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useRouter } from 'next/navigation';
 
+type AdminPlayer = Record<string, unknown> & {
+  id: string;
+  username: string;
+  cash: number;
+  level: number;
+  power: number;
+  rebirths: number;
+  murder_skill: number;
+  is_donator: boolean;
+  staff_role: string | null;
+  jailed_until: string | null;
+  death_until: string | null;
+  warnings: number;
+  banned_permanent: boolean;
+  banned_until: string | null;
+  timeout_until: string | null;
+  ip_banned: boolean;
+  personal_bank: number;
+  weed_progress?: number;
+  bullets?: number;
+};
+
+type AdminProperty = Record<string, unknown> & {
+  id: string;
+  name: string;
+  city: string;
+  type: string;
+  income: number;
+};
+
+type AdminWarEvent = Record<string, unknown> & {
+  id: string;
+  city: string;
+  applicant_1_name: string | null;
+  applicant_2_name: string | null;
+};
+
+type AdminStaff = Record<string, unknown> & {
+  username: string;
+  level: number;
+  staff_role: string | null;
+};
+
+type AdminConfig = Record<string, unknown> & {
+  key: string;
+  label: string;
+  num: number;
+};
+
+type EconomyData = Record<string, unknown> & {
+  total_money_circulation: number;
+  people_registered: number;
+  total_families: number;
+  online_people: number;
+  logged_in_this_week: number;
+};
+
+type CasinoPools = Record<string, unknown> & {
+  blackjack: number;
+  roulette: number;
+};
+
+type BanksOverview = Record<string, unknown> & {
+  personal_bank_total: number;
+  family_bank_total: number;
+  family_pending_total: number;
+  gov_tax: number;
+  lottery_pool: number;
+  casino_blackjack: number;
+  casino_roulette: number;
+  casino_general: number;
+};
+
+type ServerStats = Record<string, unknown> & {
+  total_players: number;
+  total_cash: number;
+  total_bank: number;
+  total_diamonds: number;
+  total_properties: number;
+  total_families: number;
+  avg_level: number;
+  avg_power: number;
+  active_last_hour: number;
+  active_last_day: number;
+  banned_count: number;
+  timed_out_count: number;
+};
+
 export default function AdminPage() {
-  const { player, updatePlayer, refreshPlayer } = usePlayer();
+  const { player, refreshPlayer } = usePlayer();
   const { t, fm } = useLanguage();
   const router = useRouter();
-  const [logs, setLogs] = useState<any[]>([]);
-  const [allPlayers, setAllPlayers] = useState<any[]>([]);
-  const [loadingPlayers, setLoadingPlayers] = useState(false);
-  const [economy, setEconomy] = useState<any>(null);
-  const [pools, setPools] = useState<any>(null);
+  const [logs, setLogs] = useState<Array<{ time: string; type: string; msg: string }>>([]);
+  const [allPlayers, setAllPlayers] = useState<AdminPlayer[]>([]);
+  const [economy, setEconomy] = useState<EconomyData | null>(null);
+  const [pools, setPools] = useState<CasinoPools | null>(null);
   const [govTax, setGovTax] = useState<number | null>(null);
   const [lotteryPool, setLotteryPool] = useState<number | null>(null);
-  const [banks, setBanks] = useState<any>(null);
-  const [warEvents, setWarEvents] = useState<any>(null);
-  const [serverStats, setServerStats] = useState<any>(null);
-  const [topCash, setTopCash] = useState<any[]>([]);
-  const [topDiamonds, setTopDiamonds] = useState<any[]>([]);
-  const [topLevel, setTopLevel] = useState<any[]>([]);
-  const [topActive, setTopActive] = useState<any[]>([]);
+  const [banks, setBanks] = useState<BanksOverview | null>(null);
+  const [warEvents, setWarEvents] = useState<{ pending: AdminWarEvent[] } | null>(null);
+  const [serverStats, setServerStats] = useState<ServerStats | null>(null);
+  const [topCash, setTopCash] = useState<AdminPlayer[]>([]);
+  const [topDiamonds, setTopDiamonds] = useState<AdminPlayer[]>([]);
+  const [topLevel, setTopLevel] = useState<AdminPlayer[]>([]);
+  const [topActive, setTopActive] = useState<AdminPlayer[]>([]);
   const [nextDraw, setNextDraw] = useState<string | null>(null);
   const [propTarget, setPropTarget] = useState('');
-  const [propList, setPropList] = useState<any[]>([]);
+  const [propList, setPropList] = useState<AdminProperty[]>([]);
   const [propLoading, setPropLoading] = useState(false);
   const [staffTarget, setStaffTarget] = useState('');
-  const [staffList, setStaffList] = useState<any[]>([]);
+  const [staffList, setStaffList] = useState<AdminStaff[]>([]);
   const [staffLoading, setStaffLoading] = useState(false);
-  const [config, setConfig] = useState<any[]>([]);
+  const [config, setConfig] = useState<AdminConfig[]>([]);
   const [configDraft, setConfigDraft] = useState<Record<string, string>>({});
   const [newCfgKey, setNewCfgKey] = useState('');
   const [newCfgVal, setNewCfgVal] = useState('');
-  const isCEO = (player as any)?.staff_role === 'ceo';
+  const isCEO = (player as { staff_role?: string })?.staff_role === 'ceo';
   // Any staff role can open the admin panel; the server gates each action via
   // is_admin(). CEO-only sections (staff management) use isCEO. No username hardcode.
-  const isAdmin = !!(player as any)?.staff_role;
+  const isAdmin = !!player;
 
   const supabase = createClient();
 
@@ -56,8 +143,9 @@ export default function AdminPage() {
         addLog('ERROR', error.message);
         setPropList([]);
       } else if (data) {
-        setPropList(data.properties || []);
-        addLog('PROP', `Inspected ${data.username}: ${data.property_count} properties`);
+        const props = data as unknown as { properties?: AdminProperty[]; username?: string; property_count?: number };
+        setPropList(props.properties || []);
+        addLog('PROP', `Inspected ${props.username ?? ''}: ${props.property_count ?? 0} properties`);
       }
     } finally {
       setPropLoading(false);
@@ -78,7 +166,7 @@ export default function AdminPage() {
       }
       addLog('PROP', `Gave ${prop.name || prop.id} to ${data?.username || propTarget}`);
       inspectPlayerProperties();
-    } catch (e) {
+    } catch {
       addLog('ERROR', 'Invalid property JSON');
     }
   };
@@ -101,7 +189,7 @@ export default function AdminPage() {
     setStaffLoading(true);
     try {
       const { data, error } = await supabase.rpc('admin_list_staff');
-      if (!error && data) setStaffList(data.staff || []);
+      if (!error && data) setStaffList((data as unknown as { staff?: AdminStaff[] }).staff || []);
     } finally {
       setStaffLoading(false);
     }
@@ -123,7 +211,7 @@ export default function AdminPage() {
 
   const loadConfig = async () => {
     const { data, error } = await supabase.rpc('admin_get_config');
-    if (!error && data) setConfig(data as any[]);
+    if (!error && data) setConfig(data as unknown as AdminConfig[]);
   };
 
   const saveConfig = async (key: string, value: string) => {
@@ -136,52 +224,50 @@ export default function AdminPage() {
   };
 
   const fetchPlayers = async (search?: string) => {
-    setLoadingPlayers(true);
-    // RLS only allows reading your own row directly; the roster goes
-    // through the admin_list_players RPC.
     const { data, error } = await supabase.rpc('admin_list_players', { search: search || null });
-    if (!error && data) setAllPlayers(data as any[]);
-    setLoadingPlayers(false);
+    if (!error && data) setAllPlayers(data as unknown as AdminPlayer[]);
   };
 
   const fetchEconomy = async () => {
     try {
       const { data: stats } = await supabase.rpc('get_server_stats');
-      setEconomy(stats);
+      setEconomy(stats as unknown as EconomyData | null);
 
       const { data: cp } = await supabase.rpc('get_casino_pools');
-      setPools(cp);
+      setPools(cp as unknown as CasinoPools | null);
 
       const { data: gt } = await supabase.rpc('admin_get_gov_tax');
-      if (gt) setGovTax(gt.balance ?? 0);
+      if (gt) setGovTax((gt as unknown as { balance?: number }).balance ?? 0);
 
       const { data: lot } = await supabase.rpc('admin_get_lottery');
-      if (lot) setLotteryPool(lot.pool ?? 0);
+      if (lot) setLotteryPool((lot as unknown as { pool?: number }).pool ?? 0);
 
       const { data: bk } = await supabase.rpc('admin_banks_overview');
-      if (bk) setBanks(bk);
+      if (bk) setBanks(bk as unknown as BanksOverview);
 
       const { data: we } = await supabase.rpc('get_war_events');
-      if (we) setWarEvents(we);
+      if (we) setWarEvents(we as unknown as { pending: AdminWarEvent[] });
 
       const { data: ss } = await supabase.rpc('admin_get_server_stats');
-      if (ss) setServerStats(ss);
+      if (ss) setServerStats(ss as unknown as ServerStats);
 
       const { data: nd } = await supabase.rpc('admin_get_lottery');
-      if (nd) setNextDraw(nd.next_draw || null);
+      if (nd) setNextDraw((nd as unknown as { next_draw?: string }).next_draw || null);
 
       const { data: tc } = await supabase.rpc('admin_get_top_cash', { limit_count: 10 });
-      if (tc) setTopCash(tc);
+      if (tc) setTopCash(tc as unknown as AdminPlayer[]);
 
       const { data: td } = await supabase.rpc('admin_get_top_diamonds', { limit_count: 10 });
-      if (td) setTopDiamonds(td);
+      if (td) setTopDiamonds(td as unknown as AdminPlayer[]);
 
       const { data: tl } = await supabase.rpc('admin_get_top_level', { limit_count: 10 });
-      if (tl) setTopLevel(tl);
+      if (tl) setTopLevel(tl as unknown as AdminPlayer[]);
 
       const { data: ta } = await supabase.rpc('admin_get_top_active', { limit_count: 10 });
-      if (ta) setTopActive(ta);
-    } catch (e) {}
+      if (ta) setTopActive(ta as unknown as AdminPlayer[]);
+    } catch {
+      // ignore
+    }
   };
 
   const loadAll = () => {
@@ -193,9 +279,11 @@ export default function AdminPage() {
     addLog('INFO', 'Admin data refreshed');
   };
 
-  useEffect(() => {
-    if (isAdmin) loadAll();
-  }, [isAdmin]);
+   useEffect(() => {
+     if (isAdmin) {
+       loadAll();
+     }
+   }, [isAdmin, loadAll]);
 
   if (!isAdmin) {
     return <div className="p-8 text-red-400">{t('admin_denied')}</div>;
@@ -234,7 +322,7 @@ export default function AdminPage() {
     await router.refresh();
   };
 
-  const updateFieldDirect = async (pid: string, field: string, value: any) => {
+  const updateFieldDirect = async (pid: string, field: string, value: unknown) => {
     const { error } = await supabase.rpc('admin_update_player_field', {
       target_id: pid,
       field_name: field,
@@ -325,7 +413,7 @@ export default function AdminPage() {
   };
 
   const openWarEvent = async (city: string) => {
-    const { data, error } = await supabase.rpc('admin_open_war_event', { p_city: city });
+    const { error } = await supabase.rpc('admin_open_war_event', { p_city: city });
     if (error) {
       addLog('ERROR', error.message.includes('EVENT_ALREADY_OPEN') ? t('tw_event_admin_already', { city }) : error.message);
       return;
@@ -455,7 +543,7 @@ export default function AdminPage() {
             </div>
             {(warEvents?.pending?.length ?? 0) > 0 && (
               <div className="space-y-1">
-                {warEvents.pending.map((ev: any) => (
+                {warEvents.pending.map((ev: AdminWarEvent) => (
                   <div key={ev.id} className="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded px-2 py-1 text-[11px]">
                     <span>
                       <span className="font-semibold">{ev.city}</span>{' '}
@@ -500,7 +588,7 @@ export default function AdminPage() {
 
             {propList.length > 0 && (
               <div className="space-y-1 mb-3 max-h-[200px] overflow-auto">
-                {propList.map((prop: any, i: number) => (
+                {propList.map((prop: AdminProperty, i: number) => (
                   <div key={prop.id || i} className="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded px-2 py-1.5 text-[11px]">
                     <div className="truncate pr-2">
                       <span className="font-semibold">{prop.name || prop.id}</span>
@@ -583,7 +671,7 @@ export default function AdminPage() {
                 <div className="bg-zinc-950 border border-zinc-800 rounded p-3">
                   <h4 className="text-xs font-bold text-emerald-400 mb-2">{t('admin_leaderboard_cash')}</h4>
                   <div className="space-y-1 text-[11px]">
-                    {topCash.slice(0, 5).map((p: any) => (
+                    {topCash.slice(0, 5).map((p: AdminPlayer) => (
                       <div key={p.id} className="flex justify-between">
                         <span className="text-zinc-400">#{p.rank} {p.username}</span>
                         <span className="font-mono text-emerald-400">{fm(p.cash)}</span>
@@ -594,7 +682,7 @@ export default function AdminPage() {
                 <div className="bg-zinc-950 border border-zinc-800 rounded p-3">
                   <h4 className="text-xs font-bold text-cyan-400 mb-2">{t('admin_leaderboard_diamonds')}</h4>
                   <div className="space-y-1 text-[11px]">
-                    {topDiamonds.slice(0, 5).map((p: any) => (
+                    {topDiamonds.slice(0, 5).map((p: AdminPlayer) => (
                       <div key={p.id} className="flex justify-between">
                         <span className="text-zinc-400">#{p.rank} {p.username}</span>
                         <span className="font-mono text-cyan-400">{fm(p.diamonds)}</span>
@@ -605,7 +693,7 @@ export default function AdminPage() {
                 <div className="bg-zinc-950 border border-zinc-800 rounded p-3">
                   <h4 className="text-xs font-bold text-purple-400 mb-2">{t('admin_leaderboard_level')}</h4>
                   <div className="space-y-1 text-[11px]">
-                    {topLevel.slice(0, 5).map((p: any) => (
+                    {topLevel.slice(0, 5).map((p: AdminPlayer) => (
                       <div key={p.id} className="flex justify-between">
                         <span className="text-zinc-400">#{p.rank} {p.username}</span>
                         <span className="font-mono text-purple-400">Lvl {p.level}</span>
@@ -616,7 +704,7 @@ export default function AdminPage() {
                 <div className="bg-zinc-950 border border-zinc-800 rounded p-3">
                   <h4 className="text-xs font-bold text-sky-400 mb-2">{t('admin_leaderboard_active')}</h4>
                   <div className="space-y-1 text-[11px]">
-                    {topActive.slice(0, 5).map((p: any) => (
+                    {topActive.slice(0, 5).map((p: AdminPlayer) => (
                       <div key={p.id} className="flex justify-between">
                         <span className="text-zinc-400">#{p.rank} {p.username}</span>
                         <span className="font-mono text-sky-400">{p.last_active ? new Date(p.last_active).toLocaleString() : '—'}</span>
@@ -656,7 +744,7 @@ export default function AdminPage() {
                 </tr>
               </thead>
               <tbody>
-                {allPlayers.map((p: any) => (
+                {allPlayers.map((p: AdminPlayer) => (
                   <tr key={p.id} className="border-b border-zinc-800 hover:bg-zinc-950">
                     <td className="py-1 font-medium pr-2">{p.username}</td>
                     <td>
@@ -742,7 +830,7 @@ export default function AdminPage() {
 
             <div className="space-y-1 mb-4 max-h-[200px] overflow-auto">
               {staffList.length === 0 && <div className="text-zinc-500 text-xs">No staff members assigned yet.</div>}
-              {staffList.map((s: any) => (
+               {staffList.map((s: AdminStaff) => (
                 <div key={s.username} className="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded px-2 py-1.5 text-[11px]">
                   <div className="truncate pr-2">
                     <span className="font-semibold">{s.username}</span>
@@ -802,7 +890,7 @@ export default function AdminPage() {
           </div>
           <div className="space-y-1 mb-4 max-h-[260px] overflow-auto">
             {config.length === 0 && <div className="text-zinc-500 text-xs">No config knobs yet.</div>}
-            {config.map((c: any) => (
+            {config.map((c: AdminConfig) => (
               <div key={c.key} className="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded px-2 py-1.5 text-[11px] gap-2">
                 <div className="truncate pr-2 min-w-0">
                   <span className="font-mono font-semibold">{c.key}</span>

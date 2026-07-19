@@ -46,15 +46,19 @@ export default function DetectivePage() {
   const load = useCallback(async () => {
     const { data } = await supabase.rpc('get_my_detective');
     if (data) setInfo(data as DetectiveInfo);
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
-    if (player) load();
+    if (player) {
+      load();
+    }
   }, [player?.id, load]);
 
   // Poll so a finished search delivers itself while the page is open.
   useEffect(() => {
-    const tick = setInterval(() => setNow(Date.now()), 1000);
+    const tick = setInterval(() => {
+      setNow(Date.now());
+    }, 1000);
     const poll = setInterval(load, 15000);
     return () => {
       clearInterval(tick);

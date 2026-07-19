@@ -43,7 +43,6 @@ export default function DrugLabPage() {
 
   const [buyCity, setBuyCity] = useState<string>(CITIES[0]);
   const [buyDrug, setBuyDrug] = useState<string>('Coke');
-  const [upgradeId, setUpgradeId] = useState<string>('');
 
   const fmt = (n: number) =>
     new Intl.NumberFormat(language === 'nl' ? 'nl-NL' : 'en-US').format(Math.floor(n));
@@ -56,12 +55,13 @@ export default function DrugLabPage() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
     const poll = setInterval(load, 15000);
     return () => clearInterval(poll);
   }, []);
 
-  const run = async (fn: () => PromiseLike<any>, okMsg?: (d: any) => string) => {
+  const run = async (fn: () => PromiseLike<{ error: { message: string } | null; data: unknown }>, okMsg?: (d: Record<string, unknown>) => string) => {
     setBusy(true);
     setMessage('');
     const { error, data: d } = await fn();
@@ -143,7 +143,7 @@ export default function DrugLabPage() {
           <button
             onClick={() => run(
               () => createClient().rpc('buy_druglab', { p_city: buyCity, p_drug_type: buyDrug }),
-              (d) => t('dl_bought', { city: buyCity, drug: DRUG_ICONS[buyDrug]?.label ?? buyDrug, cost: fm(200000) })
+              () => t('dl_bought', { city: buyCity, drug: DRUG_ICONS[buyDrug]?.label ?? buyDrug, cost: fm(200000) })
             )}
             disabled={busy || (data?.count ?? 0) >= limit}
             className="px-5 py-2 bg-emerald-700 hover:bg-emerald-600 disabled:opacity-40 rounded font-bold text-sm whitespace-nowrap"

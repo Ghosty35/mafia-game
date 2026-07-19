@@ -35,7 +35,7 @@ export async function renderSingleCrime(crimeKey: string) {
       initialPlayer={(player as Player) ?? null}
       crime={crime}
       initialCooldowns={(cooldowns as CooldownRow[]) ?? []}
-      familyStatus={(familyStatus as any) ?? null}
+      familyStatus={(familyStatus as unknown) ?? null}
     />
   );
 }

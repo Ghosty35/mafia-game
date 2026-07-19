@@ -21,6 +21,7 @@ export default function CityImage({
   const src = `https://loremflickr.com/640/480/${keyword}?lock=${city}`;
 
   return (
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={src}
       alt={city}

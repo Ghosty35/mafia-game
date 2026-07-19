@@ -36,7 +36,7 @@ function ProfileContent() {
     await router.refresh();
   };
 
-  const [publicProfile, setPublicProfile] = useState<any>(null);
+  const [publicProfile, setPublicProfile] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [now, setNow] = useState(() => Date.now());

@@ -14,7 +14,7 @@ import Panel from '../../components/Panel';
 // Unlike the old shop, non-donators SEE the store (and can buy donator
 // status here); only the bundle deals stay donator-exclusive.
 export default function VipStorePage() {
-  const { t, fm } = useLanguage();
+  const { t } = useLanguage();
   const router = useRouter();
   const { player, refreshPlayer } = usePlayer();
   const [busy, setBusy] = useState(false);

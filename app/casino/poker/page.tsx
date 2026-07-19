@@ -53,10 +53,14 @@ export default function PokerPage() {
       setBet(data.bet);
       setPhase('draw');
     }
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
-    if (player) resume();
+    if (player) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      resume();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [player?.id, resume]);
 
   const handleError = (m: string) => {

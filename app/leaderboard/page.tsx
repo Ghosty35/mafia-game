@@ -77,7 +77,7 @@ export default function LeaderboardPage() {
           ) : (
             players.map((player) => {
               const rankInfo = getRank(player.level);
-              const displayRank = t(rankInfo.key as any);
+              const displayRank = t(rankInfo.key);
               const hasFamily = !!player.family_tag;
 
               return (

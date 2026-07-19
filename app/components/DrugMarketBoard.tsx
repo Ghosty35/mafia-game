@@ -49,6 +49,7 @@ export default function DrugMarketBoard({ currentCity }: { currentCity: string }
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
     const iv = setInterval(load, 5 * 60 * 1000); // refresh every 5 min
     return () => clearInterval(iv);

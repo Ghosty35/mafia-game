@@ -10,17 +10,16 @@ import { streetEventText } from '@/lib/streetEvents';
 import { usePlayer } from '../../components/PlayerContext';
 import { useActionLock, isTooFastError } from '../../components/useActionLock';
 import type { Crime, Player, CrimeResult } from '@/lib/types';
+import type { TranslationKey } from '@/lib/i18n/translations';
 
 export default function SingleCrimeClient({
   initialPlayer,
   crime,
   initialCooldowns,
-  familyStatus,
 }: {
   initialPlayer: Player | null;
   crime: Crime;
   initialCooldowns: { crime_key: string; available_at: string }[];
-  familyStatus?: any;
 }) {
   const { t, language } = useLanguage();
   const { updatePlayer, refreshPlayer, showToast } = usePlayer();
@@ -36,7 +35,9 @@ export default function SingleCrimeClient({
   const { guard, locked: actionLocked } = useActionLock();
 
   useEffect(() => {
-    const interval = setInterval(() => setNow(Date.now()), 1000);
+    const interval = setInterval(() => {
+      setNow(Date.now());
+    }, 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -102,7 +103,7 @@ export default function SingleCrimeClient({
     }
 
     // Random street event (071)
-    const evText = streetEventText((res as any).event, t, language);
+    const evText = streetEventText((res as unknown as { event: string }).event, t, language);
     if (evText) baseText += ` • ${evText}`;
 
     if (res.leveled_up) {
@@ -124,10 +125,10 @@ export default function SingleCrimeClient({
 
       <div className="card bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
         <div className="flex items-start justify-between mb-1">
-          <h3 className="font-bold text-lg">{t(`crime_${crime.key}` as any)}</h3>
+          <h3 className="font-bold text-lg">{t(`crime_${crime.key}` as TranslationKey)}</h3>
           <span className="text-sm text-zinc-400 whitespace-nowrap">⏱ {coolingDown ? `${formatSeconds(secondsLeft)} left` : formatSeconds(effectiveCooldown)}</span>
         </div>
-        <p className="text-sm text-zinc-500 mb-3">{t(`crime_${crime.key}_desc` as any)}</p>
+        <p className="text-sm text-zinc-500 mb-3">{t(`crime_${crime.key}_desc` as TranslationKey)}</p>
 
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-zinc-400 mb-4">
           <span>
@@ -174,7 +175,7 @@ export default function SingleCrimeClient({
       </div>
 
       <div className="mt-4 text-xs text-zinc-500 text-center">
-        This is your dedicated page for <strong>{t(`crime_${crime.key}` as any)}</strong>. Success rate: {successPercent}%. 
+        This is your dedicated page for <strong>{t(`crime_${crime.key}` as TranslationKey)}</strong>. Success rate: {successPercent}%. 
         {coolingDown && ` Current cooldown: ${formatSeconds(secondsLeft)}.`}
       </div>
     </div>

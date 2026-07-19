@@ -78,16 +78,19 @@ export default function FamilyInboxBoard() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
     const poll = setInterval(load, 10000);
     return () => clearInterval(poll);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    const tick = setInterval(() => setNow(Date.now()), 30000);
-    return () => clearInterval(tick);
-  }, []);
+   useEffect(() => {
+     const tick = setInterval(() => {
+       setNow(Date.now());
+     }, 30000);
+     return () => clearInterval(tick);
+   }, []);
 
   // keep the newest message in view
   useEffect(() => {
@@ -95,9 +98,11 @@ export default function FamilyInboxBoard() {
   }, [inbox?.messages?.length]);
 
   // members without broadcast rights can only write to the leadership
-  useEffect(() => {
-    if (inbox && !inbox.can_broadcast) setAudience('higherups');
-  }, [inbox?.can_broadcast]);
+   useEffect(() => {
+     if (inbox && !inbox.can_broadcast) {
+       setAudience('higherups');
+     }
+   }, [inbox?.can_broadcast, inbox]);
 
   const translateError = (message: string): string => {
     for (const token of Object.keys(ERROR_KEYS)) {
@@ -172,7 +177,7 @@ export default function FamilyInboxBoard() {
                   {r.username}
                 </Link>{' '}
                 <span className="text-xs text-zinc-500">Lvl {r.level} · {timeAgo(r.created_at, now)}</span>
-                {r.message && <p className="text-xs text-zinc-400 italic truncate">"{r.message}"</p>}
+                 {r.message && <p className="text-xs text-zinc-400 italic truncate">&quot;{r.message}&quot;</p>}
               </div>
               <button
                 onClick={() => respond(r.id, true)}

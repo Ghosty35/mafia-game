@@ -28,6 +28,7 @@ export default function MobileNav() {
 
   // Close the drawer on every navigation
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setOpen(false);
   }, [pathname, search]);
 

@@ -96,7 +96,7 @@ export default function SafehousePage() {
     }
     if (refreshPlayer) await refreshPlayer();
     router.refresh();
-    showToast(t('safehouse_earnings_result', { net: fm(data?.collected ?? 0), tax: fm(0) }), 'success');
+    showToast(t('safehouse_earnings_result', { net: fm(data?.collected ?? 0) }), 'success');
   };
 
   return (
@@ -137,7 +137,6 @@ export default function SafehousePage() {
           const isYacht = prop.name.toLowerCase().includes('yacht');
           const isVilla = prop.name.toLowerCase().includes('villa');
           const isLuxury = isMansion || isPenthouse || isYacht;
-          const piggy = prop.piggy_bank || 0;
           return (
             <div key={i} className="card p-5 flex flex-col">
               <div className="flex items-start gap-3 mb-3">
@@ -225,11 +224,11 @@ export default function SafehousePage() {
                         const net = amt - fee;
                         if (!confirm(t('safehouse_piggy_confirm_withdraw', { amount: fm(amt), fee: fm(fee), net: fm(net) }))) return;
                         const supabase = createClient();
-                        const { error } = await supabase.rpc('piggy_withdraw', { prop_id: prop.id, amount: amt });
+                        const { data, error } = await supabase.rpc('piggy_withdraw', { prop_id: prop.id, amount: amt });
                         if (error) { showToast(error.message.includes('NOT_ENOUGH_IN_PIGGYBANK') ? t('safehouse_piggy_not_enough') : error.message || t('safehouse_piggy_withdraw_failed'), 'error'); return; }
                         if (refreshPlayer) await refreshPlayer();
                         router.refresh();
-                        showToast(t('safehouse_piggy_withdrew', { net: fm(net), fee: fm(fee) }), 'success');
+                        showToast(t('safehouse_piggy_withdrew', { net: fm(data?.net ?? net), fee: fm(data?.fee ?? fee) }), 'success');
                       }}
                       className="px-3 py-1 bg-red-700 hover:bg-red-600 rounded text-xs font-semibold"
                     >

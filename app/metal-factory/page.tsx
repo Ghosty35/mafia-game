@@ -33,6 +33,7 @@ export default function MetalFactoryPage() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadFactory();
     const poll = setInterval(loadFactory, 15000);
     return () => clearInterval(poll);

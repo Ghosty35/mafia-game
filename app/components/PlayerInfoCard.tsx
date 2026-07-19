@@ -66,10 +66,10 @@ export default function PlayerInfoCard({ player: propPlayer, familyStatus: propF
       const { createClient } = await import('@/lib/supabase/client');
       const supabase = createClient();
       const { data: fam } = await supabase.rpc('get_my_family_status');
-      if (fam) setFamilyStatus(fam as any);
+      if (fam) setFamilyStatus(fam as { family_name: string | null; family_tag: string | null });
     };
     fetchFamily();
-  }, [player?.id, propFamily]);
+  }, [player?.id, propFamily, player]);
 
   // Unread DM badge for the messages row (RLS: own inbox only).
   useEffect(() => {
@@ -87,6 +87,24 @@ export default function PlayerInfoCard({ player: propPlayer, familyStatus: propF
     fetchUnread();
     const iv = setInterval(fetchUnread, 30000);
     return () => clearInterval(iv);
+  }, [player?.id]);
+
+  // Hustler's Way rank + streak (surfaced as a chip in the HUD header).
+  useEffect(() => {
+    if (!player?.id) return;
+    const fetchHustler = async () => {
+      try {
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+        const { data } = await supabase.rpc('get_hustler_tasks');
+        if (data) {
+          setHustler({ hustler_rank: data.hustler_rank ?? 0, daily_streak: data.daily_streak ?? 0 });
+        }
+      } catch {
+        /* keep null */
+      }
+    };
+    fetchHustler();
   }, [player?.id]);
 
   // Hustler's Way rank + streak (surfaced as a chip in the HUD header).
@@ -124,7 +142,7 @@ export default function PlayerInfoCard({ player: propPlayer, familyStatus: propF
   const defense = player.defense ?? 10;
 
   const rank = getRank(level);
-  const rankName = t(rank.key as any);
+  const rankName = t(rank.key);
   const xpForNext = level * 100;
   const expProgress = Math.min(100, Math.floor((xp / xpForNext) * 100));
   const murderProgress = Math.min(100, Math.floor(murderSkill * 5));

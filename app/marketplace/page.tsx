@@ -78,16 +78,23 @@ export default function MarketplacePage() {
       supabase.rpc('get_listable_properties'),
     ]);
     if (b.data) setBoard(b.data as Board);
+    if (b.error) setError(b.error.message || 'Failed to load auctions');
     const cars = Array.isArray(c.data) ? (c.data as ListableCar[]) : [];
     setMyCars(cars);
     setCarId((prev) => prev || cars[0]?.id || '');
+    if (c.error) setError(c.error.message || 'Failed to load your cars');
     const props = Array.isArray(pr.data) ? (pr.data as ListableProperty[]) : [];
     setMyProps(props);
     setPropId((prev) => prev || props[0]?.id || '');
-  }, []);
+    if (pr.error) setError(pr.error.message || 'Failed to load your properties');
+  }, [supabase]);
 
   useEffect(() => {
-    if (player) load();
+    if (player) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      load();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [player?.id, load]);
 
   // Countdown + periodic settle-on-read.

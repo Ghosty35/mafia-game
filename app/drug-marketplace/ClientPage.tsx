@@ -69,11 +69,16 @@ export default function DrugMarketplacePage() {
   }, [filter, supabase]);
 
   useEffect(() => {
-    if (player) load();
+    if (player) {
+      load();
+    }
   }, [player?.id, load]);
 
   useEffect(() => {
-    const poll = setInterval(load, 15000);
+    const poll = setInterval(() => {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      load();
+    }, 15000);
     return () => clearInterval(poll);
   }, [load]);
 

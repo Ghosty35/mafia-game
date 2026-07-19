@@ -51,7 +51,7 @@ const DEFAULT_HEISTS: Heist[] = [
   },
 ];
 
-export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) {
+export default function HeistsClient({ initialPlayer }: { initialPlayer: Player | null }) {
   const { t, language, fm } = useLanguage();
   const { player: contextPlayer, updatePlayer, refreshPlayer, showToast } = usePlayer();
   const router = useRouter();
@@ -66,7 +66,7 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
   // bought in the Armory). Boxing gloves (no heist_class) can't run a heist.
   const [armoryWeapon, setArmoryWeapon] = useState<{ key: string; label: string; power: number; heist_class: string | null } | null>(null);
   const [busy, setBusy] = useState(false);
-  const [targets, setTargets] = useState<any[]>([]);
+  const [targets, setTargets] = useState<Array<{ id: string; username: string; level?: number; power?: number }>>([]);
   const [cars, setCars] = useState<Array<{ id: string; name: string; condition: number }>>([]);
   const [selectedCarId, setSelectedCarId] = useState('');
   const [now, setNow] = useState(() => Date.now());
@@ -107,7 +107,9 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
   // Reflect the persistent, server-authoritative gear bonus.
   useEffect(() => {
     const b = (player?.heist_gear as { bonus?: number } | null)?.bonus;
-    if (b != null) setGearBonus(Number(b));
+    if (b != null) {
+      setGearBonus(Number(b));
+    }
   }, [player?.heist_gear]);
 
   // Load cooldowns and targets
@@ -121,14 +123,14 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
         .eq('player_id', player.id);
 
       const cdMap: Record<string, number> = {};
-      cdData?.forEach((cd: any) => {
+      cdData?.forEach((cd: { heist_key: string; available_at: string }) => {
         cdMap[cd.heist_key] = Date.parse(cd.available_at);
       });
       setCooldowns(cdMap);
 
       // Load potential PvP targets via RPC (RLS blocks reading other players directly)
       const { data: targetData } = await supabase.rpc('list_pvp_targets');
-      setTargets((targetData as any[]) || []);
+      setTargets((targetData as unknown[]) || []);
 
       // Load the real heist list (was hardcoded before — admin-added/DB heists like
       // casino_vault never showed up because this component ignored the heists table).
@@ -136,14 +138,20 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
         .from('heists')
         .select('key, min_level, min_crew, min_reward, max_reward, base_success, cooldown_seconds')
         .order('sort_order');
-      if (heistData && heistData.length > 0) setHeists(heistData as Heist[]);
+      if (heistData && heistData.length > 0) {
+        setHeists(heistData as Heist[]);
+      }
     };
 
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [player?.id]);
 
   useEffect(() => {
-    const tick = setInterval(() => setNow(Date.now()), 1000);
+    const tick = setInterval(() => {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setNow(Date.now());
+    }, 1000);
     return () => clearInterval(tick);
   }, []);
 
@@ -210,7 +218,7 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: any }) 
         .select('heist_key, available_at')
         .eq('player_id', updated.id);
       const cdMap: Record<string, number> = {};
-      cdData?.forEach((cd: any) => { cdMap[cd.heist_key] = Date.parse(cd.available_at); });
+      cdData?.forEach((cd: { heist_key: string; available_at: string }) => { cdMap[cd.heist_key] = Date.parse(cd.available_at); });
       setCooldowns(cdMap);
 
       let text = data.success

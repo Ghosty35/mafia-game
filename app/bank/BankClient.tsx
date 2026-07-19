@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { formatCash } from '@/lib/format';
@@ -9,13 +9,18 @@ import { usePlayer } from '../components/PlayerContext';
 import type { Player } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 
-export default function BankClient({ initialPlayer, email }: { initialPlayer: Player | null; email: string }) {
-  const { t, language, fm } = useLanguage();
+export default function BankClient({ initialPlayer }: { initialPlayer: Player | null }) {
+  const { language, fm } = useLanguage();
   const { player: contextPlayer, updatePlayer, refreshPlayer, showToast } = usePlayer();
   const router = useRouter();
   const [amount, setAmount] = useState(100);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'cash' | 'bank' | 'assets' | 'gov'>('cash');
+
+  // Reset amount when switching tabs to avoid cross-tab confusion
+  useEffect(() => {
+    setAmount(100);
+  }, [activeTab]);
 
   // Use context player as source of truth for live updates (persists across navigations).
   // Fall back to server initialPlayer.
@@ -32,10 +37,14 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
     return <div className="p-8 text-zinc-400">Could not load player data.</div>;
   }
 
-  const playerId = player.id;
-  const currentBank = (player as any).personal_bank ?? 0;
-  const totalWealth = (player.cash || 0) + currentBank + (player.total_wealth || 0);
-  const govTax = (player as any).gov_tax_bank ?? 0;
+  const currentBank = (player as unknown as { personal_bank: number }).personal_bank ?? 0;
+  // Use server-computed total_wealth as the authoritative figure to avoid triple-counting cash + bank + total_wealth.
+  const totalWealth = player.total_wealth ?? (player.cash || 0) + currentBank;
+  const govTax = (player as unknown as { gov_tax_bank: number }).gov_tax_bank ?? 0;
+
+  // Track previous gov_tax_bank so we can derive the actual tax from server state
+  // instead of recomputing it client-side.
+  const prevGovTaxRef = useRef(govTax);
 
   // Funny money rank
   const getMoneyRank = (wealth: number) => {
@@ -75,7 +84,9 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
       showToast(error.message || 'Deposit failed', 'error');
     } else if (data?.player) {
       const updated = data.player as Player;
-      const tax = Math.floor(amount * 0.005);
+      const newGovTax = (updated as unknown as { gov_tax_bank: number }).gov_tax_bank ?? 0;
+      const tax = Math.max(0, newGovTax - prevGovTaxRef.current);
+      prevGovTaxRef.current = newGovTax;
       updatePlayer(updated);
       setAmount(100);
       await refreshPlayer();
@@ -104,7 +115,9 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
       showToast(error.message || 'Withdraw failed', 'error');
     } else if (data?.player) {
       const updated = data.player as Player;
-      const tax = Math.floor(amount * 0.005);
+      const newGovTax = (updated as unknown as { gov_tax_bank: number }).gov_tax_bank ?? 0;
+      const tax = Math.max(0, newGovTax - prevGovTaxRef.current);
+      prevGovTaxRef.current = newGovTax;
       updatePlayer(updated);
       setAmount(100);
       await refreshPlayer();
@@ -325,7 +338,7 @@ export default function BankClient({ initialPlayer, email }: { initialPlayer: Pl
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5">
         <h2 className="text-sm font-bold mb-3 uppercase tracking-wider text-zinc-400">📜 Transaction Log (Last 10)</h2>
         <div className="text-xs space-y-1.5 max-h-48 overflow-auto bg-zinc-950 border border-zinc-800 rounded-lg p-3">
-          {(player.transaction_log || []).slice(0, 10).map((log: any, i: number) => (
+          {(player.transaction_log || []).slice(0, 10).map((log: { icon: string; desc: string; tax?: number; amount: number }, i: number) => (
             <div key={i} className="flex justify-between items-center border-b border-zinc-800/50 pb-1.5 last:border-0">
               <span className="text-zinc-400">
                 {log.icon} {log.desc}

@@ -66,7 +66,7 @@ export default function TravelPage() {
       setInfo(data as TravelInfo);
       setCarId((prev) => prev || (data.cars?.[0]?.id ?? ''));
     }
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
     if (player) load();

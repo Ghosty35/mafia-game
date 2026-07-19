@@ -51,12 +51,14 @@ function FamilyProfileContent() {
   const familyId = idParam || myFam?.family?.id || null;
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setNow(Date.now());
   }, [profile?.id]);
 
   useEffect(() => {
     if (famLoading) return;
     if (!familyId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(false);
       return;
     }

@@ -61,7 +61,9 @@ export default function ForumPostPage() {
   }, [supabase, postId]);
 
   useEffect(() => {
-    if (postId) loadPost();
+    if (postId) {
+      loadPost();
+    }
   }, [postId, loadPost]);
 
   const handleReply = async () => {

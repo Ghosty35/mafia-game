@@ -24,6 +24,7 @@ export default function HospitalPage() {
       }
     };
     loadHealth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const maxAmount = Math.max(0, 100 - currentHealth);

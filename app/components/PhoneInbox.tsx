@@ -48,6 +48,7 @@ export default function PhoneInbox() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
     const poll = setInterval(load, 15000);
     return () => clearInterval(poll);
@@ -99,7 +100,7 @@ export default function PhoneInbox() {
       );
     };
     markRead();
-  }, [player?.id, activeThread?.key, activeThread?.unread]);
+  }, [player?.id, activeThread?.key, activeThread?.unread, activeThread]);
 
   // Keep the bubble view pinned to the latest message.
   useEffect(() => {

@@ -19,18 +19,17 @@ export default function WeedGrowPage() {
   const [cooldown, setCooldown] = useState(0); // seconds left until next water
 
   const owned = player?.owned_properties || [];
-  const hasHouse = owned.some((p: any) => p.name && (p.name.toLowerCase().includes('house') || p.name.toLowerCase().includes('villa') || p.name.toLowerCase().includes('mansion')));
+  const hasHouse = owned.some((p: Record<string, unknown>) => p.name && (p.name.toLowerCase().includes('house') || p.name.toLowerCase().includes('villa') || p.name.toLowerCase().includes('mansion')));
 
   useEffect(() => {
     if (player?.weed_progress !== undefined) setWeedProgress(player.weed_progress);
-    // Quality % persists in the weed_plants jsonb column
-    const quality = (player?.weed_plants as any)?.quality;
+    const quality = (player?.weed_plants as Record<string, unknown>)?.quality;
     if (typeof quality === 'number') setHarvestPercent(quality);
   }, [player]);
 
   // Live countdown from the server-persisted weed_last_watered timestamp
   useEffect(() => {
-    const lastWatered = (player as any)?.weed_last_watered;
+    const lastWatered = (player as Record<string, unknown>)?.weed_last_watered;
     if (!lastWatered) {
       setCooldown(0);
       return;
@@ -40,7 +39,7 @@ export default function WeedGrowPage() {
     tick();
     const iv = setInterval(tick, 1000);
     return () => clearInterval(iv);
-  }, [(player as any)?.weed_last_watered]);
+  }, [player?.weed_last_watered]);
 
   const formatCooldown = (secs: number) => {
     const m = Math.floor(secs / 60);

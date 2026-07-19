@@ -53,10 +53,12 @@ export default function CrusherPage() {
       setCarId((prev) => prev || d.my_cars?.[0]?.id || '');
       setGiveTo((prev) => prev || d.members?.[0]?.username || '');
     }
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
-    if (player) load();
+    if (player) {
+      load();
+    }
   }, [player?.id, load]);
 
   const fail = (m: string) => {
@@ -77,7 +79,7 @@ export default function CrusherPage() {
     setError(t(hit ? map[hit] : 'garage_action_failed'));
   };
 
-  const run = async (fn: string, args: Record<string, unknown>, ok: (d: any) => string) => {
+  const run = async (fn: string, args: Record<string, unknown>, ok: (d: Record<string, unknown>) => string) => {
     setBusy(true);
     setError('');
     setMessage('');

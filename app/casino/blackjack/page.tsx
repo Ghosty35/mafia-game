@@ -56,10 +56,14 @@ export default function BlackjackPage() {
         payout: 0,
       });
     }
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
-    if (player) resume();
+    if (player) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      resume();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [player?.id, resume]);
 
   const run = async (fn: string, args?: Record<string, unknown>) => {

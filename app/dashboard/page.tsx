@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import type { CooldownRow, Crime, Player } from '@/lib/types';
+import type { Player } from '@/lib/types';
 import DashboardClient from './DashboardClient';
 
 type FamilyStatus = {
@@ -35,9 +35,7 @@ export default async function DashboardPage() {
 
   return (
     <DashboardClient
-      email={user.email ?? ''}
       initialPlayer={(player as Player) ?? null}
-      familyStatus={(familyStatus as FamilyStatus) ?? null}
       playerError={playerError}
     />
   );

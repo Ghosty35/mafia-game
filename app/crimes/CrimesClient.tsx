@@ -13,19 +13,11 @@ export default function CrimesClient({
   initialPlayer,
   crimes,
   initialCooldowns,
-  familyStatus,
   hideHeader = false,
 }: {
   initialPlayer: Player | null;
   crimes: Crime[];
   initialCooldowns: CooldownRow[];
-  familyStatus?: {
-    family_id: string | null;
-    family_name: string | null;
-    family_tag: string | null;
-    family_respect: number | null;
-    my_role: string | null;
-  } | null;
   hideHeader?: boolean;
 }) {
   const { t, language } = useLanguage();

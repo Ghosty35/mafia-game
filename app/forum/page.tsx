@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
-import { useRouter } from 'next/navigation';
 import Panel from '../components/Panel';
 
 export const dynamic = 'force-dynamic';
@@ -41,7 +40,6 @@ const CATEGORY_ICONS: Record<string, string> = {
 export default function ForumPage() {
   const { player, refreshPlayer } = usePlayer();
   const { t, fm } = useLanguage();
-  const router = useRouter();
   const supabase = createClient();
 
   const [categories, setCategories] = useState<Category[]>([]);
@@ -80,7 +78,7 @@ export default function ForumPage() {
     if (!player) return;
     setBusy(true);
     setError('');
-    const { data, error: err } = await supabase.rpc('create_forum_post', {
+    const { error: err } = await supabase.rpc('create_forum_post', {
       p_category_id: newCategory,
       p_title: newTitle,
       p_content: newContent,

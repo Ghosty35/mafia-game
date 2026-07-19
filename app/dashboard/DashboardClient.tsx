@@ -13,20 +13,10 @@ import { useRouter } from 'next/navigation';
 
 
 export default function DashboardClient({
-  email,
   initialPlayer,
-  familyStatus,
   playerError,
 }: {
-  email: string;
   initialPlayer: Player | null;
-  familyStatus?: {
-    family_id: string | null;
-    family_name: string | null;
-    family_tag: string | null;
-    family_respect: number | null;
-    my_role: string | null;
-  } | null;
   playerError?: { message?: string } | null;
 }) {
   const { t, fm } = useLanguage();
@@ -48,7 +38,9 @@ export default function DashboardClient({
   // instead of the frozen SSR snapshot. Local setPlayer() calls (username
   // claim, breakout) still apply; they are superseded once context catches up.
   useEffect(() => {
-    if (contextPlayer) setPlayer(contextPlayer);
+      if (contextPlayer) {
+        setPlayer(contextPlayer);
+      }
   }, [contextPlayer]);
 
   // Real, live server stats for the hub (there is no season/round system — the
@@ -58,7 +50,9 @@ export default function DashboardClient({
     const load = async () => {
       const supabase = (await import('@/lib/supabase/client')).createClient();
       const { data } = await supabase.rpc('get_server_stats');
-      if (alive && data) setServerStats(data);
+      if (alive && data) {
+        setServerStats(data);
+      }
     };
     load();
     const iv = setInterval(load, 30000);
@@ -66,7 +60,10 @@ export default function DashboardClient({
   }, []);
 
   useEffect(() => {
-    const tick = setInterval(() => setNow(Date.now()), 1000);
+    const tick = setInterval(() => {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setNow(Date.now());
+    }, 1000);
     return () => clearInterval(tick);
   }, []);
 

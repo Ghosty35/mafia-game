@@ -25,9 +25,6 @@ export default function GymBoard() {
   const [sessions, setSessions] = useState(1);
   const [busy, setBusy] = useState(false);
 
-  const fmt = (n: number) =>
-    new Intl.NumberFormat(language === 'nl' ? 'nl-NL' : 'en-US').format(Math.floor(n));
-
   const stamina = player?.stamina ?? 100;
   const strength = player?.strength ?? 10;
   const defense = player?.defense ?? 10;

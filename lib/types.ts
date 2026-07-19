@@ -68,9 +68,9 @@ export type Player = {
   money_rank?: string;
   total_wealth?: number;
   last_active?: string;            // for online / server status
-  transaction_log?: Array<any>;    // last transactions
+  transaction_log?: Array<unknown>;    // last transactions
   autopay_bills?: boolean;
-  bill_history?: Array<any>;
+  bill_history?: Array<unknown>;
   total_taxes?: number;
   // Cooldowns sometimes attached to player or separate
   heist_cooldown?: string | null;
@@ -78,7 +78,7 @@ export type Player = {
   energy?: number;
   max_energy?: number;
   // Garage / cars from 028
-  cars?: Array<any>;
+  cars?: Array<unknown>;
   garage_level?: number;
   // Donator / VIP status (030)
   is_donator?: boolean;
@@ -91,7 +91,7 @@ export type Player = {
   // Weed harvest lifetime stats
   successful_harvest_kg?: number;
   failed_harvest_kg?: number;
-  weed_plants?: Record<string, any>;  // { quality: number } — grow quality persists here
+  weed_plants?: Record<string, unknown>;  // { quality: number } — grow quality persists here
   // Profile customization (Bulletstar style)
   avatar_url?: string;
   bio?: string;
@@ -181,6 +181,7 @@ export type FamilyLeaderboardEntry = {
   territory: number;
   wars_won: number;
   member_count: number;
+  power?: number;
 };
 
 export type FamiliesLeaderboardData = {

@@ -3,7 +3,6 @@
 import {
   createContext,
   useContext,
-  useEffect,
   useState,
   type ReactNode,
 } from 'react';
@@ -35,17 +34,13 @@ type LanguageContextType = {
 const LanguageContext = createContext<LanguageContextType | null>(null);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  // English is always the default; saved preference loads after mount
-  const [language, setLanguageState] = useState<Language>('en');
-
-  useEffect(() => {
+  const [language, setLanguageState] = useState<Language>(() => {
     const saved = localStorage.getItem('game-language');
-    if (saved === 'en' || saved === 'nl') {
-      setLanguageState(saved);
-    }
-  }, []);
+    return saved === 'en' || saved === 'nl' ? saved : 'en';
+  });
 
   const setLanguage = (lang: Language, options?: SetLanguageOptions) => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Context setter must update synchronously
     setLanguageState(lang);
     if (options?.persist === false) return;
     localStorage.setItem('game-language', lang);

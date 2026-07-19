@@ -80,7 +80,7 @@ export default function FamiliesLeaderboardPage() {
               </div>
 
               <div className="col-span-2 text-right font-mono text-orange-400 tabular-nums text-xs font-semibold">
-                {(family as any).power?.toLocaleString?.() ?? '—'}
+                {family.power?.toLocaleString?.() ?? '—'}
               </div>
 
               <div className="col-span-1 text-center font-mono text-white text-xs">

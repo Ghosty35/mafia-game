@@ -50,14 +50,19 @@ export default function BountiesPage() {
     setBounties(Array.isArray(listRes.data) ? listRes.data : []);
     setMine((mineRes.data as MyBounty) ?? null);
     setLoading(false);
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
-    if (player) load();
+    if (player) {
+      load();
+    }
   }, [player?.id, load]);
 
   useEffect(() => {
-    const tick = setInterval(() => setNow(Date.now()), 60000); // update every minute
+    const tick = setInterval(() => {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setNow(Date.now());
+    }, 60000); // update every minute
     return () => clearInterval(tick);
   }, []);
 

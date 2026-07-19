@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
@@ -52,8 +52,6 @@ type RLDBank = {
   balance: number;
 };
 
-type OwnedRLD = { city: string; bank: RLDBank };
-
 export default function RedLightPage() {
   const { player, refreshPlayer } = usePlayer();
   const { t, language, fm } = useLanguage();
@@ -68,18 +66,16 @@ export default function RedLightPage() {
   const [buyCity, setBuyCity] = useState<string>(CITIES[0]);
   const [feedQty, setFeedQty] = useState(5);
   const [raidTarget, setRaidTarget] = useState('');
-  const [depCity, setDepCity] = useState<string>(CITIES[0]);
   const [depAmount, setDepAmount] = useState(1000);
 
   const fmt = (n: number) =>
     new Intl.NumberFormat(language === 'nl' ? 'nl-NL' : 'en-US').format(Math.floor(n));
   const coke = Math.floor(player?.drug_storage?.Coke ?? 0);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     const supabase = createClient();
     const { data: d } = await supabase.rpc('get_my_bitches');
     if (d) setData(d as BitchData);
-    // Load district banks for cities this player owns the redlight property in.
     const owned: RLDBank[] = [];
     await Promise.all(
       CITIES.map(async (c) => {
@@ -88,16 +84,15 @@ export default function RedLightPage() {
       })
     );
     setBanks(owned);
-  };
+  }, []);
 
   useEffect(() => {
     load();
     const poll = setInterval(load, 15000);
     return () => clearInterval(poll);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [load]);
 
-  const run = async (fn: () => PromiseLike<any>, okMsg?: (d: any) => string) => {
+  const run = async (fn: () => PromiseLike<{ error: { message: string } | null; data: unknown }>, okMsg?: (d: Record<string, unknown>) => string) => {
     setBusy(true);
     setMessage('');
     const { error, data: d } = await fn();
@@ -229,7 +224,6 @@ export default function RedLightPage() {
           <div className="grid gap-3">
             {data.bitches.map((b) => {
               const inRL = b.location === 'red_light';
-              const occupied = data.rl_occupancy?.[b.city] ?? 0;
               return (
                 <div key={b.id} className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
                   <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -269,8 +263,6 @@ export default function RedLightPage() {
                     ) : (
                       <button onClick={() => run(() => createClient().rpc('place_bitch_red_light', { p_bitch_id: b.id, p_city: b.city }), (d) => t('rl_placed', { name: d.name, city: d.city }))}
                         disabled={busy || (data?.rl_occupancy?.[b.city] ?? 0) >= rlCap}
-                        className="px-3 py-1.5 rounded bg-pink-700 hover:bg-pink-600 disabled:opacity-40 text-xs font-bold">
-                        {t('rl_place_rl')} ({fm(data?.rl_occupancy?.[b.city] ?? 0)}/{fm(rlCap)})
                       </button>
                     )}
                     <div className="flex items-center gap-1 ml-auto">
@@ -282,7 +274,13 @@ export default function RedLightPage() {
                         onChange={(e) => setFeedQty(Math.max(1, parseInt(e.target.value) || 1))}
                         className="w-16 bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-xs font-mono"
                       />
-                      <button onClick={() => run(() => createClient().rpc('feed_bitch', { p_bitch_id: b.id, p_qty: feedQty }), (d) => t('rl_fed', { name: d.name, qty: d.coke_used }))}
+                      <button onClick={() => {
+                        const qty = feedQty;
+                        run(() => createClient().rpc('feed_bitch', { p_bitch_id: b.id, p_qty: qty }), (d) => {
+                          setFeedQty(1);
+                          return t('rl_fed', { name: d.name, qty: d.coke_used });
+                        });
+                      }}
                         disabled={busy || coke <= 0}
                         className="px-3 py-1.5 rounded bg-fuchsia-800 hover:bg-fuchsia-700 disabled:opacity-40 text-xs font-bold">
                         {t('rl_feed')} ({coke})

@@ -7,11 +7,9 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import type { Player } from '@/lib/types';
 
 export default function RebirthPanel({
-  player,
   onPlayerUpdate,
   onReborn,
 }: {
-  player: Player;
   onPlayerUpdate: (p: Player) => void;
   onReborn: (message: string) => void;
 }) {

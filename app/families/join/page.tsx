@@ -16,6 +16,7 @@ type FamilySummary = {
   respect: number;
   territory: number;
   member_count: number;
+  power?: number;
 };
 
 export const dynamic = 'force-dynamic';
@@ -54,7 +55,9 @@ export default function JoinFamilyPage() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const requestJoin = async (familyId: string) => {
@@ -269,7 +272,7 @@ export default function JoinFamilyPage() {
               </div>
               <div className="col-span-2 text-right font-mono text-amber-400 text-xs tabular-nums">{f.respect.toLocaleString()}</div>
               <div className="col-span-1 text-center font-mono text-xs">{f.member_count}</div>
-              <div className="col-span-2 text-right font-mono text-orange-400 text-xs tabular-nums">{(f as any).power?.toLocaleString?.() ?? '—'}</div>
+              <div className="col-span-2 text-right font-mono text-orange-400 text-xs tabular-nums">{f.power?.toLocaleString?.() ?? '—'}</div>
             </div>
           ))
         )}

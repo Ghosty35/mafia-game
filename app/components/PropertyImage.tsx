@@ -37,6 +37,7 @@ export default function PropertyImage({
   const src = `https://loremflickr.com/640/480/${keyword}?lock=${catalogId}`;
 
   return (
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       src={src}
       alt={name || catalogId}

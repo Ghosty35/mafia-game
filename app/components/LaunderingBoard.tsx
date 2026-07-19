@@ -32,9 +32,6 @@ export default function LaunderingBoard() {
   const [amount, setAmount] = useState<number>(0);
   const [busy, setBusy] = useState(false);
 
-  const fmt = (n: number) =>
-    new Intl.NumberFormat(language === 'nl' ? 'nl-NL' : 'en-US').format(Math.floor(n));
-
   const load = async () => {
     const supabase = createClient();
     const { data } = await supabase.rpc('get_my_laundering');
@@ -45,6 +42,7 @@ export default function LaunderingBoard() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load();
     const poll = setInterval(load, 15000);
     return () => clearInterval(poll);
