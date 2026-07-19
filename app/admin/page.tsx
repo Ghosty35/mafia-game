@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 type AdminPlayer = Record<string, unknown> & {
   id: string;
@@ -490,6 +491,7 @@ export default function AdminPage() {
               <input id="govAmt" type="number" defaultValue={50000} className="bg-zinc-900 px-2 py-1 border w-28" />
               <button onClick={() => govDeposit(parseInt((document.getElementById('govAmt') as HTMLInputElement).value))} className="px-3 py-1 bg-emerald-700 hover:bg-emerald-600 rounded text-xs">{t('admin_gov_deposit')}</button>
               <button onClick={() => govWithdraw(parseInt((document.getElementById('govAmt') as HTMLInputElement).value))} className="px-3 py-1 bg-red-700 hover:bg-red-600 rounded text-xs">{t('admin_gov_withdraw')}</button>
+              <Link href="/reputations/tax-bank" className="px-3 py-1 bg-zinc-800 hover:bg-zinc-700 rounded text-xs">{t('menu_tax_bank')} →</Link>
             </div>
             <div className="text-[10px] text-zinc-500 mt-1">{t('admin_gov_footer')}</div>
           </div>
@@ -514,6 +516,7 @@ export default function AdminPage() {
                 supabase.rpc('admin_set_lottery_schedule', { next_draw: new Date(dt).toISOString() }).then(() => fetchEconomy());
               }} className="px-3 py-1 bg-blue-700 hover:bg-blue-600 rounded text-xs">Set Schedule</button>
               <input id="lotSchedule" type="datetime-local" className="bg-zinc-900 px-2 py-1 border text-xs" />
+              <Link href="/casino/lottery" className="px-3 py-1 bg-zinc-800 hover:bg-zinc-700 rounded text-xs">Lottery Page →</Link>
             </div>
             <div className="text-[10px] text-zinc-500 mt-1">{t('admin_lot_footer')}</div>
           </div>
