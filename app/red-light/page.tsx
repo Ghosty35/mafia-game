@@ -9,6 +9,7 @@ import { usePlayer } from '../components/PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useRouter } from 'next/navigation';
 import { CITIES } from '@/lib/cities';
+import PageHeader from '../components/PageHeader';
 
 type Bitch = {
   id: string;
@@ -132,10 +133,12 @@ export default function RedLightPage() {
 
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight mb-1">🌃 {t('rl_title')}</h1>
-        <p className="text-sm text-zinc-400">{t('rl_desc', { street: streetRate, rl: rlRate })}</p>
-      </div>
+      <PageHeader
+        title={t('rl_title')}
+        subtitle={t('rl_desc', { street: streetRate, rl: rlRate })}
+        icon="🌃"
+        variant="danger"
+      />
 
       {message && (
         <div className="p-3 bg-zinc-900 border border-zinc-700 rounded text-sm">{message}</div>
