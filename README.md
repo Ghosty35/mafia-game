@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# A Hustler's Way
+
+A modern mafia browser game. Rise through the ranks, rule the city.
+
+**Mobile-ready PWA** — install it on your phone's home screen for an app-like experience.
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+- Node.js 18+ 
+- npm or yarn
+- A Supabase project (free tier works)
+
+### Setup
+
+1. Clone the repo:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/Ghosty35/mafia-game.git
+cd mafia-game
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Copy environment variables:
+```bash
+cp .env.example .env.local
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Edit `.env.local` and add your Supabase credentials:
+```
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+```
 
-## Learn More
+5. Run the development server:
+```bash
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+6. Open [http://localhost:3000](http://localhost:3000)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deploy
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Vercel (Recommended)
+1. Push to GitHub
+2. Import repo in [Vercel](https://vercel.com/new)
+3. Add environment variables in Vercel project settings
+4. Deploy
 
-## Deploy on Vercel
+### Manual
+```bash
+npm run build
+npm run start
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Mobile App
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This is a PWA (Progressive Web App). To install on mobile:
+
+1. Open the deployed URL in your mobile browser (Chrome/Safari)
+2. Tap "Add to Home Screen" or "Install App"
+3. The app will launch fullscreen like a native app
+
+## Tech Stack
+
+- [Next.js 16](https://nextjs.org/) - React framework
+- [Supabase](https://supabase.com/) - Backend, auth, database
+- [Tailwind CSS](https://tailwindcss.com/) - Styling
+- [TypeScript](https://www.typescriptlang.org/) - Type safety
+
+## Project Structure
+
+```
+app/                    # Next.js app router pages
+  components/           # Shared React components
+  lib/                  # Utilities, types, i18n
+  supabase/             # Database migrations
+```
+
+## Database Migrations
+
+Migrations are in `supabase/migrations/`. To apply them:
+
+1. Go to your Supabase project > SQL Editor
+2. Or use Supabase CLI: `supabase db remote commit`
+
+## License
+
+MIT

@@ -7,7 +7,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-type AdminPlayer = Record<string, unknown> & {
+type AdminPlayer = {
   id: string;
   username: string;
   cash: number;
@@ -30,49 +30,49 @@ type AdminPlayer = Record<string, unknown> & {
   bullets?: number;
   rank?: number;
   last_active?: string;
-};
+} & Record<string, unknown>;
 
-type AdminProperty = Record<string, unknown> & {
+type AdminProperty = {
   id: string;
   name: string;
   city: string;
   type: string;
   income: number;
-};
+} & Record<string, unknown>;
 
-type AdminWarEvent = Record<string, unknown> & {
+type AdminWarEvent = {
   id: string;
   city: string;
   applicant_1_name: string | null;
   applicant_2_name: string | null;
-};
+} & Record<string, unknown>;
 
-type AdminStaff = Record<string, unknown> & {
+type AdminStaff = {
   username: string;
   level: number;
   staff_role: string | null;
-};
+} & Record<string, unknown>;
 
-type AdminConfig = Record<string, unknown> & {
+type AdminConfig = {
   key: string;
   label: string;
   num: number;
-};
+} & Record<string, unknown>;
 
-type EconomyData = Record<string, unknown> & {
+type EconomyData = {
   total_money_circulation: number;
   people_registered: number;
   total_families: number;
   online_people: number;
   logged_in_this_week: number;
-};
+} & Record<string, unknown>;
 
-type CasinoPools = Record<string, unknown> & {
+type CasinoPools = {
   blackjack: number;
   roulette: number;
-};
+} & Record<string, unknown>;
 
-type BanksOverview = Record<string, unknown> & {
+type BanksOverview = {
   personal_bank_total: number;
   family_bank_total: number;
   family_pending_total: number;
@@ -83,7 +83,7 @@ type BanksOverview = Record<string, unknown> & {
   casino_general: number;
 };
 
-type ServerStats = Record<string, unknown> & {
+type ServerStats = {
   total_players: number;
   total_cash: number;
   total_bank: number;
@@ -96,7 +96,7 @@ type ServerStats = Record<string, unknown> & {
   active_last_day: number;
   banned_count: number;
   timed_out_count: number;
-};
+} & Record<string, unknown>;
 
 export default function AdminPage() {
   const { player, refreshPlayer } = usePlayer();
@@ -215,7 +215,7 @@ export default function AdminPage() {
 
   const loadConfig = async () => {
     const { data, error } = await supabase.rpc('admin_get_config');
-    if (!error && data) setConfig(data as unknown as AdminConfig[]);
+    if (!error && data) setConfig(data as AdminConfig[]);
   };
 
   const saveConfig = async (key: string, value: string) => {
@@ -229,7 +229,7 @@ export default function AdminPage() {
 
   const fetchPlayers = async (search?: string) => {
     const { data, error } = await supabase.rpc('admin_list_players', { search: search || null });
-    if (!error && data) setAllPlayers(data as unknown as AdminPlayer[]);
+    if (!error && data) setAllPlayers(data as AdminPlayer[]);
   };
 
   const fetchEconomy = async () => {
@@ -259,16 +259,16 @@ export default function AdminPage() {
       if (nd) setNextDraw((nd as unknown as { next_draw?: string }).next_draw || null);
 
       const { data: tc } = await supabase.rpc('admin_get_top_cash', { limit_count: 10 });
-      if (tc) setTopCash(tc as unknown as AdminPlayer[]);
+      if (tc) setTopCash(tc as AdminPlayer[]);
 
       const { data: td } = await supabase.rpc('admin_get_top_diamonds', { limit_count: 10 });
-      if (td) setTopDiamonds(td as unknown as AdminPlayer[]);
+      if (td) setTopDiamonds(td as AdminPlayer[]);
 
       const { data: tl } = await supabase.rpc('admin_get_top_level', { limit_count: 10 });
-      if (tl) setTopLevel(tl as unknown as AdminPlayer[]);
+      if (tl) setTopLevel(tl as AdminPlayer[]);
 
       const { data: ta } = await supabase.rpc('admin_get_top_active', { limit_count: 10 });
-      if (ta) setTopActive(ta as unknown as AdminPlayer[]);
+      if (ta) setTopActive(ta as AdminPlayer[]);
     } catch {
       // ignore
     }

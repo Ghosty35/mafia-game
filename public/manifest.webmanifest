@@ -1,0 +1,18 @@
+{
+  "name": "A Hustler's Way",
+  "short_name": "Hustler's Way",
+  "description": "A modern mafia browser game. Rise through the ranks, rule the city.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
