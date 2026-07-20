@@ -1,7 +1,7 @@
 'use client';
 
 import { usePlayer } from '../components/PlayerContext';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useRouter } from 'next/navigation';
@@ -283,11 +283,14 @@ export default function AdminPage() {
     addLog('INFO', 'Admin data refreshed');
   };
 
+  const loadAllRef = useRef(loadAll);
+  loadAllRef.current = loadAll;
+
    useEffect(() => {
      if (isAdmin) {
-       loadAll();
+       loadAllRef.current();
      }
-   }, [isAdmin, loadAll]);
+   }, [isAdmin]);
 
   if (!isAdmin) {
     return <div className="p-8 text-red-400">{t('admin_denied')}</div>;
