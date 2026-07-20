@@ -515,3 +515,21 @@ aside::-webkit-scrollbar-thumb:hover {
     padding: 1.5rem;
   }
 }
+
+/* Mobile bottom nav active indicator */
+@media (max-width: 1023px) {
+  .mobile-nav-active {
+    position: relative;
+  }
+  .mobile-nav-active::after {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 3px;
+    background: #f59e0b;
+    border-radius: 999px;
+  }
+}

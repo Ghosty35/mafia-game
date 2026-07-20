@@ -8,6 +8,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { usePlayer } from '../../components/PlayerContext';
 import Panel from '../../components/Panel';
 import { useMyFamily } from '../../components/useMyFamily';
+import { useEconomy } from '@/lib/economy';
 
 type FamilySummary = {
   id: string;
@@ -28,6 +29,7 @@ export default function JoinFamilyPage() {
   const { refreshPlayer } = usePlayer();
   const router = useRouter();
   const { inFamily, loading: famLoading } = useMyFamily();
+  const economy = useEconomy();
 
   const [families, setFamilies] = useState<FamilySummary[]>([]);
   const [topFamilies, setTopFamilies] = useState<FamilySummary[]>([]);
@@ -41,6 +43,7 @@ export default function JoinFamilyPage() {
   const [newDesc, setNewDesc] = useState('');
 
   const supabase = createClient();
+  const creationCash = economy?.family?.creation_cash ?? 2000000;
 
   const load = async () => {
     const [listRes, reqRes, topRes] = await Promise.all([
@@ -240,7 +243,7 @@ export default function JoinFamilyPage() {
                 maxLength={200}
               />
             </div>
-            <div className="text-xs text-amber-400">{t('fj_create_cost', { cash: fm(2000000) })}</div>
+            <div className="text-xs text-amber-400">{t('fj_create_cost', { cash: fm(creationCash) })}</div>
             <button
               type="submit"
               disabled={busy || !newName || !newTag}

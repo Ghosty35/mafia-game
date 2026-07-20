@@ -8,6 +8,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useRouter } from 'next/navigation';
 import type { TranslationKey } from '@/lib/i18n/translations';
 import PageHeader from '../components/PageHeader';
+import { useEconomy } from '@/lib/economy';
 
 // Weapon/vest shop (135, Bulletstar "Wapen-power winkel" reference).
 // Catalog + prices are server-authoritative via get_armory / buy_armory_item;
@@ -29,13 +30,6 @@ type ArmoryData = {
   equipped_vest: string | null;
 };
 
-const powerPacks: { power: number; price: number; labelKey: TranslationKey }[] = [
-  { power: 50, price: 1200, labelKey: 'armory_pack_basic' },
-  { power: 150, price: 3500, labelKey: 'armory_pack_street' },
-  { power: 400, price: 8500, labelKey: 'armory_pack_heavy' },
-  { power: 1000, price: 18000, labelKey: 'armory_pack_warlord' },
-];
-
 const WEAPON_ICONS: Record<string, string> = {
   boxing_gloves: '🥊',
   glock17: '🔫',
@@ -45,14 +39,22 @@ const WEAPON_ICONS: Record<string, string> = {
   barrett_m82: '🎯',
 };
 
-export default function ArmoryPage() {
+export default function ArsenalPage() {
   const { t, fm } = useLanguage();
   const { player, updatePlayer, refreshPlayer, showToast } = usePlayer();
   const router = useRouter();
+  const economy = useEconomy();
   const [armory, setArmory] = useState<ArmoryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  const powerPacks = economy?.power_packs ?? [
+    { power: 50, price: 1200, labelKey: 'armory_pack_basic' as TranslationKey },
+    { power: 150, price: 3500, labelKey: 'armory_pack_street' as TranslationKey },
+    { power: 400, price: 8500, labelKey: 'armory_pack_heavy' as TranslationKey },
+    { power: 1000, price: 18000, labelKey: 'armory_pack_warlord' as TranslationKey },
+  ];
 
   const loadArmory = async () => {
     const supabase = createClient();

@@ -9,6 +9,7 @@ import { usePlayer } from '../components/PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useRouter } from 'next/navigation';
 import { CITIES } from '@/lib/cities';
+import { useEconomy } from '@/lib/economy';
 
 type Lab = {
   id: string;
@@ -39,6 +40,7 @@ export default function DrugLabPage() {
   const { player, refreshPlayer } = usePlayer();
   const { t, language, fm } = useLanguage();
   const router = useRouter();
+  const economy = useEconomy();
 
   const [data, setData] = useState<LabsData | null>(null);
   const [busy, setBusy] = useState(false);
@@ -51,6 +53,14 @@ export default function DrugLabPage() {
   const fmt = (n: number) =>
     new Intl.NumberFormat(language === 'nl' ? 'nl-NL' : 'en-US').format(Math.floor(n));
   const drugStash = (type: string) => Math.floor(player?.drug_storage?.[type] ?? 0);
+
+  const dl = economy?.druglab;
+  const upgradeBase = dl?.upgrade_base ?? 150000;
+  const guardCosts = dl?.guard_costs ?? [50000, 100000, 200000, 350000, 500000];
+  const bribeBase = dl?.bribe_base ?? 20000;
+  const bribeRate = dl?.bribe_rate ?? 50;
+  const bribeMax = dl?.bribe_max ?? 150000;
+  const buyCost = dl?.buy_cost ?? 200000;
 
   const load = async () => {
     const supabase = createClient();
@@ -99,9 +109,8 @@ export default function DrugLabPage() {
   if (!player) return <div className="p-6 text-zinc-400">{t('loading')}</div>;
 
   const limit = data?.limit ?? 1;
-  const upgradeCost = (level: number) => 150000 * level;
-  const GUARD_COSTS = [50000, 100000, 200000, 350000, 500000];
-  const bribeFee = (pending: number) => Math.min(150000, 20000 + pending * 50);
+  const upgradeCost = (level: number) => upgradeBase * level;
+  const bribeFee = (pending: number) => Math.min(bribeMax, bribeBase + pending * bribeRate);
 
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
@@ -155,12 +164,12 @@ export default function DrugLabPage() {
           <button
             onClick={() => run(
               () => createClient().rpc('buy_druglab', { p_city: buyCity, p_drug_type: buyDrug }),
-              () => t('dl_bought', { city: buyCity, drug: DRUG_ICONS[buyDrug]?.label ?? buyDrug, cost: fm(200000) })
+              () => t('dl_bought', { city: buyCity, drug: DRUG_ICONS[buyDrug]?.label ?? buyDrug, cost: fm(buyCost) })
             )}
             disabled={busy || (data?.count ?? 0) >= limit}
             className="px-5 py-2 bg-emerald-700 hover:bg-emerald-600 disabled:opacity-40 rounded font-bold text-sm whitespace-nowrap"
           >
-            {busy ? t('dl_buying') : `${t('dl_buy')} (${fm(200000)})`}
+            {busy ? t('dl_buying') : `${t('dl_buy')} (${fm(buyCost)})`}
           </button>
         </div>
         <div className="text-[11px] text-zinc-500">
@@ -186,7 +195,7 @@ export default function DrugLabPage() {
               const raidLeft = isRaided ? Math.max(0, Math.ceil((new Date(lab.raided_until!).getTime() - Date.now()) / 60000)) : 0;
               const guards = lab.guards ?? 0;
               const raidPct = lab.raid_pct ?? 0;
-              const nextGuardCost = guards < 5 ? GUARD_COSTS[guards] : 0;
+              const nextGuardCost = guards < 5 ? guardCosts[guards] : 0;
               const doBribe = bribeMap[lab.id] ?? false;
               const bribeCostVal = pending > 0 ? bribeFee(pending) : 0;
               return (

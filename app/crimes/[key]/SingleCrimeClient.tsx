@@ -147,7 +147,7 @@ export default function SingleCrimeClient({
           <button
             onClick={doSingleCrime}
             disabled={disabled}
-            className={`w-full py-2.5 rounded-lg font-bold transition-all active:scale-[0.985] disabled:opacity-50 disabled:cursor-not-allowed ${
+            className={`w-full py-3.5 rounded-xl font-bold text-base transition-all active:scale-[0.985] disabled:opacity-50 disabled:cursor-not-allowed ${
               coolingDown ? 'bg-zinc-800 text-zinc-400' : 'bg-red-700 hover:bg-red-600 text-white'
             }`}
           >

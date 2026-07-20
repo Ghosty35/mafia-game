@@ -33,6 +33,39 @@ export type EconomyConfig = {
     diamond_bundle_rate: number;
     min_power: number;
   };
+  vip_donator_cost: number;
+  family_buffs: Array<{ id: string; cash: number; diamonds: number; diamonds_bundle: number }>;
+  crush_bullets: number;
+  power_packs: Array<{ power: number; price: number; labelKey: string }>;
+  druglab: {
+    buy_cost: number;
+    buy_tax_rate: number;
+    upgrade_base: number;
+    max_level: number;
+    cap_hours: number;
+    coke_rate: number;
+    meth_rate: number;
+    pills_rate: number;
+    guard_costs: number[];
+    bribe_base: number;
+    bribe_rate: number;
+    bribe_max: number;
+  };
+  metal_factory: {
+    capacity: number;
+    refill_per_hour: number;
+  };
+  red_light: {
+    cap_total: number;
+    buy_cost: number;
+  };
+  login_bonus: {
+    cycle: number[];
+  };
+  family: {
+    creation_cash: number;
+    power_min_spend: number;
+  };
 };
 
 // Module-level cache: one RPC call shared by every component that mounts.

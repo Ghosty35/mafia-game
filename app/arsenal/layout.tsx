@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import GameLayout from '../components/GameLayout';
 
-export default function ArmoryLayout({ children }: { children: ReactNode }) {
+export default function ArsenalLayout({ children }: { children: ReactNode }) {
   return <GameLayout>{children}</GameLayout>;
 }

@@ -55,7 +55,7 @@ export default function MobileBottomNav() {
               key={href}
               href={href}
               className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-all relative ${
-                active ? 'text-amber-400' : 'text-zinc-500 hover:text-zinc-300'
+                active ? 'text-amber-400 mobile-nav-active' : 'text-zinc-500 hover:text-zinc-300'
               }`}
             >
               <span className="text-xl relative">

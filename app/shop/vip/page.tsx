@@ -23,12 +23,20 @@ export default function VipStorePage() {
   const isDonator = !!player?.is_donator;
   const diamonds = player?.diamonds ?? 0;
 
+  const economy = useEconomy();
+  const donatorCost = economy?.vip_donator_cost ?? 500;
+  const buffs = economy?.family_buffs ?? [
+    { id: 'power100', label: t('vip_buff_p100'), desc: t('vip_buff_p100_desc'), cash: 420000, diamonds: 140, diamonds_bundle: 600 },
+    { id: 'power250', label: t('vip_buff_p250'), desc: t('vip_buff_p250_desc'), cash: 980000, diamonds: 320, diamonds_bundle: 1250 },
+    { id: 'hourly', label: t('vip_buff_hourly'), desc: t('vip_buff_hourly_desc'), cash: 650000, diamonds: 210, diamonds_bundle: 820 },
+    { id: 'war', label: t('vip_buff_war'), desc: t('vip_buff_war_desc'), cash: 1150000, diamonds: 380, diamonds_bundle: 1400 },
+  ];
+
   const purchaseDonatorStatus = async (costDiamonds: number) => {
     if (!confirm(t('vip_confirm_donator', { cost: costDiamonds }))) return;
     setBusy(true);
     setMessage(null);
     const supabase = createClient();
-    // Atomic server-side purchase: checks + deducts diamonds + grants donator
     const { error } = await supabase.rpc('purchase_donator', { cost_diamonds: costDiamonds });
     if (error) {
       if (error.message.includes('NOT_ENOUGH_DIAMONDS')) setMessage(t('vip_err_diamonds'));
@@ -88,14 +96,14 @@ export default function VipStorePage() {
                   <div className="font-semibold text-sm">{t('vip_donator_item')}</div>
                 </div>
                 <div className="text-xs text-zinc-400 mb-3">{t('vip_donator_item_desc')}</div>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">💎</span>
-                  <span className="text-yellow-400 font-mono text-xl font-bold">500</span>
-                </div>
+                 <div className="flex items-center gap-2">
+                   <span className="text-2xl">💎</span>
+                   <span className="text-yellow-400 font-mono text-xl font-bold">{donatorCost}</span>
+                 </div>
               </div>
               <div>
                 <button
-                  onClick={() => purchaseDonatorStatus(500)}
+                  onClick={() => purchaseDonatorStatus(donatorCost)}
                   disabled={busy}
                   className="w-full py-3.5 bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-500 hover:to-amber-500 rounded-xl font-bold text-sm tracking-wide disabled:opacity-50 shadow-[0_0_20px_rgba(245,158,11,0.2)] transition-all"
                 >
@@ -155,11 +163,11 @@ function FamilyBuffsShop({ busy, setMessage, isDonator }: { busy: boolean; setMe
   const economy = useEconomy();
   const supabase = createClient();
 
-  const buffs = [
-    { id: 'power100', label: t('vip_buff_p100'), desc: t('vip_buff_p100_desc'), cash: 420000, diamonds: 140, diamondsBundle: 600 },
-    { id: 'power250', label: t('vip_buff_p250'), desc: t('vip_buff_p250_desc'), cash: 980000, diamonds: 320, diamondsBundle: 1250 },
-    { id: 'hourly', label: t('vip_buff_hourly'), desc: t('vip_buff_hourly_desc'), cash: 650000, diamonds: 210, diamondsBundle: 820 },
-    { id: 'war', label: t('vip_buff_war'), desc: t('vip_buff_war_desc'), cash: 1150000, diamonds: 380, diamondsBundle: 1400 },
+  const buffs: Array<{ id: string; label: string; desc: string; cash: number; diamonds: number; diamonds_bundle: number }> = economy?.family_buffs ?? [
+    { id: 'power100', label: t('vip_buff_p100'), desc: t('vip_buff_p100_desc'), cash: 420000, diamonds: 140, diamonds_bundle: 600 },
+    { id: 'power250', label: t('vip_buff_p250'), desc: t('vip_buff_p250_desc'), cash: 980000, diamonds: 320, diamonds_bundle: 1250 },
+    { id: 'hourly', label: t('vip_buff_hourly'), desc: t('vip_buff_hourly_desc'), cash: 650000, diamonds: 210, diamonds_bundle: 820 },
+    { id: 'war', label: t('vip_buff_war'), desc: t('vip_buff_war_desc'), cash: 1150000, diamonds: 380, diamonds_bundle: 1400 },
   ];
 
   const buyBuff = async (buff: (typeof buffs)[number], useBundle: boolean, payWith: 'cash' | 'diamonds') => {
@@ -183,7 +191,7 @@ function FamilyBuffsShop({ busy, setMessage, isDonator }: { busy: boolean; setMe
       } else {
         // Diamond path — server derives family power from cost_diamonds and
         // the bundle flag; power_gain is no longer caller-supplied.
-        const costD = useBundle ? buff.diamondsBundle : buff.diamonds;
+        const costD = useBundle ? b.diamonds_bundle : b.diamonds;
         const { data, error } = await supabase.rpc('buy_family_buff_diamonds', {
           cost_diamonds: costD,
           p_is_bundle: useBundle,
@@ -247,11 +255,11 @@ function FamilyBuffsShop({ busy, setMessage, isDonator }: { busy: boolean; setMe
             >
               <div className="flex items-center gap-1 mb-1">
                 <span>💎</span>
-                <span className="font-mono font-bold">{b.diamondsBundle}</span>
+                <span className="font-mono font-bold">{b.diamonds_bundle}</span>
                 <span className="text-[10px] opacity-80">• {t('vip_bundle')}</span>
               </div>
               <span className="text-[10px]">
-                +{Math.floor(b.diamondsBundle * (economy?.family_buff?.diamond_bundle_rate ?? 4.0))} {t('fam_stat_power').toLowerCase()}
+                +{Math.floor((b.diamonds_bundle ?? 0) * (economy?.family_buff?.diamond_bundle_rate ?? 4.0))} {t('fam_stat_power').toLowerCase()}
                 {!isDonator && ` • ${t('vip_bundle_locked')}`}
               </span>
             </button>

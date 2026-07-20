@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import Panel from '../components/Panel';
+import { useEconomy } from '@/lib/economy';
 
 type Reward = { cash: number; diamonds: number };
 type BonusInfo = {
@@ -27,9 +28,12 @@ const CYCLE = [10000, 20000, 35000, 50000, 75000, 100000, 150000];
 export default function LoginBonusPage() {
   const { t, fm } = useLanguage();
   const { refreshPlayer, showToast } = usePlayer();
+  const economy = useEconomy();
   const [info, setInfo] = useState<BonusInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+
+  const CYCLE = economy?.login_bonus?.cycle ?? [10000, 20000, 35000, 50000, 75000, 100000, 150000];
 
   const load = useCallback(async () => {
     const supabase = createClient();

@@ -63,7 +63,7 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: Player 
   const [bulletsUsed, setBulletsUsed] = useState(100);
   const [gearBonus, setGearBonus] = useState(0);
   // 135: the heist weapon is whatever you carry (players.equipped_weapon,
-  // bought in the Armory). Boxing gloves (no heist_class) can't run a heist.
+  // bought in the Arsenal). Boxing gloves (no heist_class) can't run a heist.
   const [armoryWeapon, setArmoryWeapon] = useState<{ key: string; label: string; power: number; heist_class: string | null } | null>(null);
   const [busy, setBusy] = useState(false);
   const [targets, setTargets] = useState<Array<{ id: string; username: string; level?: number; power?: number }>>([]);
@@ -73,7 +73,7 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: Player 
 
   const supabase = createClient();
 
-  // Equipped weapon from the Armory (server-authoritative catalog).
+  // Equipped weapon from the Arsenal (server-authoritative catalog).
   useEffect(() => {
     let active = true;
     (async () => {
@@ -180,7 +180,7 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: Player 
     }
 
     if (!armoryWeapon?.heist_class) {
-      showToast('You need a real gun equipped — buy one in the Armory first.', 'error');
+      showToast('You need a real gun equipped — buy one in the Arsenal first.', 'error');
       return;
     }
     if (!selectedCarId) {
@@ -279,16 +279,16 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: Player 
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-8">
+    <div className="max-w-5xl mx-auto p-4 sm:p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">💣 Heists</h1>
-        <p className="text-sm text-zinc-400">Big scores require preparation and crew. Minimum 2 members.</p>
+        <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">💣 Heists</h1>
+        <p className="text-xs sm:text-sm text-zinc-400">Big scores require preparation and crew. Minimum 2 members.</p>
         <div className="mt-2 text-xs text-amber-400">Your Heat: {currentHeat} • In Jail: {inJail ? 'YES' : 'No'}</div>
       </div>
 
-      {/* Gear / Armory (Fase 5.2) */}
+      {/* Gear / Arsenal (Fase 5.2) */}
       <section className="card p-5">
-        <h2 className="font-bold mb-3">🛡️ Heist Armory (Buy for this run)</h2>
+        <h2 className="font-bold mb-3">🛡️ Heist Arsenal (Buy for this run)</h2>
         <div className="flex flex-wrap gap-3">
           {(economy?.heist_gear ?? [
             { tier: 'pistol', cost: 450, bonus: 8 },
@@ -306,7 +306,7 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: Player 
 
       {/* Weapon + Getaway driver (required to run a heist) */}
       <section className="card p-5">
-        <h2 className="font-bold mb-3">🔫 Your weapon (equipped in the Armory)</h2>
+        <h2 className="font-bold mb-3">🔫 Your weapon (equipped in the Arsenal)</h2>
         {armoryWeapon?.heist_class ? (
           <p className="text-sm">
             <span className="font-semibold text-emerald-400">{armoryWeapon.label}</span>{' '}
@@ -317,8 +317,8 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: Player 
         ) : (
           <p className="text-xs text-amber-400">
             {armoryWeapon
-              ? <>Your {armoryWeapon.label} won&apos;t cut it for a heist. Buy a real gun in the <Link href="/armory" className="underline">Armory</Link>.</>
-              : <>No weapon equipped. Buy one in the <Link href="/armory" className="underline">Armory</Link> to run heists.</>}
+              ? <>Your {armoryWeapon.label} won&apos;t cut it for a heist. Buy a real gun in the <Link href="/arsenal" className="underline">{t('arsenal_title')}</Link>.</>
+              : <>No weapon equipped. Buy one in the <Link href="/arsenal" className="underline">{t('arsenal_title')}</Link> to run heists.</>}
           </p>
         )}
 
@@ -406,7 +406,7 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: Player 
                 </button>
               </div>
 
-              {/* Loadout summary — weapon comes from the Armory equipment */}
+              {/* Loadout summary — weapon comes from the Arsenal equipment */}
               <div className="text-xs text-zinc-400 mb-2">
                 Loadout:{' '}
                 <span className={armoryWeapon?.heist_class ? 'text-emerald-400 font-semibold' : 'text-red-400'}>

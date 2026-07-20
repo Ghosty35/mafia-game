@@ -131,7 +131,7 @@ export const rightMenuCategories: MenuCategory[] = [
       { labelKey: 'menu_detective', href: '/detective', icon: '🕵️' },
       { labelKey: 'menu_murder', href: '/murder', icon: '🔫' },
       { labelKey: 'menu_metal_factory', href: '/metal-factory', icon: '🏭' },
-      { labelKey: 'menu_armory', href: '/armory', icon: '🗡️' },
+      { labelKey: 'menu_arsenal', href: '/arsenal', icon: '🗡️' },
     ],
   },
   {

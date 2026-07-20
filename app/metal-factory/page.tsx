@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../components/PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useRouter } from 'next/navigation';
+import { useEconomy } from '@/lib/economy';
 
 type FactoryState = {
   stock: number;
@@ -18,6 +19,7 @@ export default function MetalFactoryPage() {
   const { player, refreshPlayer } = usePlayer();
   const { t, language, fm } = useLanguage();
   const router = useRouter();
+  const economy = useEconomy();
   const [amount, setAmount] = useState(100);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
@@ -41,7 +43,8 @@ export default function MetalFactoryPage() {
 
   const unitPrice = factory?.unit_price ?? 5;
   const stock = factory?.stock ?? 0;
-  const capacity = factory?.capacity ?? 25000;
+  const capacity = factory?.capacity ?? economy?.metal_factory?.capacity ?? 25000;
+  const refillRate = factory?.refill_per_hour ?? economy?.metal_factory?.refill_per_hour ?? 2500;
   const stockPct = Math.max(0, Math.min(100, Math.round((stock / Math.max(1, capacity)) * 100)));
 
   const buyBullets = async () => {
@@ -104,7 +107,7 @@ export default function MetalFactoryPage() {
           />
         </div>
         <div className="flex items-center justify-between text-[10px] text-zinc-500 mt-1.5">
-          <span>{t('factory_refill_note', { rate: fmt(factory?.refill_per_hour ?? 2500) })}</span>
+           <span>{t('factory_refill_note', { rate: fmt(refillRate) })}</span>
           <span>
             {t('factory_unit_price')}: <span className="font-mono text-emerald-400">{fm(unitPrice)}</span>
           </span>

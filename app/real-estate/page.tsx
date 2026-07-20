@@ -6,6 +6,7 @@ import { usePlayer } from '../components/PlayerContext';
 import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { CITIES } from '@/lib/cities';
+import PageHeader from '../components/PageHeader';
 
 type CatalogProperty = {
   id: string;
@@ -58,10 +59,12 @@ export default function RealEstatePage() {
 
   return (
     <div className="max-w-5xl mx-auto p-4 sm:p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight mb-1">🏠 {t('re_title')}</h1>
-        <p className="text-xs text-zinc-400">{t('re_desc')}</p>
-      </div>
+      <PageHeader
+        title={t('re_title')}
+        subtitle={t('re_desc')}
+        icon="🏠"
+        variant="default"
+      />
 
       {/* Current City Quick Access */}
       <div className={`${CITY_COLORS[currentCity]?.bg || 'bg-zinc-900'} border border-zinc-800 rounded-xl p-5`}>

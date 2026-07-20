@@ -9,6 +9,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import Panel from '../../components/Panel';
 import { useGarage, type GarageCar } from '../../components/useGarage';
 import CarImage from '../../components/CarImage';
+import { useEconomy } from '@/lib/economy';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,14 +21,15 @@ export default function JunkyardPage() {
   const { t, fm } = useLanguage();
   const router = useRouter();
   const { cars, loading, reload } = useGarage();
+  const economy = useEconomy();
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
 
   const supabase = createClient();
+  const crushBullets = economy?.crush_bullets ?? 15;
 
   const crushCar = async (car: GarageCar) => {
-    const bulletsGained = 15; // server-authoritative (garage_crush_car c_bullets)
-    if (!confirm(t('jy_confirm', { name: car.name, price: fm(bulletsGained) }))) return;
+    if (!confirm(t('jy_confirm', { name: car.name, price: fm(crushBullets) }))) return;
     setBusy(true);
     const { data, error } = await supabase.rpc('garage_crush_car', { p_car_id: car.id });
     setBusy(false);
@@ -38,7 +40,7 @@ export default function JunkyardPage() {
     await reload();
     if (refreshPlayer) await refreshPlayer();
     router.refresh();
-    setMessage(t('garage_crushed', { bullets: (data?.bullets_gained as number) ?? bulletsGained }));
+    setMessage(t('garage_crushed', { bullets: (data?.bullets_gained as number) ?? crushBullets }));
   };
 
   if (!player || loading) return <div className="max-w-5xl mx-auto p-6 text-zinc-400 text-sm">{t('loading')}</div>;
@@ -68,9 +70,9 @@ export default function JunkyardPage() {
               <CarImage catalogId={car.catalog_id ?? ''} name={car.name} size={64} />
               <div className="min-w-0 flex-1">
                 <div className="font-semibold text-sm">🚗 {car.name}</div>
-                <div className="text-[11px] text-zinc-500">
-                  {t('gr_condition')} {car.condition}% • {t('jy_yields', { bullets: 15 })}
-                </div>
+                 <div className="text-[11px] text-zinc-500">
+                   {t('gr_condition')} {car.condition}% • {t('jy_yields', { bullets: crushBullets })}
+                 </div>
               </div>
               <button
                 onClick={() => crushCar(car)}

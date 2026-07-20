@@ -9,7 +9,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useRouter } from 'next/navigation';
 import PageHeader from '../components/PageHeader';
 
-// 135: the weapon you fire is the one you carry — bought in the Armory,
+// 135: the weapon you fire is the one you carry — bought in the Arsenal,
 // read server-side from players.equipped_weapon. No client weapon choice.
 type ArmoryItem = { key: string; kind: string; label: string; power: number };
 
@@ -50,7 +50,7 @@ function MurderContent() {
     return () => clearInterval(iv);
   }, [player?.murder_cooldown]);
 
-  // Loadout card: resolve equipped keys to labels via the armory catalog.
+  // Loadout card: resolve equipped keys to labels via the arsenal catalog.
   useEffect(() => {
     const load = async () => {
       const supabase = createClient();
@@ -194,7 +194,7 @@ function MurderContent() {
           </div>
           <p className="text-xs text-zinc-500 mt-2">
             {t('murder_loadout_hint')}{' '}
-            <Link href="/armory" className="text-amber-400 hover:text-amber-300 transition-colors">{t('armory_title')}</Link>
+            <Link href="/arsenal" className="text-amber-400 hover:text-amber-300 transition-colors">{t('arsenal_title')}</Link>
           </p>
         </div>
 

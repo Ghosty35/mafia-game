@@ -10,6 +10,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { useRouter } from 'next/navigation';
 import { CITIES } from '@/lib/cities';
 import PageHeader from '../components/PageHeader';
+import { useEconomy } from '@/lib/economy';
 
 type Bitch = {
   id: string;
@@ -57,6 +58,7 @@ export default function RedLightPage() {
   const { player, refreshPlayer } = usePlayer();
   const { t, language, fm } = useLanguage();
   const router = useRouter();
+  const economy = useEconomy();
 
   const [data, setData] = useState<BitchData | null>(null);
   const [banks, setBanks] = useState<RLDBank[]>([]);
@@ -131,7 +133,8 @@ export default function RedLightPage() {
   const rates = data?.rates;
   const streetRate = rates?.street_rate ?? 15;
   const rlRate = rates?.rl_rate ?? 20;
-  const rlCap = data?.rl_cap_total ?? 50000;
+  const rlCap = data?.rl_cap_total ?? economy?.red_light?.cap_total ?? 50000;
+  const rlBuyCost = rates?.buy_cost ?? economy?.red_light?.buy_cost ?? 25000;
   const limit = data?.bitch_limit ?? 25;
 
   return (
@@ -211,7 +214,7 @@ export default function RedLightPage() {
             disabled={busy || (data?.bitch_limit_reached ?? false)}
             className="px-5 py-2 bg-red-700 hover:bg-red-600 disabled:opacity-40 rounded font-bold text-sm whitespace-nowrap"
           >
-            {busy ? t('rl_buying') : `${t('rl_buy')} (${fm(rates?.buy_cost ?? 25000)})`}
+            {busy ? t('rl_buying') : `${t('rl_buy')} (${fm(rlBuyCost)})`}
           </button>
         </div>
         <div className="text-[11px] text-zinc-500">

@@ -8,6 +8,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { usePlayer } from '../../components/PlayerContext';
 import Panel from '../../components/Panel';
 import { useMyFamily } from '../../components/useMyFamily';
+import { useEconomy } from '@/lib/economy';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +19,7 @@ export default function FamilyBankPage() {
   const { refreshPlayer } = usePlayer();
   const router = useRouter();
   const { data, loading, reload, inFamily, canManageTreasury } = useMyFamily();
+  const economy = useEconomy();
 
   const [spendAmount, setSpendAmount] = useState(50000);
   const [busy, setBusy] = useState(false);
@@ -28,6 +30,7 @@ export default function FamilyBankPage() {
   const supabase = createClient();
   const fam = data?.family;
   const members = useMemo(() => data?.members ?? [], [data?.members]);
+  const minPowerSpend = economy?.family?.power_min_spend ?? 25000;
 
   const topDonors = useMemo(
     () => members.filter((m) => (m.donated ?? 0) > 0).sort((a, b) => (b.donated ?? 0) - (a.donated ?? 0)).slice(0, 5),
@@ -82,7 +85,7 @@ export default function FamilyBankPage() {
   };
 
   const buyPower = async () => {
-    if (!spendAmount || spendAmount < 25000) return;
+    if (!spendAmount || spendAmount < minPowerSpend) return;
     if (!confirm(t('fb_confirm_power', { amount: fm(spendAmount) }))) return;
     setBusy(true);
     setMsg(null);
@@ -95,6 +98,7 @@ export default function FamilyBankPage() {
     }
     await reload();
     await loadTransactions();
+    if (refreshPlayer) await refreshPlayer();
     router.refresh();
     setMsg(t('fb_power_bought', { power: res?.power_gained ?? '?', amount: fm(spendAmount) }));
   };
@@ -182,8 +186,8 @@ export default function FamilyBankPage() {
               <input
                 type="number"
                 value={spendAmount}
-                min={25000}
-                onChange={(e) => setSpendAmount(Math.max(25000, parseInt(e.target.value) || 25000))}
+                min={minPowerSpend}
+                onChange={(e) => setSpendAmount(Math.max(minPowerSpend, parseInt(e.target.value) || minPowerSpend))}
                 className="bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 w-40 text-sm font-mono"
               />
               <button
@@ -194,7 +198,7 @@ export default function FamilyBankPage() {
                 {busy ? t('fb_buying') : t('fb_buy_power')}
               </button>
             </div>
-            <span className="text-[11px] text-zinc-500 mt-2 block">{t('fb_power_rate', { min: fm(25000) })}</span>
+            <span className="text-[11px] text-zinc-500 mt-2 block">{t('fb_power_rate', { min: fm(minPowerSpend) })}</span>
           </Panel>
         ) : (
           <Panel title={t('fb_power_title')} icon="⚔️">
