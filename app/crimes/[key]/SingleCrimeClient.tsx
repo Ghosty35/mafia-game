@@ -65,20 +65,9 @@ export default function SingleCrimeClient({
     setBusy(true);
 
     const supabase = createClient();
-    let data: unknown = null;
-    let error: { message: string } | null = null;
-    try {
-      const result = await supabase.rpc('commit_crime', {
-        crime_key: crime.key,
-      });
-      data = result.data;
-      error = result.error;
-    } catch (e) {
-      console.error('[commit_crime] network/parse error:', e);
-      showToast(t('error_generic'), 'error');
-      setBusy(false);
-      return;
-    }
+    const { data, error } = await supabase.rpc('commit_crime', {
+      p_crime_key: crime.key,
+    });
     setBusy(false);
 
     if (error) {

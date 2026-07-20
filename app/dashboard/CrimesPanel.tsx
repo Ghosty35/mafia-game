@@ -48,7 +48,7 @@ export default function CrimesPanel({
 
     const supabase = createClient();
     const { data, error } = await supabase.rpc('commit_crime', {
-      crime_key: crimeKey,
+      p_crime_key: crimeKey,
     });
     setBusy(null);
 

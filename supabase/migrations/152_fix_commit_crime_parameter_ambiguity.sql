@@ -1,12 +1,13 @@
--- 151_fix_commit_crime_stamina_and_dirty_cash.sql
--- Migration 104 rewrote commit_crime for anticheat rate-limiting but
--- accidentally dropped three features that migration 098 had added:
---   1. stamina cost via _spend_stamina()
---   2. dirty_cash payout instead of cash
---   3. hustler progress + stat bumping
--- This migration restores them without touching the rate-limit logic.
+-- 152_fix_commit_crime_parameter_ambiguity.sql
+-- Migration 151 named the commit_crime parameter `crime_key`, which
+-- conflicts with the `crime_key` column in `crime_cooldowns` inside the
+-- ON CONFLICT clause. Rename the parameter to `p_crime_key`.
+-- PostgreSQL cannot rename parameters via CREATE OR REPLACE, so we must
+-- DROP + CREATE.
 
-CREATE OR REPLACE FUNCTION public.commit_crime(p_crime_key text)
+DROP FUNCTION IF EXISTS public.commit_crime(text);
+
+CREATE FUNCTION public.commit_crime(p_crime_key text)
 RETURNS jsonb
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -75,7 +76,6 @@ BEGIN
     mult := mult * 1.25;
   END IF;
 
-  -- Stamina cost scales with how physical the job is (restored from 098).
   p.stamina := public._spend_stamina(p.id, greatest(1, ceil(
     CASE c.key
       WHEN 'pickpocket' THEN 1.0

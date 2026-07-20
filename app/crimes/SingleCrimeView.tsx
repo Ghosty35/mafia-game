@@ -75,7 +75,7 @@ export default function SingleCrimeView({ crimeKey }: { crimeKey: string }) {
     setResult(null);
 
     const supabase = createClient();
-    const { data, error } = await supabase.rpc('commit_crime', { crime_key: crime.key });
+    const { data, error } = await supabase.rpc('commit_crime', { p_crime_key: crime.key });
     setBusy(false);
 
     if (error) {
