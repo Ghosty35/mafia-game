@@ -19,20 +19,12 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: '#09090b',
     theme_color: '#09090b',
     icons: [
-      // Split "any" and "maskable" into separate entries: a single icon flagged
-      // as both makes Android crop the un-padded art on the home screen.
-      {
-        src: '/icon-512.svg',
-        sizes: '512x512',
-        type: 'image/svg+xml',
-        purpose: 'any',
-      },
-      {
-        src: '/icon-512.svg',
-        sizes: '512x512',
-        type: 'image/svg+xml',
-        purpose: 'maskable',
-      },
+      // Raster PNGs for broad install support (Android, iOS, Play Store TWA).
+      { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+      { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+      // Maskable + scalable vector for modern launchers.
+      { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+      { src: '/icon-512.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
     ],
   };
 }

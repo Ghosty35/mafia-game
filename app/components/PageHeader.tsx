@@ -73,6 +73,20 @@ export default function PageHeader({
   return (
     <div className={`relative overflow-hidden rounded-2xl border ${style.border} ${style.bg} ${className}`}>
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(245,158,11,0.06),transparent_45%)] pointer-events-none" />
+      {/* gold accent line across the top of the banner */}
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-amber-500/40 to-transparent pointer-events-none" />
+      {/* faint city skyline along the bottom of the banner */}
+      <div
+        className="absolute inset-x-0 bottom-0 h-14 opacity-[0.16] pointer-events-none"
+        style={{
+          backgroundImage: "url('/skyline.svg')",
+          backgroundSize: '620px 186px',
+          backgroundRepeat: 'repeat-x',
+          backgroundPosition: 'bottom center',
+          WebkitMaskImage: 'linear-gradient(to top, #000, transparent)',
+          maskImage: 'linear-gradient(to top, #000, transparent)',
+        }}
+      />
       <div className="relative px-5 py-5 sm:px-6 sm:py-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">

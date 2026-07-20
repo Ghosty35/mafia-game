@@ -30,8 +30,12 @@ export const metadata: Metadata = {
     title: "A Hustler's Way",
   },
   icons: {
-    icon: '/icon-512.svg',
-    apple: '/icon-512.svg',
+    icon: [
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+      { url: '/icon-512.svg', type: 'image/svg+xml' },
+    ],
+    apple: '/apple-touch-icon.png',
   },
 };
 

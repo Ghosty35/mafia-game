@@ -97,19 +97,20 @@ export default function RegisterPage() {
       {/* Dramatic Mafia Background Layers (same as login) */}
       <div className="absolute inset-0 bg-[radial-gradient(#27272a_0.8px,transparent_1px)] bg-[length:4px_4px] opacity-40" />
       <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-zinc-950/90 to-black/80" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(185,28,28,0.10)_0%,transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(185,28,28,0.14)_0%,transparent_50%)]" />
+      {/* Warm amber city-lights glow rising from the bottom */}
+      <div className="absolute inset-0 bg-[radial-gradient(130%_70%_at_50%_112%,rgba(245,158,11,0.14)_0%,transparent_50%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(0,0,0,0.6)_0%,transparent_60%)]" />
-      {/* Living night-city skyline silhouette along the bottom */}
+      {/* Living night-city skyline silhouette with lit windows */}
       <div
-        className="absolute inset-x-0 bottom-0 h-[42vh] pointer-events-none opacity-90"
+        className="absolute inset-x-0 bottom-0 h-[48vh] pointer-events-none opacity-95"
         style={{
           backgroundRepeat: 'repeat-x',
           backgroundPosition: 'bottom center',
-          backgroundSize: '1200px 300px',
+          backgroundSize: '1200px 360px',
           WebkitMaskImage: 'linear-gradient(to top, #000 55%, transparent 100%)',
           maskImage: 'linear-gradient(to top, #000 55%, transparent 100%)',
-          backgroundImage:
-            "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='300' viewBox='0 0 1200 300'%3E%3Cg fill='%230c0c12'%3E%3Crect x='0' y='232' width='60' height='68'/%3E%3Crect x='70' y='196' width='44' height='104'/%3E%3Crect x='124' y='150' width='54' height='150'/%3E%3Crect x='188' y='212' width='40' height='88'/%3E%3C/g%3E%3Cg fill='%230f0f17'%3E%3Crect x='236' y='176' width='58' height='124'/%3E%3Crect x='304' y='120' width='46' height='180'/%3E%3Crect x='360' y='206' width='52' height='94'/%3E%3Crect x='422' y='160' width='40' height='140'/%3E%3Crect x='470' y='226' width='60' height='74'/%3E%3C/g%3E%3Cg fill='%230c0c12'%3E%3Crect x='538' y='138' width='50' height='162'/%3E%3Crect x='596' y='198' width='44' height='102'/%3E%3Crect x='648' y='164' width='56' height='136'/%3E%3Crect x='712' y='116' width='42' height='184'/%3E%3Crect x='762' y='210' width='54' height='90'/%3E%3C/g%3E%3Cg fill='%230f0f17'%3E%3Crect x='824' y='172' width='48' height='128'/%3E%3Crect x='880' y='128' width='58' height='172'/%3E%3Crect x='946' y='206' width='40' height='94'/%3E%3Crect x='994' y='156' width='52' height='144'/%3E%3Crect x='1054' y='220' width='46' height='80'/%3E%3C/g%3E%3Cg fill='%230c0c12'%3E%3Crect x='1108' y='188' width='54' height='112'/%3E%3Crect x='1170' y='150' width='42' height='150'/%3E%3C/g%3E%3Cg fill='%23b91c1c'%3E%3Crect x='140' y='168' width='6' height='6'/%3E%3Crect x='154' y='186' width='6' height='6'/%3E%3Crect x='320' y='140' width='6' height='6'/%3E%3Crect x='332' y='170' width='6' height='6'/%3E%3Crect x='724' y='140' width='6' height='6'/%3E%3Crect x='738' y='164' width='6' height='6'/%3E%3Crect x='892' y='150' width='6' height='6'/%3E%3Crect x='908' y='180' width='6' height='6'/%3E%3Crect x='1182' y='170' width='6' height='6'/%3E%3C/g%3E%3C/svg%3E\")",
+          backgroundImage: "url('/skyline.svg')",
         }}
       />
 

@@ -8,6 +8,7 @@ import { usePlayer } from '../components/PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { getRank, getNextRank } from '@/lib/ranks';
 import Panel from '../components/Panel';
+import Avatar from '../components/Avatar';
 import type { TranslationKey } from '@/lib/i18n/translations';
 import { useRouter } from 'next/navigation';
 import type { PublicProfile } from '@/lib/types';
@@ -115,14 +116,7 @@ function ProfileContent() {
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
       {/* Identity header */}
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 flex items-center gap-4">
-        <div className="w-16 h-16 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-center text-3xl overflow-hidden shrink-0">
-          {p.avatar_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={p.avatar_url as string} alt="" className="w-full h-full object-cover" />
-          ) : (
-            '👤'
-          )}
-        </div>
+        <Avatar src={p.avatar_url as string | null} name={String(p.username ?? '')} size={64} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-2xl font-bold tracking-tight truncate">{String(p.username) || t('profile_unknown')}</h1>

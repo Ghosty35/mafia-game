@@ -1,4 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#09090b"/>
-  <text x="256" y="300" font-family="Arial, sans-serif" font-size="200" fill="#f59e0b" text-anchor="middle" dominant-baseline="middle">♛</text>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#14141f"/>
+      <stop offset="1" stop-color="#070709"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe08a"/>
+      <stop offset="0.5" stop-color="#f0b53c"/>
+      <stop offset="1" stop-color="#c8891a"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <circle cx="256" cy="150" r="190" fill="#b91c1c" opacity="0.14"/>
+  <path d="M96 372 L416 372 L416 232 L360 300 L336 198 L296 300 L256 172 L216 300 L176 198 L152 300 L96 232 Z"
+        fill="url(#gold)" stroke="#8a5e12" stroke-width="4" stroke-linejoin="round"/>
+  <rect x="96" y="354" width="320" height="36" rx="10" fill="url(#gold)" stroke="#8a5e12" stroke-width="4"/>
+  <circle cx="176" cy="372" r="10" fill="#b91c1c"/>
+  <circle cx="256" cy="372" r="12" fill="#dc2626"/>
+  <circle cx="336" cy="372" r="10" fill="#b91c1c"/>
+  <circle cx="256" cy="172" r="9" fill="#fff2cc"/>
+  <circle cx="176" cy="198" r="7" fill="#fff2cc"/>
+  <circle cx="336" cy="198" r="7" fill="#fff2cc"/>
 </svg>
