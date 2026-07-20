@@ -23,9 +23,9 @@ export default function RankingsClient({
 
   return (
     <main className="px-4 py-6 max-w-5xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-red-500">{t('rankings_title')}</h1>
-        <p className="text-zinc-400 mt-1">Global Player Rankings • Season 1</p>
+      <div className="mb-6 lg:mb-8">
+        <h1 className="text-2xl lg:text-4xl font-bold text-red-500">{t('rankings_title')}</h1>
+        <p className="text-zinc-400 mt-1 text-sm lg:text-base">Global Player Rankings • Season 1</p>
       </div>
 
       <div className="bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-700">

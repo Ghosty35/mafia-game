@@ -307,12 +307,37 @@ aside::-webkit-scrollbar-thumb:hover {
     margin-bottom: 0.75rem;
   }
 
-  /* Reduce font sizes slightly on mobile for better fit */
+  /* Reduce font sizes on mobile for better fit */
   .text-3xl {
     font-size: 1.5rem;
   }
   .text-2xl {
     font-size: 1.25rem;
+  }
+  .text-xl {
+    font-size: 1.125rem;
+  }
+  .text-lg {
+    font-size: 1rem;
+  }
+
+  /* Compact headings on mobile */
+  h1 {
+    font-size: 1.5rem !important;
+    line-height: 1.2 !important;
+  }
+  h2 {
+    font-size: 1.25rem !important;
+    line-height: 1.3 !important;
+  }
+  h3 {
+    font-size: 1.125rem !important;
+    line-height: 1.4 !important;
+  }
+
+  /* Tighter line height for mobile readability */
+  p, li, span {
+    line-height: 1.5 !important;
   }
 
   /* Prevent iOS zoom on input focus */
@@ -348,6 +373,55 @@ aside::-webkit-scrollbar-thumb:hover {
   main, .content {
     -webkit-user-select: text;
     user-select: text;
+  }
+
+  /* Compact padding on mobile */
+  .p-6 {
+    padding: 1rem !important;
+  }
+  .p-4 {
+    padding: 0.75rem !important;
+  }
+  .px-4 {
+    padding-left: 0.75rem !important;
+    padding-right: 0.75rem !important;
+  }
+  .py-6 {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+  }
+
+  /* Reduce gaps on mobile */
+  .gap-6 {
+    gap: 0.75rem !important;
+  }
+  .gap-4 {
+    gap: 0.5rem !important;
+  }
+  .space-y-6 > * + * {
+    margin-top: 0.75rem !important;
+  }
+  .space-y-4 > * + * {
+    margin-top: 0.5rem !important;
+  }
+
+  /* Ensure cards don't overflow */
+  .card {
+    max-width: 100%;
+    overflow-wrap: break-word;
+  }
+
+  /* Better button sizing on mobile */
+  button, .btn-primary {
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+  }
+
+  /* Input fields on mobile */
+  input, textarea {
+    padding: 14px 16px !important;
+    font-size: 16px !important;
+    border-radius: 12px !important;
   }
 }
 

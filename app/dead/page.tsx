@@ -38,11 +38,11 @@ export default function DeadPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-black text-white p-6">
       <div className="max-w-md text-center">
-        <h1 className="text-5xl font-bold mb-2 text-red-600 animate-pulse">☠️ {t('dead_title')}</h1>
-        <p className="text-xl mb-6 text-zinc-300">{t('dead_respawn_in')}</p>
+        <h1 className="text-3xl lg:text-5xl font-bold mb-2 text-red-600 animate-pulse">☠️ {t('dead_title')}</h1>
+        <p className="text-lg lg:text-xl mb-6 text-zinc-300">{t('dead_respawn_in')}</p>
 
         <div className="bg-zinc-900 border border-red-900/50 rounded-2xl p-6 mb-6">
-          <div className="flex items-center justify-center gap-3 text-4xl font-mono font-bold text-red-400">
+          <div className="flex items-center justify-center gap-3 text-2xl lg:text-4xl font-mono font-bold text-red-400">
             <span>{pad(timeLeft.h)}</span>
             <span className="text-red-600 animate-pulse">:</span>
             <span>{pad(timeLeft.m)}</span>

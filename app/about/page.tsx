@@ -7,9 +7,9 @@ export default function AboutPage() {
   const { t } = useLanguage();
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-4xl font-black tracking-tighter mb-2">{t('about_title')}</h1>
-        <p className="text-zinc-400">{t('about_subtitle')}</p>
+      <div className="mb-6 lg:mb-8">
+        <h1 className="text-2xl lg:text-4xl font-black tracking-tighter mb-2">{t('about_title')}</h1>
+        <p className="text-zinc-400 text-sm lg:text-base">{t('about_subtitle')}</p>
       </div>
 
       {/* The Intro Story */}

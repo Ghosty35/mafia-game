@@ -105,7 +105,7 @@ export default function JailPage() {
       <div className="bg-zinc-900 border border-orange-900/50 rounded-2xl p-6 mb-6">
         <div className="text-center">
           <p className="text-xs uppercase tracking-widest text-orange-400 mb-2">Release in</p>
-          <div className="flex items-center justify-center gap-2 text-4xl font-mono font-bold text-orange-400">
+           <div className="flex items-center justify-center gap-2 text-2xl lg:text-4xl font-mono font-bold text-orange-400">
             <span>{pad(timeLeft.h)}</span>
             <span className="text-orange-600 animate-pulse">:</span>
             <span>{pad(timeLeft.m)}</span>

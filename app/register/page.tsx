@@ -118,7 +118,7 @@ export default function RegisterPage() {
           {/* Left branding + updates */}
           <div className="flex-1 max-w-md text-center lg:text-left">
             <Link href="/" className="inline-block mb-8">
-              <div className="text-6xl font-black tracking-[-3px] leading-none">
+              <div className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-[-3px] leading-none">
                 <span className="text-red-600">HUSTLER&apos;S</span><br />
                 <span className="text-white">WAY</span>
               </div>

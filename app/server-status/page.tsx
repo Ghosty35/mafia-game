@@ -105,7 +105,7 @@ export default function ServerStatusPage() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-[10px] uppercase tracking-[2px] text-emerald-400 font-bold">{t('status_online')}</div>
-              <div className="text-4xl font-black font-mono tabular-nums">{stats.online_people.toLocaleString()}</div>
+               <div className="text-3xl lg:text-4xl font-black font-mono tabular-nums">{stats.online_people.toLocaleString()}</div>
               <div className="text-xs text-zinc-400 mt-0.5">{t('status_online_sub')}</div>
             </div>
             <div className="hidden sm:block text-right w-44">
