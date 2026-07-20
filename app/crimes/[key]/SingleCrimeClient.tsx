@@ -65,13 +65,24 @@ export default function SingleCrimeClient({
     setBusy(true);
 
     const supabase = createClient();
-    const { data, error } = await supabase.rpc('commit_crime', {
-      crime_key: crime.key,
-    });
+    let data: unknown = null;
+    let error: { message: string } | null = null;
+    try {
+      const result = await supabase.rpc('commit_crime', {
+        crime_key: crime.key,
+      });
+      data = result.data;
+      error = result.error;
+    } catch (e) {
+      console.error('[commit_crime] network/parse error:', e);
+      showToast(t('error_generic'), 'error');
+      setBusy(false);
+      return;
+    }
     setBusy(false);
 
     if (error) {
-      let text = t('error_generic');
+      let text = error.message || t('error_generic');
       if (isTooFastError(error.message)) text = t('error_too_fast');
       else if (error.message.includes('ON_COOLDOWN')) text = t('error_on_cooldown');
       else if (error.message.includes('IN_JAIL')) text = t('error_in_jail');
@@ -79,6 +90,7 @@ export default function SingleCrimeClient({
       else if (error.message.includes('LEVEL_TOO_LOW')) text = t('error_level_too_low');
       else if (error.message.includes('NOT_ENOUGH_STAMINA')) text = t('error_no_stamina');
       showToast(text, 'error');
+      console.error('[commit_crime] server error:', error.message);
       return;
     }
 
