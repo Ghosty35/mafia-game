@@ -225,7 +225,7 @@ export default function ArsenalPage() {
           {powerPacks.map((pack, i) => (
             <div key={i} className="card p-4 flex flex-col bg-zinc-900 border border-zinc-800">
               <div className="text-2xl mb-2">⚔️</div>
-              <h3 className="font-bold text-sm mb-1">{t(pack.labelKey)}</h3>
+              <h3 className="font-bold text-sm mb-1">{t(pack.labelKey as TranslationKey)}</h3>
               <div className="text-emerald-400 font-mono text-xs mb-3">
                 {t('armory_power', { power: pack.power })}
               </div>
