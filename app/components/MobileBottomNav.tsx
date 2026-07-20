@@ -43,13 +43,29 @@ export default function MobileBottomNav() {
     { href: '/crimes', icon: '🔫', label: t('nav_crimes') },
     { href: '/messages', icon: '✉️', label: t('pi_messages'), badge: unread },
     { href: '/bank', icon: '🏦', label: t('menu_bank') },
-    { href: '/transactions', icon: '📜', label: t('menu_transactions') },
+    { href: '#', icon: '⋯', label: t('nav_more'), action: 'more' },
   ];
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-zinc-950/95 backdrop-blur-lg border-t border-zinc-800 pb-safe">
       <div className="flex items-center justify-around h-16">
-        {items.map(({ href, icon, label, badge }) => {
+        {items.map(({ href, icon, label, badge, action }) => {
+          if (action === 'more') {
+            return (
+              <button
+                key={href}
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent('open-mobile-nav'));
+                }}
+                className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-all relative text-zinc-500 hover:text-zinc-300"
+              >
+                <span className="text-xl relative">{icon}</span>
+                <span className="text-[10px] font-medium truncate w-full text-center">{label}</span>
+              </button>
+            );
+          }
+
           const active = pathname === href || pathname.startsWith(href + '/');
           return (
             <Link

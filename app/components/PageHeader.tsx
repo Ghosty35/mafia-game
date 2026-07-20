@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
 
 type PageHeaderProps = {
   title: string;
@@ -11,6 +12,8 @@ type PageHeaderProps = {
   children?: ReactNode;
   className?: string;
   variant?: 'default' | 'danger' | 'premium' | 'weed' | 'cocaine' | 'meth' | 'property';
+  backHref?: string;
+  backLabel?: string;
 };
 
 const variantStyles: Record<NonNullable<PageHeaderProps['variant']>, { border: string; bg: string; title: string; icon: string }> = {
@@ -67,8 +70,19 @@ export default function PageHeader({
   children,
   className = '',
   variant = 'default',
+  backHref,
+  backLabel = '← Back',
 }: PageHeaderProps) {
   const style = variantStyles[variant];
+  const router = useRouter();
+
+  const handleBack = () => {
+    if (backHref) {
+      router.push(backHref);
+    } else {
+      router.back();
+    }
+  };
 
   return (
     <div className={`relative overflow-hidden rounded-2xl border ${style.border} ${style.bg} ${className}`}>
@@ -88,17 +102,22 @@ export default function PageHeader({
         }}
       />
       <div className="relative px-5 py-5 sm:px-6 sm:py-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2.5">
-              {icon && <span className={`text-xl sm:text-2xl ${style.icon}`}>{icon}</span>}
-              <h1 className={`text-xl sm:text-2xl font-bold tracking-tight ${style.title}`}>{title}</h1>
-              {badge}
-            </div>
-            {subtitle && <p className="mt-1 text-sm text-zinc-400">{subtitle}</p>}
-          </div>
-          {actions && <div className="flex shrink-0 gap-2">{actions}</div>}
+        <div className="flex items-center gap-2.5 mb-2">
+          {backHref && (
+            <button
+              type="button"
+              onClick={handleBack}
+              className="shrink-0 text-xs text-zinc-400 hover:text-white bg-zinc-800/60 hover:bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-1.5 transition-colors"
+            >
+              {backLabel}
+            </button>
+          )}
+          {icon && <span className={`text-xl sm:text-2xl ${style.icon}`}>{icon}</span>}
+          <h1 className={`text-xl sm:text-2xl font-bold tracking-tight ${style.title}`}>{title}</h1>
+          {badge}
         </div>
+        {subtitle && <p className="mt-1 text-sm text-zinc-400">{subtitle}</p>}
+        {actions && <div className="flex shrink-0 gap-2 mt-3">{actions}</div>}
         {children && <div className="mt-4">{children}</div>}
       </div>
     </div>

@@ -17,7 +17,7 @@ export default function Sidebar() {
   const search = searchParams.toString();
 
   return (
-    <aside className="w-64 bg-zinc-950 border-r border-zinc-800 h-[calc(100vh-56px)] overflow-y-auto sticky top-14 hidden lg:block">
+    <aside className="w-64 bg-zinc-950 border-r border-zinc-800 h-[calc(100vh-56px)] overflow-y-auto sticky top-14 hidden md:block">
       <div className="p-4">
         {categories.map((category) => (
           <div key={category.titleKey} className="mb-6">
