@@ -14,10 +14,12 @@ export default function PWAInstallBanner() {
     const dismissed = sessionStorage.getItem('pwa-banner-dismissed');
     if (dismissed) return;
 
-    const deferredPrompt = window.deferredPWAInstall;
-    if (deferredPrompt) {
-      setTimeout(() => setShowBanner(true), 3000);
-    }
+    // Show banner after 5 seconds on all devices
+    const timer = setTimeout(() => {
+      setShowBanner(true);
+    }, 5000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const handleDismiss = () => {
@@ -73,6 +75,11 @@ export default function PWAInstallBanner() {
           >
             Not now
           </button>
+        </div>
+      )}
+      {isIOS && (
+        <div className="mt-3 text-[10px] text-zinc-500">
+          Look for the share icon in your browser toolbar
         </div>
       )}
     </div>

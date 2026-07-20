@@ -187,7 +187,7 @@ export default function BankClient({ initialPlayer }: { initialPlayer: Player | 
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
+            className={`flex-1 px-3 sm:px-4 py-3 rounded-lg text-xs sm:text-sm font-bold uppercase tracking-wider transition-all ${
               activeTab === tab
                 ? tabColors[tab].active + ' border'
                 : tabColors[tab].inactive + ' border border-transparent'
@@ -197,7 +197,7 @@ export default function BankClient({ initialPlayer }: { initialPlayer: Player | 
             {tab === 'bank' && '🏦 '}
             {tab === 'assets' && '📈 '}
             {tab === 'gov' && '🏛️ '}
-            {tab}
+            {tabLabels[tab]}
           </button>
         ))}
       </div>

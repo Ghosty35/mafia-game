@@ -128,13 +128,18 @@ export default function MarketplacePage() {
     setError(t(hit ? map[hit] : 'mk_err_generic'));
   };
 
-  const run = async (fn: string, args: Record<string, unknown>, okMsg: string) => {
+  const run = async <T extends Record<string, unknown>>(fn: string, args: Record<string, unknown>, okMsg: string | ((d: T) => string)) => {
     setBusy(true);
     setError('');
     setMessage('');
     const { error: err } = await supabase.rpc(fn, args);
     setBusy(false);
     if (err) return fail(err.message || '');
+    if (typeof okMsg === 'function') {
+      setMessage(okMsg({} as T));
+    } else {
+      setMessage(okMsg);
+    }
     setMessage(okMsg);
     await refreshPlayer();
     await router.refresh();
