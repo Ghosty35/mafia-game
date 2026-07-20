@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import type { Player } from '@/lib/types';
 import UsernamePrompt from './UsernamePrompt';
+import WelcomeModal from './WelcomeModal';
 import LiveLogs from '../components/LiveLogs';
 import HeatManager from '../components/HeatManager';
 import MostWantedBoard from '../components/MostWantedBoard';
@@ -109,6 +110,7 @@ export default function DashboardClient({
   return (
     <div className="space-y-10">
       {!player.username && <UsernamePrompt onClaimed={setPlayer} />}
+      {player.username && <WelcomeModal />}
 
       {/* Front Page - live server stats + clocks */}
       <div className="bg-zinc-900 border border-amber-900/40 rounded-xl p-6 relative overflow-hidden">
