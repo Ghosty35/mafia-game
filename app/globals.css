@@ -56,9 +56,9 @@ aside {
   }
 }
 
-/* Smooth scrolling for mobile */
+/* Smooth scrolling for mobile - disabled on html to avoid Next.js route transition issues */
+/* Use data-scroll-behavior="smooth" on <html> instead */
 html {
-  scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
 }
 
