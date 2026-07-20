@@ -78,7 +78,7 @@ export default function RealEstatePage() {
           </Link>
         </div>
         <div className="text-xs text-zinc-400">
-          You own <span className="text-amber-400 font-bold">{owned.length}</span> / 5 properties
+          You own <span className="text-amber-400 font-bold">{owned.length}</span> / 11 properties
         </div>
       </div>
 

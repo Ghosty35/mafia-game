@@ -77,11 +77,13 @@ export default function JailPage() {
     const supabase = createClient();
     const { data, error } = await supabase.rpc('attempt_breakout');
     if (error) {
-      setMessage(
-        error.message.includes('NOT_IN_JAIL')
-          ? t('jail_not_in_jail')
-          : error.message || t('jail_breakout_error'),
-      );
+      if (error.message.includes('BREAKOUT_COOLDOWN')) {
+        setMessage(t('jail_breakout_cooldown', { minutes: 1 }));
+      } else if (error.message.includes('NOT_ENOUGH_CASH')) {
+        setMessage(t('jail_train_no_cash'));
+      } else {
+        setMessage(error.message || t('jail_breakout_error'));
+      }
       return;
     }
     if (refreshPlayer) await refreshPlayer();
@@ -89,7 +91,7 @@ export default function JailPage() {
     setMessage(
       data?.success
         ? t('jail_breakout_success')
-        : t('jail_breakout_failed', { minutes: data?.added_minutes || 5 }),
+        : t('jail_breakout_failed', { chance: data?.chance ?? 0 }),
     );
   };
 
@@ -140,12 +142,19 @@ export default function JailPage() {
         <div>
           {t('jail_skill')}: {breakoutSkill}%
         </div>
-        <button onClick={trainBreakout} className="mt-2 px-4 py-1 bg-blue-700 rounded text-sm">
+        <button
+          onClick={trainBreakout}
+          disabled={breakoutSkill >= 100}
+          className="mt-2 px-4 py-1 bg-blue-700 rounded text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+        >
           {t('jail_train_button', { cost: formatCash(500, language) })}
         </button>
+        {breakoutSkill >= 100 && (
+          <p className="text-xs text-zinc-500 mt-1">Max skill reached</p>
+        )}
         {player?.jailed_until && (
           <button onClick={attemptBreakout} className="ml-2 px-4 py-1 bg-red-700 rounded text-sm">
-            {t('jail_attempt_breakout')}
+            {t('jail_attempt_breakout', { cost: formatCash(2000, language) })}
           </button>
         )}
       </div>

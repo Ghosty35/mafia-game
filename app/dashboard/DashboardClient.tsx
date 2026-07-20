@@ -213,7 +213,7 @@ export default function DashboardClient({
             <div className="text-[10px] uppercase tracking-[3px] text-zinc-500 mb-3">Status</div>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between"><span className="text-zinc-400">City</span><span className="font-mono text-white">{player.current_city ?? 'New York'}</span></div>
-              <div className="flex justify-between"><span className="text-zinc-400">Properties</span><span className="font-mono text-amber-400">{(player.owned_properties || []).length}/4</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">Properties</span><span className="font-mono text-amber-400">{(player.owned_properties || []).length}{(player as any)?.staff_role ? '' : '/11'}</span></div>
               <div className="flex justify-between"><span className="text-zinc-400">Rank</span><span className="font-mono text-red-400">{player.money_rank ?? 'Hobo'}</span></div>
               <div className="flex justify-between"><span className="text-zinc-400">Diamonds</span><span className="font-mono text-amber-300">💎 {player.diamonds ?? 0}</span></div>
             </div>

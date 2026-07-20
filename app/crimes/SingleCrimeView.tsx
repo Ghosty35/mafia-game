@@ -61,7 +61,8 @@ export default function SingleCrimeView({ crimeKey }: { crimeKey: string }) {
   const coolingDown = secondsLeft > 0;
   const locked = player.level < crime.min_level;
   const inJail = player.jailed_until && new Date(player.jailed_until).getTime() > now;
-  const disabled = locked || coolingDown || inJail || busy;
+  const lowHealth = (player.health ?? 100) < 25;
+  const disabled = locked || coolingDown || inJail || lowHealth || busy;
   let effectiveCooldown = Math.round(crime.cooldown_seconds * (1 - Math.min(player.rebirths * 0.1, 0.5)));
   if (player.is_donator) effectiveCooldown = Math.round(effectiveCooldown * 0.8); // 20% global cooldown reduction for donators
 
@@ -80,7 +81,9 @@ export default function SingleCrimeView({ crimeKey }: { crimeKey: string }) {
 
     if (error) {
       let text = error.message || t('error_generic');
-      if (error.message.includes('ON_COOLDOWN')) text = t('error_on_cooldown');
+      if (error.message.includes('HEALTH_TOO_LOW')) text = t('error_health_too_low');
+      else if (error.message.includes('DEAD')) text = t('error_dead');
+      else if (error.message.includes('ON_COOLDOWN')) text = t('error_on_cooldown');
       else if (error.message.includes('IN_JAIL')) text = t('error_in_jail');
       else if (error.message.includes('LEVEL_TOO_LOW')) text = t('error_level_too_low');
       else if (error.message.includes('NOT_ENOUGH_STAMINA')) text = t('error_no_stamina');
@@ -203,6 +206,7 @@ export default function SingleCrimeView({ crimeKey }: { crimeKey: string }) {
         {coolingDown && <div className="mt-2 text-xs text-zinc-500">Cooldown: {formatSeconds(secondsLeft)} left ({cooldownPercent}%)</div>}
 
         {inJail &&<p className="mt-2 text-sm text-orange-300">🚔 In jail: {formatSeconds(Math.max(0, Math.ceil((new Date(player.jailed_until!).getTime() - now) / 1000)))}</p>}
+        {lowHealth && <p className="mt-2 text-sm text-red-300">⚠️ Health too low! Fill up your health before committing crimes.</p>}
       </div>
     </div>
   );

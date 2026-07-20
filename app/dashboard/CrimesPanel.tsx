@@ -17,6 +17,7 @@ export default function CrimesPanel({
   crimes,
   player,
   inJail,
+  lowHealth,
   nowMs,
   cooldowns,
   onCooldownUpdate,
@@ -26,6 +27,7 @@ export default function CrimesPanel({
   crimes: Crime[];
   player: Player;
   inJail: boolean;
+  lowHealth: boolean;
   nowMs: number;
   cooldowns: Record<string, number>;
   onCooldownUpdate: (crimeKey: string, availableAtMs: number) => void;
@@ -54,7 +56,11 @@ export default function CrimesPanel({
 
     if (error) {
       let text = t('error_generic');
-      if (error.message.includes('ON_COOLDOWN')) {
+      if (error.message.includes('HEALTH_TOO_LOW')) {
+        text = t('error_health_too_low');
+      } else if (error.message.includes('DEAD')) {
+        text = t('error_dead');
+      } else if (error.message.includes('ON_COOLDOWN')) {
         text = t('error_on_cooldown');
       } else if (error.message.includes('IN_JAIL')) {
         text = t('error_in_jail');
@@ -89,7 +95,7 @@ export default function CrimesPanel({
     const resExtra = res as unknown as { murder_skill_gained?: number; health_lost?: number; event?: { key: string; amount?: number; heat_delta?: number } | null };
 
     if (resExtra.murder_skill_gained) {
-      baseText += ` • +${resExtra.murder_skill_gained} KillSkill`;
+      baseText += ` • +${(resExtra.murder_skill_gained * 5).toFixed(1)}% Murder Skill`;
     }
     if (resExtra.health_lost) {
       baseText += ` • -${resExtra.health_lost} Health`;
@@ -147,7 +153,7 @@ export default function CrimesPanel({
           const availableAt = cooldowns[crime.key] ?? 0;
           const secondsLeft = Math.max(0, Math.ceil((availableAt - nowMs) / 1000));
           const coolingDown = secondsLeft > 0;
-          const disabled = locked || coolingDown || inJail || busy !== null;
+          const disabled = locked || coolingDown || inJail || lowHealth || busy !== null;
           const effectiveCooldown = Math.round(
             crime.cooldown_seconds * cooldownMult
           );

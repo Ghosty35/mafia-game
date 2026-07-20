@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import LanguageSwitcher from '../components/LanguageSwitcher';
 import type { LeaderboardEntry } from '@/lib/types';
+import { formatCash } from '@/lib/format';
 
 type ServerStats = {
   online_now: number;
@@ -18,7 +19,7 @@ type ServerStats = {
 };
 
 export default function LoginPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -271,7 +272,11 @@ export default function LoginPage() {
                         <span className="text-red-500 font-mono font-bold text-[10px] w-4">#{i + 1}</span>
                         <span className="text-zinc-300 truncate">{p.username}</span>
                       </div>
-                      <span className="text-zinc-500 font-mono text-[10px]">Lvl {p.level}</span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {p.family_tag && <span className="text-[10px] text-amber-400">{p.family_tag}</span>}
+                        <span className="text-zinc-500 font-mono text-[10px]">Lvl {p.level}</span>
+                        <span className="text-zinc-500 font-mono text-[10px]">{formatCash(p.cash, language)}</span>
+                      </div>
                     </div>
                   ))}
                 </div>

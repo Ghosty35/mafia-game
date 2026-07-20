@@ -112,7 +112,13 @@ export default function CityRealEstatePage() {
       const m = error.message || '';
       if (m.includes('NOT_ENOUGH_CASH')) showToast(t('re_no_cash_tax'));
       else if (m.includes('PROPERTY_LIMIT_REACHED')) showToast(t('re_total_limit'));
-      else if (m.includes('ALREADY_OWN_THIS_TYPE')) showToast(t('re_already_own'));
+      else if (m.includes('ALREADY_OWNED') || m.includes('ALREADY_OWN_THIS_TYPE')) showToast(t('re_already_own'));
+      else if (m.includes('MAX_MANSION')) showToast(t('re_max_mansion'));
+      else if (m.includes('MAX_VILLAS')) showToast(t('re_max_villas'));
+      else if (m.includes('MAX_HOUSES')) showToast(t('re_max_houses'));
+      else if (m.includes('MAX_PENTHOUSES')) showToast(t('re_max_penthouses'));
+      else if (m.includes('MAX_YACHTS')) showToast(t('re_max_yachts'));
+      else if (m.includes('PROPERTY_TYPE_LOCKED')) showToast(t('re_type_locked'));
       else if (m.includes('WRONG_CITY')) showToast(t('re_city_only', { city: prop.city }));
       else showToast(m || t('re_purchase_failed'));
       return;
@@ -147,26 +153,30 @@ export default function CityRealEstatePage() {
 
   const owned: OwnedProperty[] = player?.owned_properties || [];
   const ownedIds = new Set(owned.map((p) => p?.catalog_id || p?.id));
-  const isAtTotalCap = owned.length >= 5;
+  const isAtTotalCap = owned.length >= 11;
   const isPtypeMaxed = (ptype: string) => {
     const target = ptype.toLowerCase();
     const count = owned.filter((p) => (p?.ptype || p?.name || '').toLowerCase() === target).length;
-    if (target === 'mansion') return count >= 1;
-    if (target === 'villa') return count >= 1;
-    if (target === 'house') return count >= 1;
+    if (target === 'mansion') return count >= 2;
+    if (target === 'villa') return count >= 3;
+    if (target === 'house') return count >= 4;
     if (target === 'penthouse') return count >= 1;
     if (target === 'yacht') return count >= 1;
     return false;
+  };
+  const isAdmin = (player as any)?.staff_role ? ['ceo','admin','jr_admin','game_mod','support'].includes((player as any).staff_role) : false;
+  const isAgency = (ptype: string) => {
+    const p = ptype.toLowerCase();
+    return ['agency','airport','casino','tuneshop','redlight'].includes(p);
   };
 
   if (!player) return <div className="p-6 text-zinc-400">{t('loading')}</div>;
 
   const categoryOf = (ptype: string) => {
     const p = ptype.toLowerCase();
-    if (p === 'house' || p === 'villa' || p === 'mansion' || p === 'penthouse') return 'residential';
+    if (p === 'house' || p === 'villa' || p === 'mansion' || p === 'penthouse' || p === 'yacht') return 'residential';
     if (p === 'agency' || p === 'airport' || p === 'casino' || p === 'tuneshop' || p === 'redlight')
       return 'business';
-    if (p === 'yacht') return 'luxury';
     return 'other';
   };
 
@@ -255,26 +265,30 @@ export default function CityRealEstatePage() {
 
                       <button
                         onClick={() => isOwned ? sellProperty(prop) : buyProperty(prop)}
-                        disabled={busy || (isOwned ? false : (blocked || cantAfford))}
+                        disabled={busy || (isOwned ? false : (blocked || cantAfford)) || (!isAdmin && isAgency(prop.ptype))}
                         className={`w-full py-2 rounded-lg text-xs font-semibold transition-all ${
                           isOwned
                             ? 'bg-zinc-700 hover:bg-zinc-600 text-zinc-200'
-                            : blocked
+                            : !isAdmin && isAgency(prop.ptype)
                               ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
-                              : cantAfford
+                              : blocked
                                 ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
-                                : 'bg-red-700 hover:bg-red-600 text-white'
+                                : cantAfford
+                                  ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                                  : 'bg-red-700 hover:bg-red-600 text-white'
                         }`}
                       >
                         {isOwned
                           ? t('common_sell')
-                          : isAtTotalCap
-                            ? t('re_total_limit')
-                            : isPtypeMaxed(prop.ptype)
-                              ? 'MAX ' + prop.ptype.toUpperCase()
-                              : cantAfford
-                                ? t('re_no_cash_tax')
-                                : t('re_buy_button', { name: prop.name })}
+                          : !isAdmin && isAgency(prop.ptype)
+                            ? t('re_marketplace_only')
+                            : isAtTotalCap
+                              ? t('re_total_limit')
+                              : isPtypeMaxed(prop.ptype)
+                                ? 'MAX ' + prop.ptype.toUpperCase()
+                                : cantAfford
+                                  ? t('re_no_cash_tax')
+                                  : t('re_buy_button', { name: prop.name })}
                       </button>
                     </div>
                   );
