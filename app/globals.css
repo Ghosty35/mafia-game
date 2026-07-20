@@ -314,4 +314,112 @@ aside::-webkit-scrollbar-thumb:hover {
   .text-2xl {
     font-size: 1.25rem;
   }
+
+  /* Prevent iOS zoom on input focus */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  /* Hide scrollbar on mobile for cleaner look */
+  ::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+  }
+
+  /* Improve touch scrolling */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Better text rendering on mobile */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Prevent text selection on UI elements */
+  nav, .card, button, .no-select {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Allow text selection in content areas */
+  main, .content {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+}
+
+/* Mobile loading skeleton */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #27272a 25%, #3f3f46 50%, #27272a 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 0.5rem;
+}
+
+/* Mobile bottom nav active indicator */
+@media (max-width: 1023px) {
+  .mobile-nav-active {
+    position: relative;
+  }
+  .mobile-nav-active::after {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 3px;
+    background: #f59e0b;
+    border-radius: 999px;
+  }
+}
+
+/* Improve form inputs on mobile */
+@media (max-width: 1023px) {
+  input, textarea, select {
+    border-radius: 12px !important;
+    padding: 14px 16px !important;
+    font-size: 16px !important; /* Prevents iOS zoom */
+    border-width: 2px !important;
+  }
+
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: #b91c1c !important;
+    box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.2) !important;
+  }
+}
+
+/* Mobile-friendly card spacing */
+@media (max-width: 1023px) {
+  .space-y-4 > * + * {
+    margin-top: 0.75rem;
+  }
+  .space-y-6 > * + * {
+    margin-top: 1rem;
+  }
+  .gap-4 {
+    gap: 0.75rem;
+  }
+  .p-4 {
+    padding: 1rem;
+  }
+  .p-6 {
+    padding: 1.25rem;
+  }
+  .p-8 {
+    padding: 1.5rem;
+  }
 }

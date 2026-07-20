@@ -85,7 +85,7 @@ export default function LoginPage() {
     'w-full bg-zinc-950 border border-zinc-700 focus:border-red-700 rounded-xl px-4 py-3.5 text-white placeholder:text-zinc-500 focus:outline-none focus:ring-1 focus:ring-red-900/60 transition';
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4 py-12 bg-zinc-950 relative overflow-hidden">
+    <main className="min-h-screen flex items-center justify-center px-4 py-8 bg-zinc-950 relative overflow-hidden">
       <div className="fixed top-4 right-4 z-50">
         <LanguageSwitcher />
       </div>
@@ -113,12 +113,12 @@ export default function LoginPage() {
         }}
       />
 
-      <div className="relative z-10 w-full max-w-[1400px] mx-auto">
+      <div className="relative z-10 w-full max-w-[1400px] mx-auto px-4">
         <div className="flex flex-col xl:flex-row items-center justify-center gap-8">
           {/* ===== LEFT: Branding + Updates ===== */}
-          <div className="flex-1 max-w-md text-center lg:text-left">
-            <Link href="/" className="inline-block mb-8">
-              <div className="text-6xl font-black tracking-[-3px] leading-none">
+          <div className="flex-1 max-w-md text-center lg:text-left w-full">
+            <Link href="/" className="inline-block mb-6 lg:mb-8">
+              <div className="text-5xl lg:text-6xl font-black tracking-[-3px] leading-none">
                 <span className="text-red-600">HUSTLER&apos;S</span>
                 <br />
                 <span className="text-white">WAY</span>
@@ -126,12 +126,12 @@ export default function LoginPage() {
               <div className="text-red-500/80 text-sm tracking-[4px] mt-1 font-semibold">{t('auth_est')}</div>
             </Link>
 
-            <div className="text-2xl font-semibold text-white mb-3 tracking-tight">
+            <div className="text-xl lg:text-2xl font-semibold text-white mb-3 tracking-tight">
               {t('auth_hero_login_1')}
               <br />
               {t('auth_hero_login_2')}
             </div>
-            <p className="text-zinc-400 max-w-xs mx-auto lg:mx-0 mb-8">{t('auth_hero_login_sub')}</p>
+            <p className="text-zinc-400 max-w-xs mx-auto lg:mx-0 mb-6 lg:mb-8 text-sm lg:text-base">{t('auth_hero_login_sub')}</p>
 
             <div className="hidden lg:block bg-zinc-900/60 border border-zinc-800 rounded-2xl p-5 text-left backdrop-blur">
               <div className="uppercase text-[10px] tracking-[2px] text-red-500 font-bold mb-3">{t('auth_updates_title')}</div>
@@ -148,9 +148,9 @@ export default function LoginPage() {
 
           {/* ===== MIDDLE: Login Form ===== */}
           <div className="w-full max-w-md">
-            <div className="bg-zinc-900/95 border border-zinc-800 rounded-3xl p-8 shadow-2xl shadow-black/60 backdrop-blur-xl">
+            <div className="bg-zinc-900/95 border border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-black/60 backdrop-blur-xl">
               <div className="mb-6">
-                <h1 className="text-3xl font-bold tracking-tight">{t('signin_title')}</h1>
+                <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">{t('signin_title')}</h1>
                 <p className="text-zinc-400 text-sm mt-1">{t('auth_welcome_back')}</p>
               </div>
 
@@ -167,6 +167,7 @@ export default function LoginPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     className={inputBase}
                     placeholder="you@crimefamily.com"
+                    autoComplete="email"
                   />
                 </div>
 
@@ -182,6 +183,7 @@ export default function LoginPage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className={`${inputBase} pr-12`}
+                      autoComplete="current-password"
                     />
                     <button
                       type="button"
@@ -225,7 +227,7 @@ export default function LoginPage() {
           </div>
 
           {/* ===== RIGHT: Leaderboard + Server Info + Discord ===== */}
-          <div className="w-full max-w-sm space-y-4">
+          <div className="w-full max-w-sm space-y-4 hidden xl:block">
             {/* Server Stats */}
             <div className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-5 backdrop-blur">
               <div className="uppercase text-[10px] tracking-[2px] text-red-500 font-bold mb-3">SERVER STATUS</div>
@@ -285,7 +287,7 @@ export default function LoginPage() {
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M20.317 4.37a19.79 19.79 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.74 19.74 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.1 13.1 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.3 12.3 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.84 19.84 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.947 2.418-2.157 2.418z" />
               </svg>
-              {t('auth_discord_button') || 'Join Discord'}
+              Join Discord
             </a>
           </div>
         </div>

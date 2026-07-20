@@ -4,6 +4,8 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import InstallPrompt from "./components/InstallPrompt";
 import ServiceWorkerRegistrar from "./components/ServiceWorkerRegistrar";
 import PWAInstallBanner from "./components/PWAInstallBanner";
+import MobileSplash from "./components/MobileSplash";
+import OfflineIndicator from "./components/OfflineIndicator";
 import "./globals.css";
 import { LanguageProvider } from "@/lib/i18n/LanguageContext";
 
@@ -55,8 +57,10 @@ export default function RootLayout({
         <ErrorBoundary>
           <LanguageProvider>{children}</LanguageProvider>
         </ErrorBoundary>
+        <OfflineIndicator />
         <InstallPrompt />
         <PWAInstallBanner />
+        <MobileSplash />
         <ServiceWorkerRegistrar />
       </body>
     </html>
