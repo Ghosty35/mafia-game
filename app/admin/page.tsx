@@ -456,144 +456,158 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Economy + Tax + Pools */}
+        {/* Economy Overview */}
         <div className="card p-5 lg:col-span-2">
-          <h2 className="font-bold mb-2">{t('admin_economy_title')}</h2>
-          <div className="grid grid-cols-2 gap-x-6 text-sm">
-            <div>
-              <div>{t('admin_money_circ')} <span className="font-mono text-emerald-400">{fm(economy?.total_money_circulation || 0)}</span></div>
-              <div>{t('admin_players_families', { players: economy?.people_registered || '?', families: economy?.total_families || '?' })}</div>
-              <div>{t('admin_online_week', { online: economy?.online_people || '?', week: economy?.logged_in_this_week || '?' })}</div>
+          <h2 className="font-bold mb-3">{t('admin_economy_title')}</h2>
+          <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+            <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-3">
+              <div className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1">{t('admin_money_circ')}</div>
+              <div className="font-mono text-lg text-emerald-400">{fm(economy?.total_money_circulation || 0)}</div>
             </div>
-            <div>
-              {pools && <div>{t('admin_pools_line', { bj: fm(pools.blackjack||0), rou: fm(pools.roulette||0) })}</div>}
-              <div className="text-xs text-zinc-400 mt-1">{t('admin_tax_note')}</div>
+            <div className="bg-zinc-950 border border-zinc-800 rounded-lg p-3">
+              <div className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1">{t('admin_players_families', { players: economy?.people_registered || '?', families: economy?.total_families || '?' })}</div>
+              <div className="text-xs text-zinc-400 mt-1">{t('admin_online_week', { online: economy?.online_people || '?', week: economy?.logged_in_this_week || '?' })}</div>
             </div>
           </div>
 
-          {/* Tax Controls - working */}
-          <div className="mt-4 pt-3 border-t border-zinc-800">
-            <div className="font-semibold mb-1">{t('admin_tax_title')}</div>
-            <div className="flex gap-3 items-center text-sm">
-              <div>{t('admin_tax_property')} <input id="propTax" type="number" defaultValue={10} className="w-14 bg-zinc-900 px-1 border" />%</div>
-              <button onClick={adjustTaxUI} className="px-3 py-0.5 bg-yellow-700 text-xs rounded">{t('admin_tax_apply')}</button>
+          {pools && (
+            <div className="text-xs text-zinc-400 bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2">
+              {t('admin_pools_line', { bj: fm(pools.blackjack||0), rou: fm(pools.roulette||0) })}
             </div>
+          )}
+        </div>
+
+        {/* Tax Controls */}
+        <div className="card p-5 lg:col-span-1">
+          <h2 className="font-bold mb-3">💰 {t('admin_tax_title')}</h2>
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-zinc-400">{t('admin_tax_property')}</span>
+              <input id="propTax" type="number" defaultValue={10} className="w-16 bg-zinc-900 px-2 py-1 border rounded text-xs text-right" />
+              <span className="text-xs text-zinc-500">%</span>
+            </div>
+            <button onClick={adjustTaxUI} className="w-full px-3 py-1.5 bg-yellow-700 hover:bg-yellow-600 rounded text-xs font-semibold">{t('admin_tax_apply')}</button>
             <div className="text-[10px] text-zinc-500">{t('admin_tax_footer')}</div>
           </div>
+        </div>
 
-          {/* Gov Tax Bank - Admin managed */}
-          <div className="mt-4 pt-3 border-t border-zinc-800">
-            <div className="flex items-center justify-between mb-1">
-              <div className="font-semibold">🏛️ Gov Tax Bank</div>
-              <div className="text-sm font-mono text-amber-400">{govTax !== null ? fm(govTax) : '—'}</div>
-            </div>
-            <div className="flex gap-2 items-center text-sm flex-wrap">
-              <input id="govAmt" type="number" defaultValue={50000} className="bg-zinc-900 px-2 py-1 border w-28" />
-              <button onClick={() => govDeposit(parseInt((document.getElementById('govAmt') as HTMLInputElement).value))} className="px-3 py-1 bg-emerald-700 hover:bg-emerald-600 rounded text-xs">{t('admin_gov_deposit')}</button>
-              <button onClick={() => govWithdraw(parseInt((document.getElementById('govAmt') as HTMLInputElement).value))} className="px-3 py-1 bg-red-700 hover:bg-red-600 rounded text-xs">{t('admin_gov_withdraw')}</button>
-              <Link href="/reputations/tax-bank" className="px-3 py-1 bg-zinc-800 hover:bg-zinc-700 rounded text-xs">{t('menu_tax_bank')} →</Link>
-            </div>
-            <div className="text-[10px] text-zinc-500 mt-1">{t('admin_gov_footer')}</div>
+        {/* Gov Tax Bank */}
+        <div className="card p-5 lg:col-span-1">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-bold">🏛️ Gov Tax Bank</h2>
+            <div className="text-sm font-mono text-amber-400">{govTax !== null ? fm(govTax) : '—'}</div>
           </div>
-
-          {/* Lottery Pool - Admin managed (mirrors Gov Tax Bank) */}
-          <div className="mt-4 pt-3 border-t border-zinc-800">
-            <div className="flex items-center justify-between mb-1">
-              <div className="font-semibold">🎟️ Lottery Pool</div>
-              <div className="text-sm font-mono text-amber-400">{lotteryPool !== null ? fm(lotteryPool) : '—'}</div>
+          <div className="space-y-2">
+            <input id="govAmt" type="number" defaultValue={50000} className="w-full bg-zinc-900 px-2 py-1 border rounded text-xs" placeholder="Amount" />
+            <div className="flex gap-2">
+              <button onClick={() => govDeposit(parseInt((document.getElementById('govAmt') as HTMLInputElement).value))} className="flex-1 px-2 py-1.5 bg-emerald-700 hover:bg-emerald-600 rounded text-xs">{t('admin_gov_deposit')}</button>
+              <button onClick={() => govWithdraw(parseInt((document.getElementById('govAmt') as HTMLInputElement).value))} className="flex-1 px-2 py-1.5 bg-red-700 hover:bg-red-600 rounded text-xs">{t('admin_gov_withdraw')}</button>
             </div>
-            {nextDraw && (
-              <div className="text-[10px] text-zinc-400 mb-1">Next draw: {new Date(nextDraw).toLocaleString()}</div>
-            )}
-            <div className="flex gap-2 items-center text-sm flex-wrap">
-              <input id="lotAmt" type="number" defaultValue={50000} className="bg-zinc-900 px-2 py-1 border w-28" />
-              <button onClick={() => lotDeposit(parseInt((document.getElementById('lotAmt') as HTMLInputElement).value))} className="px-3 py-1 bg-emerald-700 hover:bg-emerald-600 rounded text-xs">{t('admin_lot_deposit')}</button>
-              <button onClick={() => lotWithdraw(parseInt((document.getElementById('lotAmt') as HTMLInputElement).value))} className="px-3 py-1 bg-red-700 hover:bg-red-600 rounded text-xs">{t('admin_lot_withdraw')}</button>
-              <button onClick={lotDraw} className="px-3 py-1 bg-yellow-700 hover:bg-yellow-600 rounded text-xs">{t('admin_lot_draw')}</button>
+            <Link href="/reputations/tax-bank" className="block text-center text-xs text-zinc-400 hover:text-zinc-300">{t('menu_tax_bank')} →</Link>
+            <div className="text-[10px] text-zinc-500">{t('admin_gov_footer')}</div>
+          </div>
+        </div>
+
+        {/* Lottery Pool */}
+        <div className="card p-5 lg:col-span-1">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-bold">🎟️ {t('admin_lot_title', { default: 'Lottery Pool' })}</h2>
+            <div className="text-sm font-mono text-amber-400">{lotteryPool !== null ? fm(lotteryPool) : '—'}</div>
+          </div>
+          {nextDraw && (
+            <div className="text-[10px] text-zinc-400 mb-2">Next draw: {new Date(nextDraw).toLocaleString()}</div>
+          )}
+          <div className="space-y-2">
+            <input id="lotAmt" type="number" defaultValue={50000} className="w-full bg-zinc-900 px-2 py-1 border rounded text-xs" placeholder="Amount" />
+            <div className="flex gap-2">
+              <button onClick={() => lotDeposit(parseInt((document.getElementById('lotAmt') as HTMLInputElement).value))} className="flex-1 px-2 py-1.5 bg-emerald-700 hover:bg-emerald-600 rounded text-xs">{t('admin_lot_deposit')}</button>
+              <button onClick={() => lotWithdraw(parseInt((document.getElementById('lotAmt') as HTMLInputElement).value))} className="flex-1 px-2 py-1.5 bg-red-700 hover:bg-red-600 rounded text-xs">{t('admin_lot_withdraw')}</button>
+            </div>
+            <button onClick={lotDraw} className="w-full px-2 py-1.5 bg-yellow-700 hover:bg-yellow-600 rounded text-xs font-semibold">{t('admin_lot_draw')}</button>
+            <div className="flex gap-2 items-center">
+              <input id="lotSchedule" type="datetime-local" className="flex-1 bg-zinc-900 px-2 py-1 border rounded text-[10px]" />
               <button onClick={() => {
                 const dt = (document.getElementById('lotSchedule') as HTMLInputElement).value;
                 if (!dt) return;
                 supabase.rpc('admin_set_lottery_schedule', { next_draw: new Date(dt).toISOString() }).then(() => fetchEconomy());
-              }} className="px-3 py-1 bg-blue-700 hover:bg-blue-600 rounded text-xs">Set Schedule</button>
-              <input id="lotSchedule" type="datetime-local" className="bg-zinc-900 px-2 py-1 border text-xs" />
-              <Link href="/casino/lottery" className="px-3 py-1 bg-zinc-800 hover:bg-zinc-700 rounded text-xs">Lottery Page →</Link>
+              }} className="px-2 py-1.5 bg-blue-700 hover:bg-blue-600 rounded text-[10px]">Set</button>
             </div>
-            <div className="text-[10px] text-zinc-500 mt-1">{t('admin_lot_footer')}</div>
+            <Link href="/casino/lottery" className="block text-center text-xs text-zinc-400 hover:text-zinc-300">Lottery Page →</Link>
+            <div className="text-[10px] text-zinc-500">{t('admin_lot_footer')}</div>
           </div>
+        </div>
 
-          {/* All Banks Overview submenu */}
-          <div className="mt-4 pt-3 border-t border-zinc-800">
-            <div className="font-semibold mb-1">🏦 {t('admin_banks_title')}</div>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
-              <div className="flex justify-between"><span className="text-zinc-400">{t('admin_banks_personal')}</span><span className="font-mono text-blue-400">{banks ? fm(banks.personal_bank_total) : '—'}</span></div>
-              <div className="flex justify-between"><span className="text-zinc-400">{t('admin_banks_family')}</span><span className="font-mono text-amber-400">{banks ? fm(banks.family_bank_total) : '—'}</span></div>
-              <div className="flex justify-between"><span className="text-zinc-400">{t('admin_banks_family_pending')}</span><span className="font-mono text-orange-400">{banks ? fm(banks.family_pending_total) : '—'}</span></div>
-              <div className="flex justify-between"><span className="text-zinc-400">{t('admin_banks_gov')}</span><span className="font-mono text-red-400">{banks ? fm(banks.gov_tax) : '—'}</span></div>
-              <div className="flex justify-between"><span className="text-zinc-400">{t('admin_banks_lottery')}</span><span className="font-mono text-amber-300">{banks ? fm(banks.lottery_pool) : '—'}</span></div>
-              <div className="flex justify-between"><span className="text-zinc-400">{t('admin_banks_bj')}</span><span className="font-mono text-zinc-300">{banks ? fm(banks.casino_blackjack) : '—'}</span></div>
-              <div className="flex justify-between"><span className="text-zinc-400">{t('admin_banks_roulette')}</span><span className="font-mono text-zinc-300">{banks ? fm(banks.casino_roulette) : '—'}</span></div>
-              <div className="flex justify-between"><span className="text-zinc-400">{t('admin_banks_general')}</span><span className="font-mono text-zinc-300">{banks ? fm(banks.casino_general) : '—'}</span></div>
-            </div>
-            <div className="text-[10px] text-zinc-500 mt-1">{t('admin_banks_footer')}</div>
+        {/* Banks Overview */}
+        <div className="card p-5 lg:col-span-1">
+          <h2 className="font-bold mb-3">🏦 {t('admin_banks_title')}</h2>
+          <div className="space-y-1.5 text-xs">
+            <div className="flex justify-between"><span className="text-zinc-400">{t('admin_banks_personal')}</span><span className="font-mono text-blue-400">{banks ? fm(banks.personal_bank_total) : '—'}</span></div>
+            <div className="flex justify-between"><span className="text-zinc-400">{t('admin_banks_family')}</span><span className="font-mono text-amber-400">{banks ? fm(banks.family_bank_total) : '—'}</span></div>
+            <div className="flex justify-between"><span className="text-zinc-400">{t('admin_banks_family_pending')}</span><span className="font-mono text-orange-400">{banks ? fm(banks.family_pending_total) : '—'}</span></div>
+            <div className="flex justify-between"><span className="text-zinc-400">{t('admin_banks_gov')}</span><span className="font-mono text-red-400">{banks ? fm(banks.gov_tax) : '—'}</span></div>
+            <div className="flex justify-between"><span className="text-zinc-400">{t('admin_banks_lottery')}</span><span className="font-mono text-amber-300">{banks ? fm(banks.lottery_pool) : '—'}</span></div>
+            <div className="flex justify-between"><span className="text-zinc-400">{t('admin_banks_bj')}</span><span className="font-mono text-zinc-300">{banks ? fm(banks.casino_blackjack) : '—'}</span></div>
+            <div className="flex justify-between"><span className="text-zinc-400">{t('admin_banks_roulette')}</span><span className="font-mono text-zinc-300">{banks ? fm(banks.casino_roulette) : '—'}</span></div>
+            <div className="flex justify-between"><span className="text-zinc-400">{t('admin_banks_general')}</span><span className="font-mono text-zinc-300">{banks ? fm(banks.casino_general) : '—'}</span></div>
           </div>
+          <div className="text-[10px] text-zinc-500 mt-2">{t('admin_banks_footer')}</div>
+        </div>
 
-          {/* War Events - Admin hosted */}
-          <div className="mt-4 pt-3 border-t border-zinc-800">
-            <div className="font-semibold mb-1">📯 {t('tw_events_title')}</div>
-            <div className="flex flex-wrap gap-1.5 mb-2">
-              {['New York', 'Chicago', 'Los Angeles', 'Miami', 'Las Vegas'].map((c) => (
-                <button key={c} onClick={() => openWarEvent(c)} className="px-2.5 py-1 rounded bg-amber-700 hover:bg-amber-600 text-[10px] font-bold">
-                  {t('tw_event_admin_open')}: {c}
-                </button>
+        {/* War Events */}
+        <div className="card p-5 lg:col-span-1">
+          <h2 className="font-bold mb-3">📯 {t('tw_events_title')}</h2>
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {['New York', 'Chicago', 'Los Angeles', 'Miami', 'Las Vegas'].map((c) => (
+              <button key={c} onClick={() => openWarEvent(c)} className="px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-[10px] font-bold">
+                {t('tw_event_admin_open')}: {c}
+              </button>
+            ))}
+          </div>
+          {(warEvents?.pending?.length ?? 0) > 0 && (
+            <div className="space-y-1.5 mb-3 max-h-[150px] overflow-auto">
+              {warEvents?.pending?.map((ev: AdminWarEvent) => (
+                <div key={ev.id} className="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded px-2 py-1.5 text-[11px]">
+                  <span className="truncate pr-2">
+                    <span className="font-semibold">{ev.city}</span>{' '}
+                    <span className="text-amber-400">{t('tw_event_pending')}</span>{' '}
+                    <span className="text-zinc-500">
+                      {ev.applicant_1_name && `${ev.applicant_1_name}`}
+                      {ev.applicant_2_name && ` · ${ev.applicant_2_name}`}
+                      {!ev.applicant_1_name && !ev.applicant_2_name && t('tw_event_need_two', { n: 0 })}
+                    </span>
+                  </span>
+                  <button onClick={() => cancelWarEvent(ev.id, ev.city)} className="px-2 py-0.5 rounded bg-red-800 hover:bg-red-700 text-[10px] shrink-0">{t('tw_event_admin_cancel')}</button>
+                </div>
               ))}
             </div>
-            {(warEvents?.pending?.length ?? 0) > 0 && (
-              <div className="space-y-1">
-                {warEvents?.pending?.map((ev: AdminWarEvent) => (
-                  <div key={ev.id} className="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded px-2 py-1 text-[11px]">
-                    <span>
-                      <span className="font-semibold">{ev.city}</span>{' '}
-                      <span className="text-amber-400">{t('tw_event_pending')}</span>{' '}
-                      <span className="text-zinc-500">
-                        {ev.applicant_1_name && `${ev.applicant_1_name}`}
-                        {ev.applicant_2_name && ` · ${ev.applicant_2_name}`}
-                        {!ev.applicant_1_name && !ev.applicant_2_name && t('tw_event_need_two', { n: 0 })}
-                      </span>
-                    </span>
-                    <button onClick={() => cancelWarEvent(ev.id, ev.city)} className="px-2 py-0.5 rounded bg-red-800 hover:bg-red-700 text-[10px]">
-                      {t('tw_event_admin_cancel')}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div className="text-[10px] text-zinc-500 mt-1">{t('tw_events_subtitle')}</div>
-          </div>
+          )}
+          <div className="text-[10px] text-zinc-500">{t('tw_events_subtitle')}</div>
+        </div>
 
-          {/* Give Money - FULL WORKING */}
-          <div className="mt-4 pt-3 border-t">
-            <div className="font-semibold mb-1">{t('admin_give_title')}</div>
+        {/* Give Money */}
+        <div className="card p-5 lg:col-span-1">
+          <h2 className="font-bold mb-3">💵 {t('admin_give_title')}</h2>
+          <div className="space-y-2">
+            <input id="giveU" placeholder={t('admin_give_placeholder')} className="w-full bg-zinc-900 px-2 py-1.5 border rounded text-xs" defaultValue="" />
+            <input id="giveA" type="number" defaultValue={250000} className="w-full bg-zinc-900 px-2 py-1.5 border rounded text-xs" placeholder="Amount" />
+            <button onClick={() => {
+              const u = (document.getElementById('giveU') as HTMLInputElement).value;
+              const a = parseInt((document.getElementById('giveA') as HTMLInputElement).value);
+              giveCash(u, a);
+            }} className="w-full px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 rounded text-xs font-semibold">{t('admin_give_button')}</button>
+          </div>
+        </div>
+
+        {/* Property Management */}
+        <div className="card p-5 lg:col-span-1">
+          <h2 className="font-bold mb-3">🏠 {t('admin_prop_title', { default: 'Property Management' })}</h2>
+          <div className="space-y-2">
             <div className="flex gap-2">
-              <input id="giveU" placeholder={t('admin_give_placeholder')} className="bg-zinc-900 px-2 py-1 text-sm border w-40" defaultValue="" />
-              <input id="giveA" type="number" defaultValue={250000} className="bg-zinc-900 px-2 py-1 text-sm border w-28" />
-              <button onClick={() => {
-                const u = (document.getElementById('giveU') as HTMLInputElement).value;
-                const a = parseInt((document.getElementById('giveA') as HTMLInputElement).value);
-                giveCash(u, a);
-              }} className="px-4 bg-emerald-600 rounded text-sm">{t('admin_give_button')}</button>
+              <input id="propTarget" placeholder="Target username" className="flex-1 bg-zinc-900 px-2 py-1.5 border rounded text-xs" value={propTarget} onChange={e => setPropTarget(e.target.value)} />
+              <button onClick={inspectPlayerProperties} disabled={propLoading} className="px-3 py-1.5 bg-blue-700 hover:bg-blue-600 rounded text-xs font-semibold">{propLoading ? 'Loading...' : 'Inspect'}</button>
             </div>
-          </div>
-
-          {/* Property Management - Admin gives / sells any property */}
-          <div className="mt-4 pt-3 border-t">
-            <div className="font-semibold mb-1">🏠 Property Management</div>
-            <div className="flex gap-2 mb-2">
-              <input id="propTarget" placeholder="Target username" className="bg-zinc-900 px-2 py-1 text-sm border w-40" value={propTarget} onChange={e => setPropTarget(e.target.value)} />
-              <button onClick={inspectPlayerProperties} disabled={propLoading} className="px-3 py-1 bg-blue-700 hover:bg-blue-600 rounded text-xs">{propLoading ? 'Loading...' : 'Inspect Properties'}</button>
-            </div>
-
             {propList.length > 0 && (
-              <div className="space-y-1 mb-3 max-h-[200px] overflow-auto">
+              <div className="space-y-1 max-h-[180px] overflow-auto">
                 {propList.map((prop: AdminProperty, i: number) => (
                   <div key={prop.id || i} className="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded px-2 py-1.5 text-[11px]">
                     <div className="truncate pr-2">
@@ -606,17 +620,14 @@ export default function AdminPage() {
                 ))}
               </div>
             )}
-
-            <div className="flex gap-2 items-start">
-              <textarea id="propJson" placeholder='{"id":"house1","name":"GhostHouse","city":"New York","type":"residential"}' className="bg-zinc-900 px-2 py-1 text-xs border w-96 h-16 font-mono" />
-              <button onClick={() => {
-                const json = (document.getElementById('propJson') as HTMLInputElement).value;
-                giveProperty(json);
-              }} className="px-3 py-1 bg-emerald-700 hover:bg-emerald-600 rounded text-xs shrink-0">Give Property</button>
-            </div>
-            <div className="text-[10px] text-zinc-500 mt-1">Paste a JSON property object. Admin only — bypasses all purchase checks.</div>
+            <textarea id="propJson" placeholder='{"id":"house1","name":"GhostHouse","city":"New York","type":"residential"}' className="w-full bg-zinc-900 px-2 py-1.5 border rounded text-xs font-mono h-16" />
+            <button onClick={() => {
+              const json = (document.getElementById('propJson') as HTMLInputElement).value;
+              giveProperty(json);
+            }} className="w-full px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 rounded text-xs font-semibold">Give Property</button>
+            <div className="text-[10px] text-zinc-500">Paste JSON property object. Admin only — bypasses all purchase checks.</div>
           </div>
-          </div>
+        </div>
 
           {/* Server Stats & Leaderboards */}
           {serverStats && (
