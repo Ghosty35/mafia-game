@@ -43,6 +43,7 @@ export default function MobileBottomNav() {
     { href: '/crimes', icon: '🔫', label: t('nav_crimes') },
     { href: '/messages', icon: '✉️', label: t('pi_messages'), badge: unread },
     { href: '/bank', icon: '🏦', label: t('menu_bank') },
+    { href: '/transactions', icon: '📜', label: t('menu_transactions') },
   ];
 
   return (

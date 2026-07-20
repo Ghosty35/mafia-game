@@ -67,7 +67,7 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: Player 
   const [armoryWeapon, setArmoryWeapon] = useState<{ key: string; label: string; power: number; heist_class: string | null } | null>(null);
   const [busy, setBusy] = useState(false);
   const [targets, setTargets] = useState<Array<{ id: string; username: string; level?: number; power?: number }>>([]);
-  const [cars, setCars] = useState<Array<{ id: string; name: string; condition: number }>>([]);
+  const [cars, setCars] = useState<Array<{ id: string; name: string; condition: number; tuned?: boolean }>>([]);
   const [selectedCarId, setSelectedCarId] = useState('');
   const [now, setNow] = useState(() => Date.now());
 
@@ -355,11 +355,12 @@ export default function HeistsClient({ initialPlayer }: { initialPlayer: Player 
           const bulletPct = Math.min(15, bulletsUsed / 10);
           const weaponPct = armoryWeapon?.heist_class ? Math.min(20, armoryWeapon.power / 8) : 0;
           const gcar = cars.find((c) => c.id === selectedCarId);
-          const getawayPct = gcar ? Math.min(10, Math.floor(gcar.condition / 12)) : 0;
+          const getawayPct = gcar ? Math.min(10, Math.floor(gcar.condition / 12) + (gcar.tuned ? 2 : 0)) : 0;
+          const totalGearBonus = gearBonus + (player.protection || 0) * 0.6;
           const successEst = Math.round(
             Math.min(
               0.9,
-              h.base_success + gearBonus / 100 + ((crew - 1) * 10) / 100 + bulletPct / 100 +
+              h.base_success + totalGearBonus / 100 + ((crew - 1) * 10) / 100 + bulletPct / 100 +
                 weaponPct / 100 + getawayPct / 100 - (player.heat || 0) / 250,
             ) * 100,
           );

@@ -65,6 +65,8 @@
   "menu_weed_grow": "Grow House",
   "menu_detective": "Detective Agency",
   "menu_bank": "The Vault",
+  "menu_transactions": "Transactions",
+  "transactions_subtitle": "Your complete transaction history ({count} entries)",
   "menu_stocks": "The Market",
   "menu_real_estate": "Properties",
   "menu_red_light": "The District",
