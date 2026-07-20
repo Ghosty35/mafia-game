@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import ErrorBoundary from "./components/ErrorBoundary";
 import InstallPrompt from "./components/InstallPrompt";
 import ServiceWorkerRegistrar from "./components/ServiceWorkerRegistrar";
+import PWAInstallBanner from "./components/PWAInstallBanner";
 import "./globals.css";
 import { LanguageProvider } from "@/lib/i18n/LanguageContext";
 
@@ -25,6 +26,10 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "A Hustler's Way",
+  },
+  icons: {
+    icon: '/icon-512.svg',
+    apple: '/icon-512.svg',
   },
 };
 
@@ -51,6 +56,7 @@ export default function RootLayout({
           <LanguageProvider>{children}</LanguageProvider>
         </ErrorBoundary>
         <InstallPrompt />
+        <PWAInstallBanner />
         <ServiceWorkerRegistrar />
       </body>
     </html>

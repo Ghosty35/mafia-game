@@ -11,6 +11,12 @@ export default function InstallPrompt() {
       e.preventDefault();
       setDeferredPrompt(e);
       setShowPrompt(true);
+      if ('userChoice' in (e as PromptEvent)) {
+        window.deferredPWAInstall = {
+          prompt: async () => (e as PromptEvent).prompt(),
+          userChoice: (e as PromptEvent).userChoice,
+        };
+      }
     };
 
     window.addEventListener('beforeinstallprompt', handler);
