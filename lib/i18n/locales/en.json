@@ -376,6 +376,7 @@
   "error_on_cooldown": "Too hot right now — this crime is still on cooldown.",
   "error_too_fast": "Whoa — slow down. Actions are limited to keep things fair for everyone.",
   "error_in_jail": "You are in jail. Wait until you are released.",
+  "error_dead": "You are dead. Wait for respawn or use a revive.",
   "error_level_too_low": "Your level is too low for this crime.",
   "dash_shop_soon": "Shop coming soon...",
   "rankings_title": "Rankings",

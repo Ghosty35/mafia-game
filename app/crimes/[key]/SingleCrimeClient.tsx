@@ -50,8 +50,9 @@ export default function SingleCrimeClient({
   const coolingDown = secondsLeft > 0;
   const locked = player.level < crime.min_level;
   const inJail = player.jailed_until && new Date(player.jailed_until).getTime() > now;
+  const isDead = player.death_until && new Date(player.death_until).getTime() > now;
   const heat = player.heat || 0;
-  const disabled = locked || coolingDown || inJail || busy || actionLocked;
+  const disabled = locked || coolingDown || inJail || isDead || busy || actionLocked;
 
   // Remaining time comes from the server (available_at), not a client
   // recomputation, so it matches what commit_crime enforces.
@@ -74,6 +75,7 @@ export default function SingleCrimeClient({
       if (isTooFastError(error.message)) text = t('error_too_fast');
       else if (error.message.includes('ON_COOLDOWN')) text = t('error_on_cooldown');
       else if (error.message.includes('IN_JAIL')) text = t('error_in_jail');
+      else if (error.message.includes('DEAD')) text = t('error_dead');
       else if (error.message.includes('LEVEL_TOO_LOW')) text = t('error_level_too_low');
       else if (error.message.includes('NOT_ENOUGH_STAMINA')) text = t('error_no_stamina');
       showToast(text, 'error');
@@ -167,6 +169,10 @@ export default function SingleCrimeClient({
 
         {inJail && (
           <p className="mt-2 text-sm text-orange-300">You are currently in jail.</p>
+        )}
+
+        {isDead && (
+          <p className="mt-2 text-sm text-red-300">You are dead. Respawn to continue.</p>
         )}
 
         {heat > 30 && (

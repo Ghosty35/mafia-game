@@ -378,6 +378,7 @@
   "error_on_cooldown": "Te heet op dit moment — deze misdaad is nog in cooldown.",
   "error_too_fast": "Wacht even — acties zijn beperkt zodat het voor iedereen eerlijk blijft.",
   "error_in_jail": "Je zit in de cel. Wacht tot je vrijkomt.",
+  "error_dead": "Je bent dood. Wacht op respawn of gebruik een revive.",
   "error_level_too_low": "Je level is te laag voor deze misdaad.",
   "dash_shop_soon": "Shop komt binnenkort...",
   "rankings_title": "Ranglijst",
