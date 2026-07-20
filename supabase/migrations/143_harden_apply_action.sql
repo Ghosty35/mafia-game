@@ -1,5 +1,5 @@
 -- ============================================================
--- 090_harden_apply_action.sql
+-- 143_harden_apply_action.sql (renumbered from 090; must run AFTER 118/120 which also redefine apply_action)
 -- ============================================================
 -- apply_action() was reintroduced with full patch fields in 120,
 -- undoing the 054 security hardening. This migration restores the

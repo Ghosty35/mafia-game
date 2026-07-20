@@ -66,6 +66,13 @@ export default function BankClient({ initialPlayer }: { initialPlayer: Player | 
     gov: { active: 'text-red-400 border-red-700/50 bg-red-950/20', inactive: 'text-zinc-400 border-transparent hover:text-zinc-200' },
   };
 
+  const tabLabels: Record<'cash' | 'bank' | 'assets' | 'gov', string> = {
+    cash: 'Cash',
+    bank: 'Bank',
+    assets: 'Assets',
+    gov: 'Gov',
+  };
+
   const handleDeposit = async () => {
     if (amount <= 0 || amount > player.cash) {
       showToast('Invalid amount or not enough cash!', 'error');

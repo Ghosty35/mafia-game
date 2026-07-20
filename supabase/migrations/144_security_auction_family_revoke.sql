@@ -1,5 +1,5 @@
 -- ============================================================
--- 091_security_auction_family_revoke.sql
+-- 144_security_auction_family_revoke.sql (renumbered from 091 to resolve a duplicate migration number)
 -- ============================================================
 -- Fixes:
 --   1) auction_bid / auction_buy_now: lock outbid player before

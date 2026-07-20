@@ -1,4 +1,5 @@
--- 130_reserve_yghosty_and_transfer_business_properties.sql
+-- 142_reserve_yghosty_and_transfer_business_properties.sql
+-- (renumbered from 130 to resolve a duplicate migration number; real apply order was after 134)
 -- Reserve "YGhosty" username and transfer all business properties to CEO.
 
 -- ============================================================

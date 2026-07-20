@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { usePlayer } from './PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 
@@ -10,7 +11,32 @@ export default function MobileBottomNav() {
   const { player } = usePlayer();
   const { t } = useLanguage();
 
-  const unread = 0; // Could be fetched from context if needed
+  // Live unread DM count for the messages tab (RLS: own inbox only).
+  // Same lightweight count query PlayerInfoCard uses, polled every 30s.
+  const [unread, setUnread] = useState(0);
+  useEffect(() => {
+    if (!player?.id) {
+      setUnread(0);
+      return;
+    }
+    let cancelled = false;
+    const fetchUnread = async () => {
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      const { count } = await supabase
+        .from('messages')
+        .select('id', { count: 'exact', head: true })
+        .eq('to_player_id', player.id)
+        .eq('read', false);
+      if (!cancelled) setUnread(count ?? 0);
+    };
+    fetchUnread();
+    const iv = setInterval(fetchUnread, 30000);
+    return () => {
+      cancelled = true;
+      clearInterval(iv);
+    };
+  }, [player?.id]);
 
   const items = [
     { href: '/dashboard', icon: '🏠', label: t('nav_home') },
@@ -36,7 +62,7 @@ export default function MobileBottomNav() {
                 {icon}
                 {badge ? (
                   <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-red-600 text-white text-[9px] font-bold flex items-center justify-center">
-                    {badge}
+                    {badge > 99 ? '99+' : badge}
                   </span>
                 ) : null}
               </span>

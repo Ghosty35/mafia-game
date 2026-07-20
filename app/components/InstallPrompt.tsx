@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from 'react';
 
+// The `beforeinstallprompt` event isn't in the standard DOM lib types.
+interface PromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
 export default function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);

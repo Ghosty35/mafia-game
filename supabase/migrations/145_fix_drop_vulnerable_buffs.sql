@@ -1,5 +1,5 @@
 -- ============================================================
--- 087_fix_drop_vulnerable_buffs.sql
+-- 145_fix_drop_vulnerable_buffs.sql (renumbered from 087 to resolve a duplicate migration number; DROP IF EXISTS, order-independent)
 -- ============================================================
 -- Drops the old vulnerable overloads of buy_family_buff_* that
 -- accepted a caller-supplied power_gain. The safe versions (cash

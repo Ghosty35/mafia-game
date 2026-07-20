@@ -140,7 +140,6 @@ export default function MarketplacePage() {
     } else {
       setMessage(okMsg);
     }
-    setMessage(okMsg);
     await refreshPlayer();
     await router.refresh();
     await load();
