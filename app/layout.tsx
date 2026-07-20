@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import ErrorBoundary from "./components/ErrorBoundary";
+import InstallPrompt from "./components/InstallPrompt";
+import ServiceWorkerRegistrar from "./components/ServiceWorkerRegistrar";
 import "./globals.css";
 import { LanguageProvider } from "@/lib/i18n/LanguageContext";
 
@@ -19,7 +21,6 @@ export const metadata: Metadata = {
   description:
     "A modern mafia browser game. Rise through the ranks, rule the city.",
   applicationName: "A Hustler's Way",
-  manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -49,6 +50,8 @@ export default function RootLayout({
         <ErrorBoundary>
           <LanguageProvider>{children}</LanguageProvider>
         </ErrorBoundary>
+        <InstallPrompt />
+        <ServiceWorkerRegistrar />
       </body>
     </html>
   );

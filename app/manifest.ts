@@ -8,16 +8,17 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "Hustler's Way",
     description:
       'A modern mafia browser game. Rise through the ranks, rule the city.',
-    start_url: '/dashboard',
+    start_url: '/',
     display: 'standalone',
-    orientation: 'portrait',
+    orientation: 'any',
     background_color: '#09090b',
     theme_color: '#09090b',
     icons: [
       {
-        src: '/favicon.ico',
-        sizes: '48x48',
-        type: 'image/x-icon',
+        src: '/icon-512.svg',
+        sizes: '512x512',
+        type: 'image/svg+xml',
+        purpose: 'any maskable',
       },
     ],
   };

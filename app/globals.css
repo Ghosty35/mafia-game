@@ -49,6 +49,26 @@ aside {
   padding-right: env(safe-area-inset-right);
 }
 
+/* Mobile bottom navigation safe area */
+@media (max-width: 1023px) {
+  body {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+/* Smooth scrolling for mobile */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent pull-to-refresh on mobile (optional, keeps app feeling native) */
+@media (max-width: 1023px) {
+  body {
+    overscroll-behavior-y: contain;
+  }
+}
+
 /* Richer mafia-style background: fixed night-city skyline silhouette
    (inline SVG, no external assets) + atmospheric gradients + vignette.
    Layers behind all content so every page reads as a real mob city. */

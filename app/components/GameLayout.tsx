@@ -9,6 +9,7 @@ import RightSidebar from './RightSidebar';
 import PlayerInfoCard from './PlayerInfoCard';
 import LanguageSync from './LanguageSync';
 import Toast from './Toast';
+import MobileBottomNav from './MobileBottomNav';
 import { PlayerProvider, usePlayer } from './PlayerContext';
 
 function LayoutContent({ children }: { children: ReactNode }) {
@@ -47,7 +48,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
           <Sidebar />
         </Suspense>
 
-        <main className="flex-1 p-4 sm:p-6 min-w-0">
+        <main className="flex-1 p-4 sm:p-6 min-w-0 pb-24 lg:pb-6">
           <div className="max-w-5xl mx-auto">
             <PlayerInfoCard />
             {children}
@@ -59,6 +60,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
           <RightSidebar />
         </Suspense>
       </div>
+      <MobileBottomNav />
     </div>
   );
 }
