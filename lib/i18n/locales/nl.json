@@ -1085,6 +1085,8 @@
   "admin_lot_withdraw": "Opnemen naar zelf",
   "admin_lot_draw": "Trekking forceren",
   "admin_lot_footer": "De Lottery Pool voedt de wekelijkse jackpot. De Admin kan geld storten, opnemen naar eigen cash, of een handmatige trekking forceren die 8% van de pool uitkeert aan een willekeurige actieve speler.",
+  "admin_lot_title": "Lottery Pool",
+  "admin_prop_title": "Property Management",
   "admin_banks_title": "Alle Banken Overzicht",
   "admin_banks_personal": "Persoonlijke Banken (totaal)",
   "admin_banks_family": "Familiebanken (totaal)",

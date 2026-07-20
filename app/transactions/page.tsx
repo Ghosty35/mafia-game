@@ -12,6 +12,8 @@ type Txn = { icon: string; desc: string; amount: number; tax?: number; at?: stri
 
 type Filter = 'all' | 'personal' | 'property' | 'gov' | 'piggy';
 
+export const dynamic = 'force-dynamic';
+
 const FILTERS: { key: Filter; label: string; icon: string; match: (t: Txn) => boolean }[] = [
   { key: 'all', label: 'All', icon: '📋', match: () => true },
   { key: 'personal', label: 'Personal Bank', icon: '🏦', match: (t) => t.desc.includes('bank') && !t.desc.includes('Property') && !t.desc.includes('Gov') && !t.desc.includes('Piggy') },

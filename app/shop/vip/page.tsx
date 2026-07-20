@@ -163,12 +163,19 @@ function FamilyBuffsShop({ busy, setMessage, isDonator }: { busy: boolean; setMe
   const economy = useEconomy();
   const supabase = createClient();
 
-  const buffs: Array<{ id: string; label: string; desc: string; cash: number; diamonds: number; diamonds_bundle: number }> = economy?.family_buffs ?? [
-    { id: 'power100', label: t('vip_buff_p100'), desc: t('vip_buff_p100_desc'), cash: 420000, diamonds: 140, diamonds_bundle: 600 },
-    { id: 'power250', label: t('vip_buff_p250'), desc: t('vip_buff_p250_desc'), cash: 980000, diamonds: 320, diamonds_bundle: 1250 },
-    { id: 'hourly', label: t('vip_buff_hourly'), desc: t('vip_buff_hourly_desc'), cash: 650000, diamonds: 210, diamonds_bundle: 820 },
-    { id: 'war', label: t('vip_buff_war'), desc: t('vip_buff_war_desc'), cash: 1150000, diamonds: 380, diamonds_bundle: 1400 },
-  ];
+  const BUFF_META: Record<string, { label: string; desc: string }> = {
+    power100: { label: t('vip_buff_p100'), desc: t('vip_buff_p100_desc') },
+    power250: { label: t('vip_buff_p250'), desc: t('vip_buff_p250_desc') },
+    hourly:   { label: t('vip_buff_hourly'), desc: t('vip_buff_hourly_desc') },
+    war:      { label: t('vip_buff_war'), desc: t('vip_buff_war_desc') },
+  };
+
+  const buffs = (economy?.family_buffs ?? [
+    { id: 'power100', cash: 420000, diamonds: 140, diamonds_bundle: 600 },
+    { id: 'power250', cash: 980000, diamonds: 320, diamonds_bundle: 1250 },
+    { id: 'hourly',   cash: 650000, diamonds: 210, diamonds_bundle: 820 },
+    { id: 'war',      cash: 1150000, diamonds: 380, diamonds_bundle: 1400 },
+  ]).map(b => ({ ...b, label: BUFF_META[b.id]?.label ?? b.label, desc: BUFF_META[b.id]?.desc ?? b.desc }));
 
   const buyBuff = async (buff: (typeof buffs)[number], useBundle: boolean, payWith: 'cash' | 'diamonds') => {
     setLocalBusy(true);
@@ -191,7 +198,7 @@ function FamilyBuffsShop({ busy, setMessage, isDonator }: { busy: boolean; setMe
       } else {
         // Diamond path — server derives family power from cost_diamonds and
         // the bundle flag; power_gain is no longer caller-supplied.
-        const costD = useBundle ? b.diamonds_bundle : b.diamonds;
+        const costD = useBundle ? buff.diamonds_bundle : buff.diamonds;
         const { data, error } = await supabase.rpc('buy_family_buff_diamonds', {
           cost_diamonds: costD,
           p_is_bundle: useBundle,

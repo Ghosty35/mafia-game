@@ -34,7 +34,7 @@ export type EconomyConfig = {
     min_power: number;
   };
   vip_donator_cost: number;
-  family_buffs: Array<{ id: string; cash: number; diamonds: number; diamonds_bundle: number }>;
+  family_buffs: Array<{ id: string; label?: string; desc?: string; cash: number; diamonds: number; diamonds_bundle: number }>;
   crush_bullets: number;
   power_packs: Array<{ power: number; price: number; labelKey: string }>;
   druglab: {
