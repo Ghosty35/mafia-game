@@ -85,14 +85,20 @@ test.describe('money-critical flows', () => {
 test.describe('mobile navigation', () => {
   test.use({ viewport: { width: 375, height: 812 } });
 
+  // The desktop sidebars stay in the DOM at mobile width (hidden via
+  // `lg:block`), so their copies of every menu label are still matchable.
+  // Scope drawer assertions to the portal overlay (z-[60]) so they can't
+  // accidentally resolve to a hidden desktop-sidebar element.
+  const drawer = (page: import('@playwright/test').Page) => page.locator('.z-\\[60\\]');
+
   test('left drawer (game menu) opens and navigates', async ({ page }) => {
     await loginAs(page, 'heistbuddy_test@example.com');
     await page.getByRole('button', { name: /menu/i }).first().click();
     // "The Streets" (side_street_ops) is the stylized category label, and
     // menu_heists itself renders as "Jobs" - anchor to hrefs, not copy,
     // since this app uses heavily stylized slang labels throughout.
-    await expect(page.getByText(/the streets/i).first()).toBeVisible();
-    await page.locator('a[href="/heists"]').first().click();
+    await expect(drawer(page).getByText(/the streets/i).first()).toBeVisible();
+    await drawer(page).locator('a[href="/heists"]').first().click();
     await expect(page).toHaveURL(/\/heists/);
     // Drawer closes on navigation - no leftover backdrop trapping input.
     await expect(page.locator('body')).not.toHaveCSS('overflow', 'hidden');
@@ -103,9 +109,9 @@ test.describe('mobile navigation', () => {
     await page.getByRole('button', { name: /profile.*family menu/i }).click();
     // All 5 right-sidebar categories should render (Communication/Profile/
     // Murder/Family/Reputation - mirrors the desktop RightSidebar).
-    await expect(page.getByText(/my family/i).first()).toBeVisible();
-    await expect(page.getByText(/my profile/i).first()).toBeVisible();
-    await page.getByRole('link', { name: /my family/i }).first().click();
+    await expect(drawer(page).getByText(/my family/i).first()).toBeVisible();
+    await expect(drawer(page).getByText(/my profile/i).first()).toBeVisible();
+    await drawer(page).locator('a[href="/families"]').first().click();
     await expect(page).toHaveURL(/\/families/);
   });
 

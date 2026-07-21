@@ -24,10 +24,14 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
-/* Mobile safety: never allow accidental horizontal scroll on small screens */
+/* Mobile safety: never allow accidental horizontal scroll on small screens.
+   Use `clip`, not `hidden`: `overflow-x: hidden` on html/body makes mobile
+   browsers treat these as a scroll container, which breaks `position: fixed`
+   descendants (the nav drawers rendered blank until the device was rotated).
+   `clip` prevents the sideways scroll without that side effect. */
 html,
 body {
-  overflow-x: hidden;
+  overflow-x: clip;
   max-width: 100%;
 }
 

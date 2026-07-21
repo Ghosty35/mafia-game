@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { rightMenuCategories, isMenuItemActive } from './menuData';
@@ -39,6 +40,12 @@ export default function MobileRightNav() {
   const searchParams = useSearchParams();
   const { t } = useLanguage();
   const qs = searchParams.toString();
+  // The drawer renders through a portal into document.body (see below), which
+  // is only available after mount - guard so SSR and first hydration match.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -85,7 +92,7 @@ export default function MobileRightNav() {
         <span className="text-lg">👤</span>
       </button>
 
-      {rightOpen && (
+      {mounted && rightOpen && createPortal(
         <div className="fixed inset-0 z-[60]">
           <div
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
@@ -197,7 +204,8 @@ export default function MobileRightNav() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

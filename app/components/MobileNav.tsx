@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { usePlayer } from './PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
@@ -47,6 +48,13 @@ export default function MobileNav() {
   const { t } = useLanguage();
 
   const qs = searchParams.toString();
+
+  // The drawer renders through a portal into document.body (see below), which
+  // is only available after mount - guard so SSR and first hydration match.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Close the drawer on every navigation
   useEffect(() => {
@@ -124,7 +132,7 @@ export default function MobileNav() {
         </svg>
       </button>
 
-      {open && (
+      {mounted && open && createPortal(
         <div className="fixed inset-0 z-[60]">
           {/* Backdrop */}
           <div
@@ -288,7 +296,8 @@ export default function MobileNav() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

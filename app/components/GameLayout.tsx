@@ -36,7 +36,12 @@ function LayoutContent({ children }: { children: ReactNode }) {
   }, [player?.death_until, player?.jailed_until, router]);
 
   return (
-    <div className="min-h-screen bg-transparent text-white relative overflow-x-hidden">
+    /* No `overflow-x-hidden` here: combined with `relative` on a very tall
+       wrapper it makes some mobile browsers clip/mis-render `position: fixed`
+       descendants until a reflow (rotating the device) - exactly how the nav
+       drawers failed on real Android. Horizontal overflow is contained by
+       `overflow-x: clip` on <body> in globals.css instead. */
+    <div className="min-h-screen bg-transparent text-white relative">
       {/* Background image */}
       <div className="fixed inset-0 bg-cover bg-top" style={{ backgroundImage: "url('/bg-dashboard.jpg')" }} />
       {/* Dark overlay for readability */}
