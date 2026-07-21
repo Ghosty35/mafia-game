@@ -374,7 +374,7 @@ export default function SafehousePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div className="space-y-1.5">
             <label className="text-xs text-zinc-500">{t('safehouse_avatar_label')}</label>
-            <input id="profile-avatar" type="text" placeholder="https://picsum... " className={inputClass} defaultValue={player?.avatar_url || 'https://picsum.photos/id/1005/100/100'} />
+            <input id="profile-avatar" type="text" placeholder="https://example.com/your-photo.jpg" className={inputClass} defaultValue={player?.avatar_url || ''} />
           </div>
           <div className="space-y-1.5">
             <label className="text-xs text-zinc-500">{t('safehouse_bio_label')}</label>

@@ -56,7 +56,14 @@ type Property = {
 
 export default function CityRealEstatePage() {
   const params = useParams();
-  const city = (params?.city as City) || 'New York';
+  // useParams() route segments are not reliably URL-decoded here, so a link
+  // to e.g. /real-estate/New%20York rendered the literal "New%20York" and
+  // never matched any catalog rows for multi-word cities (New York, Los
+  // Angeles, Las Vegas).
+  const rawCity = params?.city;
+  const city = (
+    (typeof rawCity === 'string' ? decodeURIComponent(rawCity) : rawCity) as City
+  ) || 'New York';
   const { player, refreshPlayer, showToast } = usePlayer();
   const { t, fm } = useLanguage();
   const router = useRouter();

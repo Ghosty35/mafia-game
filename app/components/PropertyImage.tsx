@@ -1,24 +1,16 @@
 'use client';
 
-import { useState } from 'react';
-import type { CSSProperties } from 'react';
 import PropertyArt from './PropertyArt';
 
-const KEYWORDS: Record<string, string> = {
-  house: 'house',
-  villa: 'villa',
-  mansion: 'mansion',
-  agency: 'office+building',
-  airport: 'airport',
-  casino: 'casino',
-  tuneshop: 'car+repair+shop',
-  redlight: 'city+night',
-};
-
+// Deterministic local SVG art, keyed by property type - guaranteed to match
+// what it's labeling (a house always looks like a house). Previously this
+// fetched a random tag-matched photo from loremflickr.com as the primary
+// image with PropertyArt only as an onError fallback; a "random Flickr
+// photo loosely tagged 'villa'" is not reliably a villa, which is exactly
+// the mismatched/sloppy look this replaces.
 export default function PropertyImage({
   catalogId,
   ptype,
-  name,
   size = 96,
 }: {
   catalogId: string;
@@ -26,26 +18,5 @@ export default function PropertyImage({
   name?: string;
   size?: number;
 }) {
-  const [error, setError] = useState(false);
-  const type = (ptype || 'agency') as keyof typeof KEYWORDS;
-  const keyword = KEYWORDS[type] || 'building';
-
-  if (error) {
-    return <PropertyArt catalogId={catalogId} ptype={ptype} size={size} />;
-  }
-
-  const src = `https://loremflickr.com/640/480/${keyword}?lock=${catalogId}`;
-
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={src}
-      alt={name || catalogId}
-      loading="lazy"
-      decoding="async"
-      className="object-cover rounded"
-      style={{ width: size, height: Math.round((size * 3) / 4), display: 'block' } as CSSProperties}
-      onError={() => setError(true)}
-    />
-  );
+  return <PropertyArt catalogId={catalogId} ptype={ptype} size={size} />;
 }
