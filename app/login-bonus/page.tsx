@@ -17,6 +17,14 @@ type BonusInfo = {
   reward: Reward;
   is_donator: boolean;
   last_claim: string | null;
+  daily_task?: {
+    task_type: string;
+    label: string;
+    description: string;
+    progress: number;
+    target: number;
+    completed: boolean;
+  };
 };
 
 export const dynamic = 'force-dynamic';
@@ -51,7 +59,13 @@ export default function LoginBonusPage() {
     const supabase = createClient();
     const { data, error } = await supabase.rpc('claim_login_bonus');
     if (error) {
-      showToast(error.message.includes('ALREADY_CLAIMED') ? t('lb_already') : t('common_error'), 'error');
+      if (error.message.includes('ALREADY_CLAIMED')) {
+        showToast(t('lb_already'), 'error');
+      } else if (error.message.includes('TASK_NOT_COMPLETE')) {
+        showToast(t('lb_task_incomplete'), 'error');
+      } else {
+        showToast(t('common_error'), 'error');
+      }
     } else {
       const d = data.diamonds > 0 ? t('lb_claimed_diamonds', { cash: fm(data.cash), diamonds: data.diamonds }) : t('lb_claimed', { cash: fm(data.cash) });
       showToast(d, 'success');
@@ -85,6 +99,25 @@ export default function LoginBonusPage() {
         </div>
       </div>
 
+      {info.daily_task && (
+        <Panel title={t('lb_task_title')} icon="🎯">
+          <p className="text-xs text-zinc-400 mb-3">{t('lb_task_subtitle')}</p>
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-semibold text-zinc-200">{info.daily_task.label}</span>
+            <span className="text-xs text-zinc-400">{info.daily_task.description}</span>
+          </div>
+          <div className="w-full bg-zinc-950 rounded-full h-2.5 border border-zinc-800 overflow-hidden">
+            <div
+              className="bg-red-700 h-2.5 rounded-full transition-all"
+              style={{ width: `${Math.min(100, (info.daily_task.progress / info.daily_task.target) * 100)}%` }}
+            />
+          </div>
+          <p className={`text-xs mt-2 ${info.daily_task.completed ? 'text-emerald-400' : 'text-zinc-500'}`}>
+            {info.daily_task.completed ? t('lb_task_complete') : t('lb_task_incomplete')}
+          </p>
+        </Panel>
+      )}
+
       <Panel title={t('lb_cycle_title')} icon="📅">
         <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
           {CYCLE.map((base, i) => {
@@ -113,7 +146,13 @@ export default function LoginBonusPage() {
         disabled={busy || !info.claimable}
         className="w-full py-3 rounded-xl font-bold text-sm tracking-wide bg-red-700 hover:bg-red-600 disabled:bg-zinc-800 disabled:text-zinc-500 disabled:cursor-not-allowed transition-colors"
       >
-        {info.claimable ? t('lb_claim_button', { cash: fm(info.reward.cash) }) : t('lb_come_back')}
+        {info.claimable
+          ? t('lb_claim_button', { cash: fm(info.reward.cash) })
+          : info.claimed_today
+            ? t('lb_already')
+            : info.daily_task?.completed
+              ? t('lb_claim_button', { cash: fm(info.reward.cash) })
+              : t('lb_task_incomplete')}
       </button>
 
       {info.is_donator && <p className="text-[11px] text-amber-400 text-center">👑 {t('lb_donator_note')}</p>}

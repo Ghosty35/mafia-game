@@ -45,8 +45,8 @@ export default function GameNav() {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 bg-zinc-950/95 backdrop-blur-lg border-b border-zinc-800">
-      <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+    <nav className="sticky top-0 z-50 bg-zinc-950/95 backdrop-blur-xl border-b border-zinc-800/80" aria-label="Main navigation">
+      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 sm:gap-5 min-w-0">
           {/* Mobile drawer trigger (hidden on lg+ where the sidebars live) */}
           <Suspense fallback={<div className="w-10 h-10 lg:hidden" />}>
@@ -55,7 +55,8 @@ export default function GameNav() {
 
           <Link
             href="/dashboard"
-            className="font-black text-lg tracking-[-1px] whitespace-nowrap flex items-center gap-1.5 group"
+            className="font-black text-lg tracking-[-1.5px] whitespace-nowrap flex items-center gap-1.5 group hover:opacity-90 transition-opacity"
+            aria-label="Home"
           >
             <span className="text-amber-500 group-hover:text-amber-400 transition-colors">HUSTLER&apos;S</span>
             <span className="text-zinc-300 group-hover:text-white transition-colors">WAY</span>
@@ -68,7 +69,8 @@ export default function GameNav() {
                 <Link
                   key={href}
                   href={href}
-                  className={`px-3.5 py-1.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`px-3.5 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 ${
                     isActive
                       ? 'bg-amber-950/50 text-amber-400 border border-amber-800/50 shadow-[0_0_10px_rgba(245,158,11,0.1)]'
                       : 'text-zinc-300 hover:bg-zinc-900 hover:text-white border border-transparent'
@@ -89,7 +91,7 @@ export default function GameNav() {
           <form action="/auth/signout" method="post">
             <button
               type="submit"
-              className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 px-4 py-1.5 rounded-xl text-sm font-semibold transition-all"
+              className="bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 px-4 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95"
             >
               {t('dash_sign_out')}
             </button>

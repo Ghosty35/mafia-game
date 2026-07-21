@@ -5,17 +5,25 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 const STORAGE_KEY = 'hustlers_way_welcome_dismissed';
 
-export default function WelcomeModal() {
+export default function WelcomeModal({ createdAt }: { createdAt?: string }) {
   const { t } = useLanguage();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const dismissed = window.localStorage.getItem(STORAGE_KEY);
+    if (dismissed) return false;
+    if (!createdAt) return true;
+    const ageMs = Date.now() - new Date(createdAt).getTime();
+    return ageMs < 7 * 24 * 60 * 60 * 1000;
+  });
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const dismissed = window.localStorage.getItem(STORAGE_KEY);
-    if (!dismissed) {
-      setOpen(true);
-    }
-  }, []);
+    if (!open) return;
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [open]);
 
   const verify = () => {
     if (typeof window !== 'undefined') {

@@ -70,9 +70,26 @@ html {
   }
 }
 
-/* Richer mafia-style background: fixed night-city skyline silhouette
-   (inline SVG, no external assets) + atmospheric gradients + vignette.
-   Layers behind all content so every page reads as a real mob city. */
+/* Smooth transitions for interactive elements */
+a, button, [role="button"] {
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Focus visible for keyboard navigation */
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 body::before {
   content: '';
   position: fixed;
@@ -316,7 +333,7 @@ aside::-webkit-scrollbar-thumb:hover {
 
   /* Improve touch feedback */
   a:active, button:active {
-    opacity: 0.7;
+    opacity: 0.8;
     transform: scale(0.98);
   }
 

@@ -11,6 +11,16 @@ import { useEconomy } from '@/lib/economy';
 import PropertyImage from '../components/PropertyImage';
 import PageHeader from '../components/PageHeader';
 
+const StatRow = ({ icon, label, value, valueClass = '' }: { icon: string; label: string; value: string; valueClass?: string }) => (
+  <div className="flex items-center justify-between gap-2 py-1.5 border-b border-zinc-800/70 last:border-0">
+    <span className="flex items-center gap-1.5 text-zinc-500 text-xs">
+      <span className="text-sm leading-none">{icon}</span>
+      {label}
+    </span>
+    <span className={`font-mono text-sm ${valueClass || 'text-zinc-200'}`}>{value}</span>
+  </div>
+);
+
 export default function SafehousePage() {
   const { player, refreshPlayer, showToast } = usePlayer();
   const { t, fm } = useLanguage();
@@ -102,15 +112,6 @@ export default function SafehousePage() {
 
   const inputClass =
     'w-full bg-zinc-950/80 border border-zinc-700/80 focus:border-amber-600/70 focus:ring-1 focus:ring-amber-600/40 outline-none px-3 py-2 rounded-lg text-sm text-zinc-100 placeholder:text-zinc-600 transition';
-  const StatRow = ({ icon, label, value, valueClass = '' }: { icon: string; label: string; value: string; valueClass?: string }) => (
-    <div className="flex items-center justify-between gap-2 py-1.5 border-b border-zinc-800/70 last:border-0">
-      <span className="flex items-center gap-1.5 text-zinc-500 text-xs">
-        <span className="text-sm leading-none">{icon}</span>
-        {label}
-      </span>
-      <span className={`font-mono text-sm ${valueClass || 'text-zinc-200'}`}>{value}</span>
-    </div>
-  );
 
   return (
     <div className="max-w-5xl mx-auto p-4 sm:p-6 space-y-6">

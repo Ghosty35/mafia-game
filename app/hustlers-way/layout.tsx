@@ -31,7 +31,13 @@ function HustlersWayLock({ children }: { children: ReactNode }) {
 export default function HustlersWayLayout({ children }: { children: ReactNode }) {
   return (
     <PlayerProvider>
-      <HustlersWayLock>{children}</HustlersWayLock>
+      <HustlersWayLock>
+        <div className="min-h-screen bg-transparent text-white relative overflow-x-hidden">
+          <div className="fixed inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/bg-hustlers.jpg')" }} />
+          <div className="fixed inset-0 bg-black/60" />
+          {children}
+        </div>
+      </HustlersWayLock>
     </PlayerProvider>
   );
 }

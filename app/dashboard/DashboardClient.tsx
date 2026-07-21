@@ -110,7 +110,7 @@ export default function DashboardClient({
   return (
     <div className="space-y-10">
       {!player.username && <UsernamePrompt onClaimed={setPlayer} />}
-      {player.username && <WelcomeModal />}
+      {player.username && <WelcomeModal createdAt={player.created_at} />}
 
       {/* Front Page - live server stats + clocks */}
       <div className="bg-zinc-900 border border-amber-900/40 rounded-xl p-6 relative overflow-hidden">

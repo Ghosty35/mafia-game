@@ -47,7 +47,7 @@ export default function MobileBottomNav() {
   ];
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-zinc-950/95 backdrop-blur-lg border-t border-zinc-800 pb-safe">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-800/80 pb-safe" aria-label="Mobile navigation">
       <div className="flex items-center justify-around h-16">
         {items.map(({ href, icon, label, badge, action }) => {
           if (action === 'more') {
@@ -58,7 +58,8 @@ export default function MobileBottomNav() {
                 onClick={() => {
                   window.dispatchEvent(new CustomEvent('open-mobile-nav'));
                 }}
-                className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-all relative text-zinc-500 hover:text-zinc-300"
+                aria-label={label}
+                className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-all relative text-zinc-500 hover:text-zinc-300 active:text-amber-400 active:scale-95"
               >
                 <span className="text-xl relative">{icon}</span>
                 <span className="text-[10px] font-medium truncate w-full text-center">{label}</span>
@@ -71,14 +72,15 @@ export default function MobileBottomNav() {
             <Link
               key={href}
               href={href}
+              aria-current={active ? 'page' : undefined}
               className={`flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-all relative ${
-                active ? 'text-amber-400 mobile-nav-active' : 'text-zinc-500 hover:text-zinc-300'
+                active ? 'text-amber-400 mobile-nav-active' : 'text-zinc-500 hover:text-zinc-300 active:text-amber-400 active:scale-95'
               }`}
             >
               <span className="text-xl relative">
                 {icon}
                 {badge ? (
-                  <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-red-600 text-white text-[9px] font-bold flex items-center justify-center">
+                  <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-red-600 text-white text-[9px] font-bold flex items-center justify-center animate-pulse">
                     {badge > 99 ? '99+' : badge}
                   </span>
                 ) : null}

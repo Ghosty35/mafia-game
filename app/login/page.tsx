@@ -92,6 +92,11 @@ export default function LoginPage() {
       </div>
 
       {/* ===== ENHANCED BACKGROUNDS ===== */}
+      {/* User photo background */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: "url('/bg-login.jpg')" }}
+      />
       {/* Base noise texture */}
       <div className="absolute inset-0 bg-[radial-gradient(#27272a_0.8px,transparent_1px)] bg-[length:4px_4px] opacity-40" />
       {/* Dark vignette */}
