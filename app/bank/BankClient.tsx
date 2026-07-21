@@ -33,6 +33,14 @@ export default function BankClient({ initialPlayer }: { initialPlayer: Player | 
     }
   }, [initialPlayer, contextPlayer, updatePlayer]);
 
+  const govTax = (player as unknown as { gov_tax_bank: number } | null)?.gov_tax_bank ?? 0;
+
+  // Track previous gov_tax_bank so we can derive the actual tax from server state
+  // instead of recomputing it client-side. Must run unconditionally (before the
+  // !player early return) or React's hook order breaks whenever player data
+  // loads asynchronously (e.g. initialPlayer is null on first paint).
+  const prevGovTaxRef = useRef(govTax);
+
   if (!player) {
     return <div className="p-8 text-zinc-400">Could not load player data.</div>;
   }
@@ -41,11 +49,6 @@ export default function BankClient({ initialPlayer }: { initialPlayer: Player | 
   // NOTE: total_wealth likely represents non-cash/bank assets. Keep cash+bank+total_wealth
   // until the server schema clarifies whether total_wealth already includes them.
   const totalWealth = (player.cash || 0) + currentBank + (player.total_wealth || 0);
-  const govTax = (player as unknown as { gov_tax_bank: number }).gov_tax_bank ?? 0;
-
-  // Track previous gov_tax_bank so we can derive the actual tax from server state
-  // instead of recomputing it client-side.
-  const prevGovTaxRef = useRef(govTax);
 
   // Funny money rank
   const getMoneyRank = (wealth: number) => {

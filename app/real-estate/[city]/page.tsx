@@ -164,7 +164,8 @@ export default function CityRealEstatePage() {
     if (target === 'yacht') return count >= 1;
     return false;
   };
-  const isAdmin = (player as any)?.staff_role ? ['ceo','admin','jr_admin','game_mod','support'].includes((player as any).staff_role) : false;
+  const playerStaffRole = (player as { staff_role?: string } | null)?.staff_role;
+  const isAdmin = playerStaffRole ? ['ceo','admin','jr_admin','game_mod','support'].includes(playerStaffRole) : false;
   const isAgency = (ptype: string) => {
     const p = ptype.toLowerCase();
     return ['agency','airport','casino','tuneshop','redlight'].includes(p);

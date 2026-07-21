@@ -39,7 +39,7 @@ const CATEGORY_ICONS: Record<string, string> = {
 
 export default function ForumPage() {
   const { player, refreshPlayer } = usePlayer();
-  const { t, fm } = useLanguage();
+  const { t } = useLanguage();
   const supabase = createClient();
 
   const [categories, setCategories] = useState<Category[]>([]);

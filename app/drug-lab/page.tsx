@@ -49,6 +49,12 @@ export default function DrugLabPage() {
   const [buyCity, setBuyCity] = useState<string>(CITIES[0]);
   const [buyDrug, setBuyDrug] = useState<string>('Coke');
   const [bribeMap, setBribeMap] = useState<Record<string, boolean>>({});
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const tick = setInterval(() => setNow(Date.now()), 30000);
+    return () => clearInterval(tick);
+  }, []);
 
   const fmt = (n: number) =>
     new Intl.NumberFormat(language === 'nl' ? 'nl-NL' : 'en-US').format(Math.floor(n));
@@ -191,8 +197,8 @@ export default function DrugLabPage() {
               const pending = lab.pending ?? 0;
               const canUpgrade = lab.level < 10;
               const upgCost = upgradeCost(lab.level);
-              const isRaided = lab.raided_until && new Date(lab.raided_until).getTime() > Date.now();
-              const raidLeft = isRaided ? Math.max(0, Math.ceil((new Date(lab.raided_until!).getTime() - Date.now()) / 60000)) : 0;
+              const isRaided = lab.raided_until && new Date(lab.raided_until).getTime() > now;
+              const raidLeft = isRaided ? Math.max(0, Math.ceil((new Date(lab.raided_until!).getTime() - now) / 60000)) : 0;
               const guards = lab.guards ?? 0;
               const raidPct = lab.raid_pct ?? 0;
               const nextGuardCost = guards < 5 ? guardCosts[guards] : 0;
@@ -216,7 +222,7 @@ export default function DrugLabPage() {
                           <button
                             onClick={() => run(
                               () => createClient().rpc('hire_lab_guards', { p_lab_id: lab.id }),
-                              (d) => t('dl_hire_guards')
+                              () => t('dl_hire_guards')
                             )}
                             disabled={busy || guards >= 5 || (player.cash ?? 0) < nextGuardCost}
                             className="px-3 py-1.5 rounded bg-sky-700 hover:bg-sky-600 disabled:opacity-40 text-xs font-bold"

@@ -47,7 +47,7 @@ export default function InstallPrompt() {
       <div className="flex items-start gap-3">
         <div className="text-3xl">♛</div>
         <div className="flex-1">
-          <h3 className="font-bold text-sm text-white">Install A Hustler's Way</h3>
+          <h3 className="font-bold text-sm text-white">Install A Hustler&apos;s Way</h3>
           <p className="text-xs text-zinc-400 mt-1">
             Add to home screen for quick access and a fullscreen app-like experience.
           </p>

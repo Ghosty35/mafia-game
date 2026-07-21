@@ -51,6 +51,7 @@ export default function RpsPage() {
       if (m.includes('NOT_ENOUGH_CASH')) setError(t('common_not_enough_cash'));
       else if (m.includes('IN_JAIL')) setError(t('error_in_jail'));
       else if (m.includes('INVALID_BET')) setError(t('cas_invalid_bet'));
+      else if (m.includes('TOO_FAST')) setError(t('error_too_fast'));
       else setError(t('cas_failed'));
       return;
     }

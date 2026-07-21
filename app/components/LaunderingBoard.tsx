@@ -24,7 +24,7 @@ const CHANNEL_META: Record<string, { icon: string; labelKey: TranslationKey }> =
 
 export default function LaunderingBoard() {
   const { player, refreshPlayer, showToast } = usePlayer();
-  const { t, language, fm } = useLanguage();
+  const { t, fm } = useLanguage();
   const router = useRouter();
   const [dirty, setDirty] = useState<number>(0);
   const [channels, setChannels] = useState<Channel[]>([]);

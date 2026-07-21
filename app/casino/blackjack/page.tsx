@@ -66,7 +66,7 @@ export default function BlackjackPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [player?.id, resume]);
 
-  const run = async <T extends Record<string, unknown>>(fn: string, args?: Record<string, unknown>) => {
+  const run = async (fn: string, args?: Record<string, unknown>) => {
     setBusy(true);
     setError('');
     const { data, error: err } = await supabase.rpc(fn, args ?? {});

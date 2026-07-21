@@ -107,6 +107,7 @@ function MurderContent() {
         else if (error.message.includes('NO_INTEL')) text = t('murder_no_intel');
         else if (error.message.includes('TARGET_MOVED')) text = t('murder_target_moved');
         else if (error.message.includes('IN_JAIL')) text = t('error_in_jail');
+        else if (error.message.includes('TARGET_PROTECTED')) text = t('murder_target_protected');
         showToast(text, 'error');
       } else {
         updatePlayer(data.player);

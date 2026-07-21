@@ -129,7 +129,7 @@ export default function AdminPage() {
   const isCEO = (player as { staff_role?: string })?.staff_role === 'ceo';
   // Any staff role can open the admin panel; the server gates each action via
   // is_admin(). CEO-only sections (staff management) use isCEO. No username hardcode.
-  const isAdmin = !!player;
+  const isAdmin = !!(player as { staff_role?: string })?.staff_role;
 
   const supabase = createClient();
 
@@ -284,7 +284,11 @@ export default function AdminPage() {
   };
 
   const loadAllRef = useRef(loadAll);
-  loadAllRef.current = loadAll;
+  // Keep the ref pointing at the latest closure via an effect (runs every
+  // render, no deps) rather than mutating .current during render itself.
+  useEffect(() => {
+    loadAllRef.current = loadAll;
+  });
 
    useEffect(() => {
      if (isAdmin) {

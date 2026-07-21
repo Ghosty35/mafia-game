@@ -41,7 +41,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   });
 
   const setLanguage = (lang: Language, options?: SetLanguageOptions) => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- Context setter must update synchronously
     setLanguageState(lang);
     if (options?.persist === false) return;
     localStorage.setItem('game-language', lang);

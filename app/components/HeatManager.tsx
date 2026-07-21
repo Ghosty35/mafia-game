@@ -79,7 +79,7 @@ export default function HeatManager({ variant = 'full' }: { variant?: Variant })
     setBusy('lawyer');
     try {
       const supabase = createClient();
-      const { data, error } = await supabase.rpc('buy_corrupt_lawyer');
+      const { error } = await supabase.rpc('buy_corrupt_lawyer');
       if (error) {
         showToast(mapErr(error.message), 'error');
         return;

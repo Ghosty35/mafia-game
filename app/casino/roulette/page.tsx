@@ -56,6 +56,7 @@ export default function RoulettePage() {
       else if (m.includes('IN_JAIL')) setError(t('error_in_jail'));
       else if (m.includes('INVALID_BET_VALUE')) setError(t('roulette_pick_number'));
       else if (m.includes('INVALID_BET')) setError(t('cas_invalid_bet'));
+      else if (m.includes('TOO_FAST')) setError(t('error_too_fast'));
       else setError(t('cas_failed'));
       return;
     }

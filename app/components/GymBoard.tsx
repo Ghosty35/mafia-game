@@ -19,7 +19,7 @@ function cashCost(startStat: number, sessions: number): number {
 
 export default function GymBoard() {
   const { player, refreshPlayer, showToast } = usePlayer();
-  const { t, language, fm } = useLanguage();
+  const { t, fm } = useLanguage();
   const router = useRouter();
   const [discipline, setDiscipline] = useState<Discipline>('strength');
   const [sessions, setSessions] = useState(1);
@@ -41,6 +41,7 @@ export default function GymBoard() {
     if (msg.includes('IN_JAIL')) return t('gym_err_jail');
     if (msg.includes('DEAD')) return t('gym_err_dead');
     if (msg.includes('INVALID_SESSIONS')) return t('gym_err_sessions');
+    if (msg.includes('TOO_FAST')) return t('error_too_fast');
     return msg;
   };
 

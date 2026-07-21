@@ -45,7 +45,7 @@ export default function PWAInstallBanner() {
       <div className="flex items-start gap-3">
         <div className="text-3xl shrink-0">♛</div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-bold text-sm text-white">Install A Hustler's Way</h3>
+          <h3 className="font-bold text-sm text-white">Install A Hustler&apos;s Way</h3>
           <p className="text-xs text-zinc-400 mt-1">
             {isIOS 
               ? 'Tap Share → "Add to Home Screen" to install this app.'

@@ -228,7 +228,6 @@ export default function MobileNav() {
                 {filteredCategories.map((category) => {
                   const sectionKey = category.titleKey;
                   const isOpen = openSections[sectionKey] ?? true;
-                  const isAnimating = animatingSections.has(sectionKey);
 
                   return (
                     <div key={sectionKey} className="mb-1">

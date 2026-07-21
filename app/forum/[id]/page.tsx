@@ -6,7 +6,6 @@ import { useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { usePlayer } from '../../components/PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
-import { useRouter } from 'next/navigation';
 import Panel from '../../components/Panel';
 
 export const dynamic = 'force-dynamic';
@@ -44,8 +43,7 @@ export default function ForumPostPage() {
   const params = useParams();
   const postId = params?.id as string;
   const { player, refreshPlayer } = usePlayer();
-  const { t, fm } = useLanguage();
-  const router = useRouter();
+  const { t } = useLanguage();
   const supabase = createClient();
 
   const [post, setPost] = useState<PostDetail | null>(null);
@@ -70,7 +68,7 @@ export default function ForumPostPage() {
     if (!player || !post) return;
     setBusy(true);
     setError('');
-    const { data, error: err } = await supabase.rpc('create_forum_reply', {
+    const { error: err } = await supabase.rpc('create_forum_reply', {
       p_post_id: postId,
       p_content: replyContent,
     });

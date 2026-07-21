@@ -25,12 +25,6 @@ export default function VipStorePage() {
 
   const economy = useEconomy();
   const donatorCost = economy?.vip_donator_cost ?? 500;
-  const buffs = economy?.family_buffs ?? [
-    { id: 'power100', label: t('vip_buff_p100'), desc: t('vip_buff_p100_desc'), cash: 420000, diamonds: 140, diamonds_bundle: 600 },
-    { id: 'power250', label: t('vip_buff_p250'), desc: t('vip_buff_p250_desc'), cash: 980000, diamonds: 320, diamonds_bundle: 1250 },
-    { id: 'hourly', label: t('vip_buff_hourly'), desc: t('vip_buff_hourly_desc'), cash: 650000, diamonds: 210, diamonds_bundle: 820 },
-    { id: 'war', label: t('vip_buff_war'), desc: t('vip_buff_war_desc'), cash: 1150000, diamonds: 380, diamonds_bundle: 1400 },
-  ];
 
   const purchaseDonatorStatus = async (costDiamonds: number) => {
     if (!confirm(t('vip_confirm_donator', { cost: costDiamonds }))) return;

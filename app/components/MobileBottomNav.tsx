@@ -39,7 +39,7 @@ export default function MobileBottomNav() {
     };
   }, [player?.id]);
 
-  const { open, setOpen } = useMobileDrawer();
+  const { setOpen } = useMobileDrawer();
 
   const items = [
     { href: '/dashboard', icon: '🏠', label: t('nav_home') },

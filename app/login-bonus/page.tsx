@@ -31,7 +31,6 @@ export const dynamic = 'force-dynamic';
 
 // Daily login streak bonus (138). Reward cycles over 7 days; a missed day resets
 // the streak. Server-authoritative — this page only reflects get_login_bonus.
-const CYCLE = [10000, 20000, 35000, 50000, 75000, 100000, 150000];
 
 export default function LoginBonusPage() {
   const { t, fm } = useLanguage();

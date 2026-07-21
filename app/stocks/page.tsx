@@ -83,7 +83,8 @@ export default function StocksPage() {
       setMsg(t('stocks_bought', { shares, ticker }));
       await loadMarket();
     } catch (e) {
-      setMsg(e instanceof Error ? e.message : t('stocks_buy_failed'));
+      const msg = e instanceof Error ? e.message : '';
+      setMsg(msg.includes('TOO_FAST') ? t('error_too_fast') : msg || t('stocks_buy_failed'));
     }
     setBusy(false);
   };
@@ -101,7 +102,8 @@ export default function StocksPage() {
       setMsg(t('stocks_sold', { shares, ticker }));
       await loadMarket();
     } catch (e) {
-      setMsg(e instanceof Error ? e.message : t('stocks_sell_failed'));
+      const msg = e instanceof Error ? e.message : '';
+      setMsg(msg.includes('TOO_FAST') ? t('error_too_fast') : msg || t('stocks_sell_failed'));
     }
     setBusy(false);
   };

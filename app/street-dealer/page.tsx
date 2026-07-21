@@ -25,7 +25,7 @@ export default function StreetDealerPage() {
   const [quantities, setQuantities] = useState<Record<string, number>>(
     Object.fromEntries(DRUGS.map(d => [d, 1]))
   );
-  const [cooldowns, setCooldowns] = useState<Record<string, number>>({});
+  const [, setCooldowns] = useState<Record<string, number>>({});
 
   const setQty = (drug: string, value: string) =>
     setQuantities(prev => ({ ...prev, [drug]: Math.max(1, Math.min(9999, parseInt(value) || 1)) }));
@@ -104,6 +104,7 @@ export default function StreetDealerPage() {
       showToast(
         msg.includes('NOT_ENOUGH_CASH') ? t('dealer_no_cash_tax')
           : msg.includes('CAP_REACHED') ? t('dealer_cap_reached', { drug, cap })
+          : msg.includes('TOO_FAST') ? t('error_too_fast')
           : (msg || t('dealer_purchase_failed')),
         'error',
       );
@@ -126,7 +127,12 @@ export default function StreetDealerPage() {
     const { data, error } = await supabase.rpc('sell_drug', { p_drug: drug, p_qty: qty });
     if (error) {
       const msg = error.message || '';
-      showToast(msg.includes('NOT_ENOUGH_STOCK') ? t('dealer_not_enough_shed') : (msg || t('dealer_sale_failed')), 'error');
+      showToast(
+        msg.includes('NOT_ENOUGH_STOCK') ? t('dealer_not_enough_shed')
+          : msg.includes('TOO_FAST') ? t('error_too_fast')
+          : (msg || t('dealer_sale_failed')),
+        'error',
+      );
       return;
     }
     const res = data as { revenue: number; storage: Record<string, number> };

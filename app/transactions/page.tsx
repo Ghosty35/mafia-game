@@ -1,9 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
-import { usePlayer } from '../components/PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 import { formatCash } from '@/lib/format';
 import PageHeader from '../components/PageHeader';
@@ -23,7 +21,6 @@ const FILTERS: { key: Filter; label: string; icon: string; match: (t: Txn) => bo
 ];
 
 export default function TransactionsPage() {
-  const { player } = usePlayer();
   const { t, language, fm } = useLanguage();
   const [transactions, setTransactions] = useState<Txn[]>([]);
   const [loading, setLoading] = useState(true);
