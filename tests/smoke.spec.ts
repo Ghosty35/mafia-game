@@ -126,3 +126,27 @@ test.describe('mobile navigation', () => {
     }
   });
 });
+
+test.describe('responsive breakpoint consistency', () => {
+  // Regression test: Sidebar.tsx once used `hidden md:block` (768px) while
+  // every other responsive nav piece (RightSidebar, mobile hamburger, bottom
+  // nav) used `lg:` (1024px). Any viewport in the 768-1023px gap - a real
+  // width reported by a user's installed PWA WebView - showed the full
+  // desktop left sidebar AND the mobile hamburger/bottom nav at the same
+  // time. Pin the desktop sidebar to stay hidden through that whole gap.
+  test('desktop left sidebar stays hidden through the md-lg gap (768-1023px)', async ({ page }) => {
+    await page.setViewportSize({ width: 900, height: 1200 });
+    await loginAs(page, 'heistbuddy_test@example.com');
+    const leftSidebar = page.locator('aside[aria-label="Sidebar navigation"]');
+    await expect(leftSidebar).toBeHidden();
+    const bottomNav = page.locator('nav[aria-label="Mobile navigation"]');
+    await expect(bottomNav).toBeVisible();
+  });
+
+  test('desktop left sidebar shows at true desktop width (1024px+)', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await loginAs(page, 'heistbuddy_test@example.com');
+    const leftSidebar = page.locator('aside[aria-label="Sidebar navigation"]');
+    await expect(leftSidebar).toBeVisible();
+  });
+});
