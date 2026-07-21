@@ -8,6 +8,7 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 import type { TranslationKey } from '@/lib/i18n/translations';
 import LanguageSwitcher from './LanguageSwitcher';
 import MobileNav from './MobileNav';
+import MobileRightNav from './MobileRightNav';
 
 // High-level navigation. Every item links to a distinct destination.
 const baseItems: { labelKey: TranslationKey; href: string; icon: string }[] = [
@@ -88,6 +89,9 @@ export default function GameNav() {
           <div className="hidden lg:block">
             <LanguageSwitcher />
           </div>
+          <Suspense fallback={<div className="w-10 h-10 lg:hidden" />}>
+            <MobileRightNav />
+          </Suspense>
           <form action="/auth/signout" method="post">
             <button
               type="submit"

@@ -1,25 +1,42 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+// The `beforeinstallprompt` event isn't in the standard DOM lib types.
+interface PromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
 
 export default function PWAInstallBanner() {
   const [showBanner, setShowBanner] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
+  const deferredPromptRef = useRef<PromptEvent | null>(null);
 
   useEffect(() => {
-    const isAppleDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+    const isAppleDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
       (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     setIsIOS(isAppleDevice);
 
-    const dismissed = sessionStorage.getItem('pwa-banner-dismissed');
-    if (dismissed) return;
+    const handleBeforeInstall = (e: Event) => {
+      e.preventDefault();
+      deferredPromptRef.current = e as PromptEvent;
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
 
-    // Show banner after 5 seconds on all devices
+    const dismissed = sessionStorage.getItem('pwa-banner-dismissed');
+    if (dismissed) return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+
+    // Show banner after 5 seconds on all devices (iOS never fires
+    // beforeinstallprompt, so it gets manual "tap Share" instructions instead).
     const timer = setTimeout(() => {
       setShowBanner(true);
     }, 5000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+    };
   }, []);
 
   const handleDismiss = () => {
@@ -28,20 +45,20 @@ export default function PWAInstallBanner() {
   };
 
   const handleInstall = async () => {
-    const deferredPrompt = window.deferredPWAInstall;
+    const deferredPrompt = deferredPromptRef.current;
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === 'accepted') {
       setShowBanner(false);
     }
-    window.deferredPWAInstall = undefined;
+    deferredPromptRef.current = null;
   };
 
   if (!showBanner) return null;
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-96 bg-zinc-900 border border-amber-800/50 rounded-xl p-4 shadow-2xl z-50 animate-slideIn">
+    <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom,0px))] left-4 right-4 md:left-auto md:right-4 md:w-96 bg-zinc-900 border border-amber-800/50 rounded-xl p-4 shadow-2xl z-50 animate-slideIn">
       <div className="flex items-start gap-3">
         <div className="text-3xl shrink-0">♛</div>
         <div className="flex-1 min-w-0">

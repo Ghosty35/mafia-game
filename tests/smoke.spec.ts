@@ -12,7 +12,9 @@ test.describe('auth + core navigation', () => {
 
   test('login works and dashboard renders live stats', async ({ page }) => {
     await loginAs(page, 'heistbuddy_test@example.com');
-    await expect(page.getByText(/HeistBuddy/i)).toBeVisible();
+    // "HeistBuddy" also appears in the live activity feed (rip/heist events
+    // from other players) - anchor to the welcome heading specifically.
+    await expect(page.getByRole('heading', { name: /welcome back, heistbuddy/i })).toBeVisible();
     await expect(page.getByText(/Cash/i).first()).toBeVisible();
   });
 
@@ -77,5 +79,50 @@ test.describe('money-critical flows', () => {
     });
 
     await expect(page.getByText(/slow down/i)).toBeVisible({ timeout: 8000 });
+  });
+});
+
+test.describe('mobile navigation', () => {
+  test.use({ viewport: { width: 375, height: 812 } });
+
+  test('left drawer (game menu) opens and navigates', async ({ page }) => {
+    await loginAs(page, 'heistbuddy_test@example.com');
+    await page.getByRole('button', { name: /menu/i }).first().click();
+    // "The Streets" (side_street_ops) is the stylized category label, and
+    // menu_heists itself renders as "Jobs" - anchor to hrefs, not copy,
+    // since this app uses heavily stylized slang labels throughout.
+    await expect(page.getByText(/the streets/i).first()).toBeVisible();
+    await page.locator('a[href="/heists"]').first().click();
+    await expect(page).toHaveURL(/\/heists/);
+    // Drawer closes on navigation - no leftover backdrop trapping input.
+    await expect(page.locator('body')).not.toHaveCSS('overflow', 'hidden');
+  });
+
+  test('right drawer (profile/family menu) opens with all categories and navigates', async ({ page }) => {
+    await loginAs(page, 'heistbuddy_test@example.com');
+    await page.getByRole('button', { name: /profile.*family menu/i }).click();
+    // All 5 right-sidebar categories should render (Communication/Profile/
+    // Murder/Family/Reputation - mirrors the desktop RightSidebar).
+    await expect(page.getByText(/my family/i).first()).toBeVisible();
+    await expect(page.getByText(/my profile/i).first()).toBeVisible();
+    await page.getByRole('link', { name: /my family/i }).first().click();
+    await expect(page).toHaveURL(/\/families/);
+  });
+
+  test('bottom nav is present and does not overlap page content', async ({ page }) => {
+    await loginAs(page, 'heistbuddy_test@example.com');
+    const bottomNav = page.locator('nav[aria-label="Mobile navigation"]');
+    await expect(bottomNav).toBeVisible();
+    const box = await bottomNav.boundingBox();
+    expect(box?.y).toBeGreaterThan(700); // pinned near viewport bottom (812px tall)
+  });
+
+  test('crimes page and a crime detail page have no horizontal overflow', async ({ page }) => {
+    await loginAs(page, 'heistbuddy_test@example.com');
+    for (const route of ['/crimes', '/crimes/pickpocket']) {
+      await page.goto(route);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+      expect(overflow, `${route} should not overflow horizontally`).toBe(false);
+    }
   });
 });

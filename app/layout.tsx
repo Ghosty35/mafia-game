@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import ErrorBoundary from "./components/ErrorBoundary";
-import InstallPrompt from "./components/InstallPrompt";
 import ServiceWorkerRegistrar from "./components/ServiceWorkerRegistrar";
 import PWAInstallBanner from "./components/PWAInstallBanner";
 import MobileSplash from "./components/MobileSplash";
@@ -63,7 +62,6 @@ export default function RootLayout({
           <LanguageProvider>{children}</LanguageProvider>
         </ErrorBoundary>
         <OfflineIndicator />
-        <InstallPrompt />
         <PWAInstallBanner />
         <MobileSplash />
         <ServiceWorkerRegistrar />
