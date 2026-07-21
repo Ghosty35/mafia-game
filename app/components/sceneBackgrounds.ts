@@ -11,11 +11,19 @@ export type Scene = {
   /** Black scrim opacity over the art. Denser for stat-heavy pages so the
    *  UI stays legible; lighter for pages that are mostly prose/cards. */
   scrim: number;
+  /** Optional character standing in the scene, anchored bottom-right.
+   *  Purely decorative - hidden on small screens where it would crowd
+   *  the content. */
+  character?: { src: string; opacity: number };
 };
 
 const CITY: Scene = { src: '/bg-city-street.webp', scrim: 0.72 };
 const CRIME: Scene = { src: '/bg-alley.webp', scrim: 0.74 };
-const CASINO: Scene = { src: '/bg-casino.webp', scrim: 0.76 };
+const CASINO: Scene = {
+  src: '/bg-casino.webp',
+  scrim: 0.76,
+  character: { src: '/char-cards.webp', opacity: 0.5 },
+};
 const BANK: Scene = { src: '/bg-bank.webp', scrim: 0.74 };
 
 /** Route prefix -> scene. Order does not matter; the longest prefix wins. */

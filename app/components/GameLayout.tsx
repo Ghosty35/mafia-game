@@ -72,6 +72,31 @@ function LayoutContent({ children }: { children: ReactNode }) {
         className="fixed inset-0 pointer-events-none transition-colors duration-500"
         style={{ backgroundColor: `rgba(0,0,0,${scene.scrim})` }}
       />
+      {/* Character standing in this scene (e.g. the card sharp on the casino
+          floor). Above the scrim so they're not washed out, but well below
+          the content layer. xl+ only - on smaller screens they'd sit under
+          the stats panels and just look like clutter. */}
+      {scene.character && (
+        <div
+          key={scene.character.src}
+          aria-hidden="true"
+          className="hidden xl:block fixed right-0 bottom-0 pointer-events-none select-none animate-sceneFade"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={scene.character.src}
+            alt=""
+            className="w-auto object-contain"
+            style={{
+              height: 'min(58vh, 520px)',
+              opacity: scene.character.opacity,
+              filter: 'drop-shadow(0 18px 40px rgba(0,0,0,0.9)) saturate(0.9)',
+              WebkitMaskImage: 'linear-gradient(to top, transparent 0%, #000 10%)',
+              maskImage: 'linear-gradient(to top, transparent 0%, #000 10%)',
+            }}
+          />
+        </div>
+      )}
       {/* Live mafia-city atmosphere on top of the global skyline background */}
       <div className="mafia-ambient" />
       <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,rgba(245,158,11,0.03),transparent_50%)]" />

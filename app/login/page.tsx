@@ -117,6 +117,32 @@ export default function LoginPage() {
           maskImage: 'linear-gradient(to top, #000 65%, transparent 100%)',
         }}
       />
+      {/* Player character standing at the right edge of the waterfront.
+          Sits above the scrim so she reads as foreground, but behind the
+          form (z-10). Hidden below xl where there's no room beside the
+          stats column - she'd collide with the login card. */}
+      <div
+        aria-hidden="true"
+        className="hidden xl:block pointer-events-none absolute right-0 bottom-0 z-[3] select-none"
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/char-girl.webp"
+          alt=""
+          className="w-auto object-contain"
+          style={{
+            // Sized off the viewport so she never runs past the fold, and
+            // kept subtle: the stats/leaderboard cards sit in front of her
+            // (z-10) so she reads as scenery, not a UI element.
+            height: 'min(72vh, 640px)',
+            opacity: 0.55,
+            filter: 'drop-shadow(0 20px 44px rgba(0,0,0,0.9)) saturate(0.85)',
+            WebkitMaskImage: 'linear-gradient(to top, transparent 0%, #000 10%)',
+            maskImage: 'linear-gradient(to top, transparent 0%, #000 10%)',
+          }}
+        />
+      </div>
+
       {/* Base noise texture */}
       <div className="absolute inset-0 bg-[radial-gradient(#27272a_0.8px,transparent_1px)] bg-[length:4px_4px] opacity-25 z-[2]" />
       {/* Readability scrim - lighter than before so the skyline art shows through */}
