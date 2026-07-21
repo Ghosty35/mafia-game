@@ -11,6 +11,7 @@ import LanguageSync from './LanguageSync';
 import Toast from './Toast';
 import MobileBottomNav from './MobileBottomNav';
 import { PlayerProvider, usePlayer } from './PlayerContext';
+import { MobileDrawerProvider } from './MobileDrawerContext';
 
 function LayoutContent({ children }: { children: ReactNode }) {
   const { player } = usePlayer();
@@ -72,7 +73,9 @@ function LayoutContent({ children }: { children: ReactNode }) {
 export default function GameLayout({ children }: { children: ReactNode }) {
   return (
     <PlayerProvider>
-      <LayoutContent>{children}</LayoutContent>
+      <MobileDrawerProvider>
+        <LayoutContent>{children}</LayoutContent>
+      </MobileDrawerProvider>
     </PlayerProvider>
   );
 }

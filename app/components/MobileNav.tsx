@@ -12,6 +12,7 @@ import {
   isMenuItemActive,
   type MenuCategory,
 } from './menuData';
+import { useMobileDrawer } from './MobileDrawerContext';
 
 // Collapsible section state persisted across tab switches.
 const SECTION_STORAGE_KEY = 'mobile-nav-sections';
@@ -35,7 +36,7 @@ function saveOpenSections(state: Record<string, boolean>) {
 }
 
 export default function MobileNav() {
-  const [open, setOpen] = useState(false);
+  const { open, setOpen } = useMobileDrawer();
   const [tab, setTab] = useState<'game' | 'social'>('game');
   const [search, setSearch] = useState('');
   const [openSections, setOpenSections] = useState<Record<string, boolean>>(() => loadOpenSections());
@@ -51,7 +52,7 @@ export default function MobileNav() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setOpen(false);
-  }, [pathname, qs]);
+  }, [pathname, qs, setOpen]);
 
   // Lock body scroll while the drawer is open
   useEffect(() => {
@@ -60,13 +61,6 @@ export default function MobileNav() {
       document.body.style.overflow = '';
     };
   }, [open]);
-
-  // Open drawer when "More" is tapped in the bottom nav
-  useEffect(() => {
-    const handler = () => setOpen(true);
-    window.addEventListener('open-mobile-nav', handler);
-    return () => window.removeEventListener('open-mobile-nav', handler);
-  }, []);
 
   const isAdmin = !!player?.staff_role;
   const gameCategories: MenuCategory[] = buildLeftMenu(isAdmin);

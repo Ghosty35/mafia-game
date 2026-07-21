@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { usePlayer } from './PlayerContext';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { useMobileDrawer } from './MobileDrawerContext';
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
@@ -38,6 +39,8 @@ export default function MobileBottomNav() {
     };
   }, [player?.id]);
 
+  const { open, setOpen } = useMobileDrawer();
+
   const items = [
     { href: '/dashboard', icon: '🏠', label: t('nav_home') },
     { href: '/crimes', icon: '🔫', label: t('nav_crimes') },
@@ -51,13 +54,13 @@ export default function MobileBottomNav() {
       <div className="flex items-center justify-around h-16">
         {items.map(({ href, icon, label, badge, action }) => {
           if (action === 'more') {
+            const openDrawer = () => setOpen(true);
             return (
               <button
                 key={href}
                 type="button"
-                onClick={() => {
-                  window.dispatchEvent(new CustomEvent('open-mobile-nav'));
-                }}
+                onClick={openDrawer}
+                onTouchEnd={(e) => { e.preventDefault(); openDrawer(); }}
                 aria-label={label}
                 className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full transition-all relative text-zinc-500 hover:text-zinc-300 active:text-amber-400 active:scale-95"
               >
