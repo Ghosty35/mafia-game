@@ -99,41 +99,35 @@ export default function LoginPage() {
       </div>
 
       {/* ===== ENHANCED BACKGROUNDS ===== */}
-      {/* Night-city street scene with the crew in silhouette (replaces the
-          old bg-login.jpg photo) - sits behind the skyline layer below. */}
+      {/* Noir harbour skyline under a full moon (original art, generated for
+          this project - not stock or third-party game art). */}
       <div
-        className="absolute inset-x-0 bottom-0 h-[58vh] pointer-events-none opacity-70 z-[1]"
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: "url('/bg-login-city.webp')" }}
+      />
+      {/* The crew in silhouette along the waterfront, in front of the skyline */}
+      <div
+        className="absolute inset-x-0 bottom-0 h-[42vh] pointer-events-none opacity-60 z-[1]"
         style={{
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'bottom center',
           backgroundSize: 'cover',
           backgroundImage: "url('/city-crew.svg')",
-          WebkitMaskImage: 'linear-gradient(to top, #000 60%, transparent 100%)',
-          maskImage: 'linear-gradient(to top, #000 60%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to top, #000 65%, transparent 100%)',
+          maskImage: 'linear-gradient(to top, #000 65%, transparent 100%)',
         }}
       />
       {/* Base noise texture */}
-      <div className="absolute inset-0 bg-[radial-gradient(#27272a_0.8px,transparent_1px)] bg-[length:4px_4px] opacity-40" />
-      {/* Dark vignette */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-zinc-950/90 to-black/80" />
+      <div className="absolute inset-0 bg-[radial-gradient(#27272a_0.8px,transparent_1px)] bg-[length:4px_4px] opacity-25 z-[2]" />
+      {/* Readability scrim - lighter than before so the skyline art shows through */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/45 to-black/75 z-[2]" />
       {/* Red ambient glow top-left */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(185,28,28,0.16)_0%,transparent_45%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(185,28,28,0.16)_0%,transparent_45%)] z-[2]" />
       {/* Warm amber city-lights glow rising from the bottom */}
-      <div className="absolute inset-0 bg-[radial-gradient(130%_70%_at_50%_112%,rgba(245,158,11,0.14)_0%,transparent_50%)]" />
-      {/* Dark vignette bottom-right */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_85%,rgba(0,0,0,0.7)_0%,transparent_55%)]" />
-      {/* City skyline silhouette with lit windows */}
-      <div
-        className="absolute inset-x-0 bottom-0 h-[48vh] pointer-events-none opacity-95"
-        style={{
-          backgroundRepeat: 'repeat-x',
-          backgroundPosition: 'bottom center',
-          backgroundSize: '1200px 360px',
-          WebkitMaskImage: 'linear-gradient(to top, #000 55%, transparent 100%)',
-          maskImage: 'linear-gradient(to top, #000 55%, transparent 100%)',
-          backgroundImage: "url('/skyline.svg')",
-        }}
-      />
+      <div className="absolute inset-0 bg-[radial-gradient(130%_70%_at_50%_112%,rgba(245,158,11,0.12)_0%,transparent_50%)] z-[2]" />
+      {/* NOTE: the old repeating skyline.svg layer was removed here - the new
+          bg-login-city.webp already has its own skyline, and stacking both
+          produced two mismatched horizons. */}
 
       <div className="relative z-10 w-full max-w-[1400px] mx-auto px-4">
         <div className="flex flex-col xl:flex-row items-center justify-center gap-8">

@@ -33,9 +33,13 @@ export default function HustlersWayLayout({ children }: { children: ReactNode })
     <PlayerProvider>
       <HustlersWayLock>
         <div className="min-h-screen bg-transparent text-white relative">
-          {/* Night-city street scene (replaces the old bg-hustlers.jpg photo) */}
+          {/* Rain-soaked crime-city street (original generated art) */}
           <div
-            className="fixed inset-x-0 bottom-0 h-[46vh] pointer-events-none opacity-[0.55]"
+            className="fixed inset-0 bg-cover bg-center pointer-events-none"
+            style={{ backgroundImage: "url('/bg-city-street.webp')" }}
+          />
+          <div
+            className="fixed inset-x-0 bottom-0 h-[38vh] pointer-events-none opacity-40"
             style={{
               backgroundRepeat: 'no-repeat',
               backgroundPosition: 'bottom center',
@@ -45,7 +49,7 @@ export default function HustlersWayLayout({ children }: { children: ReactNode })
               maskImage: 'linear-gradient(to top, #000 62%, transparent 100%)',
             }}
           />
-          <div className="fixed inset-0 bg-black/45 pointer-events-none" />
+          <div className="fixed inset-0 bg-black/72 pointer-events-none" />
           {children}
         </div>
       </HustlersWayLock>

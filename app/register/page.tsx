@@ -95,37 +95,30 @@ export default function RegisterPage() {
         <LanguageSwitcher />
       </div>
       {/* Dramatic Mafia Background Layers (same as login) */}
-      {/* Night-city street scene with the crew in silhouette (replaces the
-          old bg-login.jpg photo). */}
+      {/* Noir harbour skyline under a full moon (original generated art). */}
       <div
-        className="absolute inset-x-0 bottom-0 h-[58vh] pointer-events-none opacity-70 z-[1]"
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: "url('/bg-login-city.webp')" }}
+      />
+      {/* The crew in silhouette along the waterfront */}
+      <div
+        className="absolute inset-x-0 bottom-0 h-[42vh] pointer-events-none opacity-60 z-[1]"
         style={{
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'bottom center',
           backgroundSize: 'cover',
           backgroundImage: "url('/city-crew.svg')",
-          WebkitMaskImage: 'linear-gradient(to top, #000 60%, transparent 100%)',
-          maskImage: 'linear-gradient(to top, #000 60%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to top, #000 65%, transparent 100%)',
+          maskImage: 'linear-gradient(to top, #000 65%, transparent 100%)',
         }}
       />
-      <div className="absolute inset-0 bg-[radial-gradient(#27272a_0.8px,transparent_1px)] bg-[length:4px_4px] opacity-40" />
-      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-zinc-950/90 to-black/80" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(185,28,28,0.14)_0%,transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(#27272a_0.8px,transparent_1px)] bg-[length:4px_4px] opacity-25 z-[2]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/45 to-black/75 z-[2]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(185,28,28,0.14)_0%,transparent_50%)] z-[2]" />
       {/* Warm amber city-lights glow rising from the bottom */}
-      <div className="absolute inset-0 bg-[radial-gradient(130%_70%_at_50%_112%,rgba(245,158,11,0.14)_0%,transparent_50%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(0,0,0,0.6)_0%,transparent_60%)]" />
-      {/* Living night-city skyline silhouette with lit windows */}
-      <div
-        className="absolute inset-x-0 bottom-0 h-[48vh] pointer-events-none opacity-95"
-        style={{
-          backgroundRepeat: 'repeat-x',
-          backgroundPosition: 'bottom center',
-          backgroundSize: '1200px 360px',
-          WebkitMaskImage: 'linear-gradient(to top, #000 55%, transparent 100%)',
-          maskImage: 'linear-gradient(to top, #000 55%, transparent 100%)',
-          backgroundImage: "url('/skyline.svg')",
-        }}
-      />
+      <div className="absolute inset-0 bg-[radial-gradient(130%_70%_at_50%_112%,rgba(245,158,11,0.12)_0%,transparent_50%)] z-[2]" />
+      {/* NOTE: repeating skyline.svg removed - bg-login-city.webp has its own
+          skyline; stacking both gave two mismatched horizons. */}
 
       <div className="relative z-10 w-full max-w-5xl">
         <div className="flex flex-col lg:flex-row items-center justify-center gap-12">
