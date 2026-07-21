@@ -42,10 +42,22 @@ function LayoutContent({ children }: { children: ReactNode }) {
        drawers failed on real Android. Horizontal overflow is contained by
        `overflow-x: clip` on <body> in globals.css instead. */
     <div className="min-h-screen bg-transparent text-white relative">
-      {/* Background image */}
-      <div className="fixed inset-0 bg-cover bg-top" style={{ backgroundImage: "url('/bg-dashboard.jpg')" }} />
+      {/* Night-city street scene: the crew standing under the lamps, layered
+          over the global skyline in globals.css (body::after). Replaces the
+          old bg-dashboard.jpg photo. */}
+      <div
+        className="fixed inset-x-0 bottom-0 h-[46vh] pointer-events-none opacity-[0.55]"
+        style={{
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'bottom center',
+          backgroundSize: 'cover',
+          backgroundImage: "url('/city-crew.svg')",
+          WebkitMaskImage: 'linear-gradient(to top, #000 62%, transparent 100%)',
+          maskImage: 'linear-gradient(to top, #000 62%, transparent 100%)',
+        }}
+      />
       {/* Dark overlay for readability */}
-      <div className="fixed inset-0 bg-black/60" />
+      <div className="fixed inset-0 bg-black/45 pointer-events-none" />
       {/* Live mafia-city atmosphere on top of the global skyline background */}
       <div className="mafia-ambient" />
       <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,rgba(245,158,11,0.03),transparent_50%)]" />

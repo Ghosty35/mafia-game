@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -9,12 +9,15 @@ import LanguageSwitcher from '../components/LanguageSwitcher';
 import type { LeaderboardEntry } from '@/lib/types';
 import { formatCash } from '@/lib/format';
 
+// Field names must match what get_server_stats actually returns - the old
+// shape used `online_now`, but the RPC returns `online_people`, so the whole
+// stats panel silently rendered "Unavailable" to every visitor.
 type ServerStats = {
-  online_now: number;
+  online_people: number;
   logged_in_this_week: number;
   total_families: number;
-  total_members: number;
-  total_cash_circulation: number;
+  total_family_members: number;
+  total_money_circulation: number;
   people_registered: number;
 };
 
@@ -30,29 +33,33 @@ export default function LoginPage() {
   const [serverStats, setServerStats] = useState<ServerStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
 
-  const supabase = createClient();
-
-  const loadPublicData = async () => {
+  // Memoised so the effect below doesn't re-subscribe on every render (an
+  // unmemoised loader used as an effect dependency re-ran the effect in a
+  // loop and the public stats/leaderboard never settled).
+  const loadPublicData = useCallback(async () => {
+    const supabase = createClient();
     setStatsLoading(true);
     try {
       const [{ data: lb }, { data: ss }] = await Promise.all([
         supabase.rpc('get_leaderboard'),
         supabase.rpc('get_server_stats'),
       ]);
-      if (lb) setLeaderboard((lb as unknown as LeaderboardEntry[]).slice(0, 8));
+      // get_leaderboard returns { top: [...], me: ... } - not a bare array,
+      // so the old cast produced an empty board ("No players yet") always.
+      const rows = Array.isArray(lb)
+        ? (lb as unknown as LeaderboardEntry[])
+        : ((lb as unknown as { top?: LeaderboardEntry[] } | null)?.top ?? []);
+      setLeaderboard(rows.slice(0, 8));
       if (ss) setServerStats(ss as ServerStats);
     } catch {
       // ignore
     } finally {
       setStatsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    const doLoad = async () => {
-      await loadPublicData();
-    };
-    doLoad();
+    loadPublicData();
     const poll = setInterval(loadPublicData, 30000);
     return () => clearInterval(poll);
   }, [loadPublicData]);
@@ -92,10 +99,18 @@ export default function LoginPage() {
       </div>
 
       {/* ===== ENHANCED BACKGROUNDS ===== */}
-      {/* User photo background */}
+      {/* Night-city street scene with the crew in silhouette (replaces the
+          old bg-login.jpg photo) - sits behind the skyline layer below. */}
       <div
-        className="absolute inset-0 bg-cover bg-top"
-        style={{ backgroundImage: "url('/bg-login.jpg')" }}
+        className="absolute inset-x-0 bottom-0 h-[58vh] pointer-events-none opacity-70 z-[1]"
+        style={{
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'bottom center',
+          backgroundSize: 'cover',
+          backgroundImage: "url('/city-crew.svg')",
+          WebkitMaskImage: 'linear-gradient(to top, #000 60%, transparent 100%)',
+          maskImage: 'linear-gradient(to top, #000 60%, transparent 100%)',
+        }}
       />
       {/* Base noise texture */}
       <div className="absolute inset-0 bg-[radial-gradient(#27272a_0.8px,transparent_1px)] bg-[length:4px_4px] opacity-40" />
@@ -231,6 +246,63 @@ export default function LoginPage() {
             <div className="text-center mt-4 text-[10px] text-zinc-600 tracking-widest">
               {t('auth_secure_footer')}
             </div>
+
+            {/* What the game actually offers - visible on every screen size,
+                unlike the xl-only stats/leaderboard column. This is the first
+                thing a stranger sees, so it has to sell the game. */}
+            <div className="mt-6 grid grid-cols-2 gap-2.5">
+              {[
+                { icon: '🔫', key: 'feat_crime' },
+                { icon: '👥', key: 'feat_family' },
+                { icon: '🏙️', key: 'feat_empire' },
+                { icon: '🎰', key: 'feat_casino' },
+              ].map(({ icon, key }) => (
+                <div
+                  key={key}
+                  className="bg-zinc-900/70 border border-zinc-800 rounded-2xl p-3.5 backdrop-blur"
+                >
+                  <div className="text-xl mb-1">{icon}</div>
+                  <div className="text-[13px] font-bold text-white leading-tight">
+                    {t(`auth_${key}_title` as never)}
+                  </div>
+                  <div className="text-[11px] text-zinc-400 mt-1 leading-snug">
+                    {t(`auth_${key}_text` as never)}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Live server pulse - real numbers, shown on mobile too */}
+            {serverStats && (
+              <div className="mt-3 flex items-center justify-center gap-4 bg-zinc-900/70 border border-zinc-800 rounded-2xl py-3 backdrop-blur text-center">
+                <div>
+                  <div className="text-lg font-bold text-emerald-400 font-mono leading-none">
+                    {serverStats.online_people ?? '—'}
+                  </div>
+                  <div className="text-[10px] text-zinc-500 tracking-wider mt-1">
+                    {t('auth_stat_online')}
+                  </div>
+                </div>
+                <div className="w-px h-8 bg-zinc-800" />
+                <div>
+                  <div className="text-lg font-bold text-white font-mono leading-none">
+                    {(serverStats.people_registered ?? 0).toLocaleString()}
+                  </div>
+                  <div className="text-[10px] text-zinc-500 tracking-wider mt-1">
+                    {t('auth_stat_players')}
+                  </div>
+                </div>
+                <div className="w-px h-8 bg-zinc-800" />
+                <div>
+                  <div className="text-lg font-bold text-amber-400 font-mono leading-none">
+                    {serverStats.total_families ?? '—'}
+                  </div>
+                  <div className="text-[10px] text-zinc-500 tracking-wider mt-1">
+                    {t('auth_stat_families')}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ===== RIGHT: Leaderboard + Server Info + Discord ===== */}
@@ -244,7 +316,7 @@ export default function LoginPage() {
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="bg-zinc-950/60 border border-zinc-800 rounded-lg px-3 py-2">
                     <div className="text-zinc-500 text-[10px]">ONLINE NOW</div>
-                    <div className="text-white font-bold font-mono">{serverStats.online_now ?? '—'}</div>
+                    <div className="text-white font-bold font-mono">{serverStats.online_people ?? '—'}</div>
                   </div>
                   <div className="bg-zinc-950/60 border border-zinc-800 rounded-lg px-3 py-2">
                     <div className="text-zinc-500 text-[10px]">THIS WEEK</div>

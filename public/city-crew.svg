@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="500" viewBox="0 0 1600 500" preserveAspectRatio="xMidYMax slice">
+  <defs>
+    <linearGradient id="fog" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0a0a0f" stop-opacity="0"/>
+      <stop offset="70%" stop-color="#0a0a0f" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#07070a" stop-opacity="0.95"/>
+    </linearGradient>
+    <linearGradient id="lamp" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="figure" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#131320"/>
+      <stop offset="100%" stop-color="#08080d"/>
+    </linearGradient>
+    <radialGradient id="streetGlow" cx="50%" cy="100%" r="70%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- warm haze rising off the street -->
+  <rect x="0" y="250" width="1600" height="250" fill="url(#streetGlow)"/>
+
+  <!-- ============ MID-GROUND: street lamps ============ -->
+  <g opacity="0.9">
+    <!-- lamp left -->
+    <rect x="212" y="250" width="5" height="180" fill="#0d0d16"/>
+    <rect x="196" y="246" width="38" height="7" rx="3" fill="#0d0d16"/>
+    <ellipse cx="215" cy="256" rx="9" ry="5" fill="#fbbf24" opacity="0.85"/>
+    <path d="M215 258 L272 430 L158 430 Z" fill="url(#lamp)"/>
+    <!-- lamp right -->
+    <rect x="1386" y="262" width="5" height="168" fill="#0d0d16"/>
+    <rect x="1370" y="258" width="38" height="7" rx="3" fill="#0d0d16"/>
+    <ellipse cx="1389" cy="268" rx="9" ry="5" fill="#fbbf24" opacity="0.85"/>
+    <path d="M1389 270 L1442 430 L1336 430 Z" fill="url(#lamp)"/>
+  </g>
+
+  <!-- ============ THE CREW (2D noir silhouettes) ============ -->
+  <!-- Far-left lookout, leaning, hands in pockets -->
+  <g fill="url(#figure)" opacity="0.92">
+    <ellipse cx="392" cy="432" rx="34" ry="6" fill="#000" opacity="0.5"/>
+    <path d="M370 250 q22 -13 44 0 l7 6 -58 0 z"/>
+    <circle cx="392" cy="238" r="15"/>
+    <rect x="374" y="256" width="36" height="66" rx="10"/>
+    <path d="M374 262 l-11 44 8 3 10 -38 z"/>
+    <path d="M410 262 l11 44 -8 3 -10 -38 z"/>
+    <rect x="378" y="318" width="13" height="112" rx="5"/>
+    <rect x="394" y="318" width="13" height="112" rx="5"/>
+  </g>
+
+  <!-- The boss: center-left, long coat, wide brim, cigar ember -->
+  <g fill="url(#figure)">
+    <ellipse cx="600" cy="434" rx="52" ry="8" fill="#000" opacity="0.55"/>
+    <path d="M556 232 q44 -22 88 0 l10 8 -108 0 z"/>
+    <rect x="574" y="206" width="52" height="30" rx="10"/>
+    <circle cx="600" cy="248" r="18"/>
+    <path d="M572 268 q28 -12 56 0 l14 108 q-42 14 -84 0 z"/>
+    <path d="M572 272 l-16 76 11 5 14 -64 z"/>
+    <path d="M628 272 l16 76 -11 5 -14 -64 z"/>
+    <rect x="580" y="374" width="17" height="60" rx="6"/>
+    <rect x="603" y="374" width="17" height="60" rx="6"/>
+  </g>
+  <circle cx="617" cy="252" r="3" fill="#f97316" opacity="0.95"/>
+  <circle cx="617" cy="252" r="7" fill="#f97316" opacity="0.22"/>
+
+  <!-- Enforcer: center-right, broad shoulders, arms crossed -->
+  <g fill="url(#figure)">
+    <ellipse cx="1000" cy="434" rx="48" ry="7" fill="#000" opacity="0.55"/>
+    <path d="M960 244 q40 -20 80 0 l9 7 -98 0 z"/>
+    <circle cx="1000" cy="258" r="17"/>
+    <path d="M968 278 q32 -12 64 0 l6 92 q-38 12 -76 0 z"/>
+    <rect x="968" y="316" width="64" height="15" rx="7"/>
+    <rect x="978" y="368" width="17" height="66" rx="6"/>
+    <rect x="1005" y="368" width="17" height="66" rx="6"/>
+  </g>
+
+  <!-- Far-right runner, walking away, coat tail -->
+  <g fill="url(#figure)" opacity="0.88">
+    <ellipse cx="1210" cy="436" rx="32" ry="6" fill="#000" opacity="0.45"/>
+    <circle cx="1210" cy="266" r="14"/>
+    <path d="M1190 250 q20 -11 40 0 l6 6 -52 0 z"/>
+    <path d="M1194 282 q16 -9 32 0 l7 74 q-23 9 -46 0 z"/>
+    <path d="M1226 288 l14 46 -8 4 -12 -38 z"/>
+    <rect x="1198" y="354" width="12" height="82" rx="5"/>
+    <rect x="1212" y="354" width="12" height="82" rx="5"/>
+  </g>
+
+  <!-- parked car silhouette, far right -->
+  <g fill="#0b0b13" opacity="0.85">
+    <path d="M1440 400 q10 -40 52 -44 l60 -3 q42 4 54 47 l6 20 q2 10 -9 10 l-160 0 q-11 0 -9 -10 z"/>
+    <circle cx="1482" cy="432" r="15" fill="#07070c"/>
+    <circle cx="1548" cy="432" r="15" fill="#07070c"/>
+    <path d="M1462 372 q14 -22 40 -24 l38 0 q26 3 38 24 z" fill="#151524" opacity="0.7"/>
+  </g>
+
+  <!-- wet asphalt reflections -->
+  <g opacity="0.28">
+    <rect x="560" y="440" width="80" height="46" rx="6" fill="#f59e0b" opacity="0.10"/>
+    <rect x="962" y="440" width="76" height="42" rx="6" fill="#f59e0b" opacity="0.08"/>
+    <rect x="176" y="440" width="78" height="40" rx="6" fill="#fbbf24" opacity="0.09"/>
+    <rect x="1352" y="440" width="74" height="38" rx="6" fill="#fbbf24" opacity="0.08"/>
+  </g>
+
+  <!-- ground fade so it blends into the page background -->
+  <rect x="0" y="300" width="1600" height="200" fill="url(#fog)"/>
+</svg>
