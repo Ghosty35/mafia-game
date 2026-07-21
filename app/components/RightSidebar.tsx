@@ -12,7 +12,7 @@ export default function RightSidebar() {
   const search = searchParams.toString();
 
   return (
-    <aside className="w-64 bg-zinc-950 border-l border-zinc-800 h-[calc(100vh-56px)] overflow-y-auto sticky top-14 hidden xl:block">
+    <aside className="w-64 bg-zinc-950 border-l border-zinc-800/80 h-[calc(100vh-56px)] overflow-y-auto sticky top-14 hidden lg:block" aria-label="Right sidebar navigation">
       <div className="p-4">
         {rightMenuCategories.map((category) => (
           <div key={category.titleKey} className="mb-6">
@@ -26,13 +26,14 @@ export default function RightSidebar() {
                   <Link
                     key={item.href + item.labelKey}
                     href={item.href}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${
+                    aria-current={active ? 'page' : undefined}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
                       active
-                        ? 'bg-amber-950/40 text-amber-400 border border-amber-900/40 font-medium shadow-[0_0_8px_rgba(245,158,11,0.06)]'
-                        : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200'
+                        ? 'bg-amber-950/40 text-amber-400 border border-amber-900/40 font-medium shadow-[0_0_12px_rgba(245,158,11,0.08)]'
+                        : 'text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200 active:bg-zinc-800'
                     }`}
                   >
-                    <span className="text-base w-5 text-center">{item.icon}</span>
+                    <span className="text-base w-6 text-center flex-shrink-0">{item.icon}</span>
                     <span className="truncate">{t(item.labelKey)}</span>
                   </Link>
                 );
@@ -41,8 +42,8 @@ export default function RightSidebar() {
           </div>
         ))}
 
-        <div className="mt-8 pt-4 border-t border-zinc-800 px-3">
-          <div className="text-[10px] text-zinc-600">{t('side_footer_right')}</div>
+        <div className="mt-8 pt-4 border-t border-zinc-800/60 px-3">
+          <div className="text-[10px] text-zinc-600 font-medium tracking-wide">{t('side_footer_right')}</div>
         </div>
       </div>
     </aside>
