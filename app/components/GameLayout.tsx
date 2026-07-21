@@ -2,7 +2,8 @@
 
 import type { ReactNode } from 'react';
 import { Suspense, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { sceneForPath } from './sceneBackgrounds';
 import GameNav from './GameNav';
 import Sidebar from './Sidebar';
 import RightSidebar from './RightSidebar';
@@ -16,6 +17,10 @@ import { MobileDrawerProvider } from './MobileDrawerContext';
 function LayoutContent({ children }: { children: ReactNode }) {
   const { player } = usePlayer();
   const router = useRouter();
+  const pathname = usePathname();
+  // The city changes as you move around it: alley for street ops, casino
+  // floor for the tables, bank hall for the money pages, skyline elsewhere.
+  const scene = sceneForPath(pathname ?? '/dashboard');
 
   // Hard lock: dead players go to /dead, jailed players go to /jail.
   // Death always takes priority over jail.
@@ -42,11 +47,12 @@ function LayoutContent({ children }: { children: ReactNode }) {
        drawers failed on real Android. Horizontal overflow is contained by
        `overflow-x: clip` on <body> in globals.css instead. */
     <div className="min-h-screen bg-transparent text-white relative">
-      {/* Rain-soaked crime-city street at dusk (original generated art) -
-          the game world you're playing in. Replaces bg-dashboard.jpg. */}
+      {/* Scene art for this section of the city (original generated art).
+          `key` forces a remount per scene so the fade-in replays on change. */}
       <div
-        className="fixed inset-0 bg-cover bg-center pointer-events-none"
-        style={{ backgroundImage: "url('/bg-city-street.webp')" }}
+        key={scene.src}
+        className="fixed inset-0 bg-cover bg-center pointer-events-none animate-sceneFade"
+        style={{ backgroundImage: `url('${scene.src}')` }}
       />
       {/* The crew in silhouette down at street level */}
       <div
@@ -60,8 +66,12 @@ function LayoutContent({ children }: { children: ReactNode }) {
           maskImage: 'linear-gradient(to top, #000 62%, transparent 100%)',
         }}
       />
-      {/* Readability scrim - the game UI has to stay legible over the art */}
-      <div className="fixed inset-0 bg-black/72 pointer-events-none" />
+      {/* Readability scrim - the game UI has to stay legible over the art.
+          Per-scene, since a busy casino floor needs more cover than a skyline. */}
+      <div
+        className="fixed inset-0 pointer-events-none transition-colors duration-500"
+        style={{ backgroundColor: `rgba(0,0,0,${scene.scrim})` }}
+      />
       {/* Live mafia-city atmosphere on top of the global skyline background */}
       <div className="mafia-ambient" />
       <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,rgba(245,158,11,0.03),transparent_50%)]" />

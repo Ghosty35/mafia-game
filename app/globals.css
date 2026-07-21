@@ -327,6 +327,26 @@ aside::-webkit-scrollbar-thumb:hover {
   animation: slideIn 0.3s ease-out;
 }
 
+/* Cross-fade when the section background art changes (see
+   components/sceneBackgrounds.ts) so moving between areas of the game
+   dissolves instead of hard-cutting. */
+@keyframes sceneFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-sceneFade {
+  animation: sceneFade 0.5s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-sceneFade {
+    animation: none;
+  }
+}
+
 /* Mobile tap target improvements */
 @media (max-width: 1023px) {
   /* Ensure all interactive elements are at least 44x44px */
