@@ -37,7 +37,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-transparent text-white relative overflow-x-hidden">
       {/* Background image */}
-      <div className="fixed inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/bg-dashboard.jpg')" }} />
+      <div className="fixed inset-0 bg-cover bg-top" style={{ backgroundImage: "url('/bg-dashboard.jpg')" }} />
       {/* Dark overlay for readability */}
       <div className="fixed inset-0 bg-black/60" />
       {/* Live mafia-city atmosphere on top of the global skyline background */}

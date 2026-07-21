@@ -94,7 +94,7 @@ export default function LoginPage() {
       {/* ===== ENHANCED BACKGROUNDS ===== */}
       {/* User photo background */}
       <div
-        className="absolute inset-0 bg-cover bg-center"
+        className="absolute inset-0 bg-cover bg-top"
         style={{ backgroundImage: "url('/bg-login.jpg')" }}
       />
       {/* Base noise texture */}

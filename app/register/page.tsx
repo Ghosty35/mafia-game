@@ -95,7 +95,7 @@ export default function RegisterPage() {
         <LanguageSwitcher />
       </div>
       {/* Dramatic Mafia Background Layers (same as login) */}
-      <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/bg-login.jpg')" }} />
+      <div className="absolute inset-0 bg-cover bg-top" style={{ backgroundImage: "url('/bg-login.jpg')" }} />
       <div className="absolute inset-0 bg-[radial-gradient(#27272a_0.8px,transparent_1px)] bg-[length:4px_4px] opacity-40" />
       <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-zinc-950/90 to-black/80" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(185,28,28,0.14)_0%,transparent_50%)]" />
