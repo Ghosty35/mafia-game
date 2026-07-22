@@ -33,23 +33,12 @@ export default function HustlersWayLayout({ children }: { children: ReactNode })
     <PlayerProvider>
       <HustlersWayLock>
         <div className="min-h-screen bg-transparent text-white relative">
-          {/* Rain-soaked crime-city street (original generated art) */}
+          {/* Neon city street - matches the in-game scene set */}
           <div
             className="fixed inset-0 bg-cover bg-center pointer-events-none"
-            style={{ backgroundImage: "url('/bg-city-street.webp')" }}
+            style={{ backgroundImage: "url('/bg-neon-city.webp')" }}
           />
-          <div
-            className="fixed inset-x-0 bottom-0 h-[38vh] pointer-events-none opacity-40"
-            style={{
-              backgroundRepeat: 'no-repeat',
-              backgroundPosition: 'bottom center',
-              backgroundSize: 'cover',
-              backgroundImage: "url('/city-crew.svg')",
-              WebkitMaskImage: 'linear-gradient(to top, #000 62%, transparent 100%)',
-              maskImage: 'linear-gradient(to top, #000 62%, transparent 100%)',
-            }}
-          />
-          <div className="fixed inset-0 bg-black/72 pointer-events-none" />
+          <div className="fixed inset-0 bg-black/74 pointer-events-none" />
           {children}
         </div>
       </HustlersWayLock>

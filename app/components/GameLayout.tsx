@@ -47,25 +47,16 @@ function LayoutContent({ children }: { children: ReactNode }) {
        drawers failed on real Android. Horizontal overflow is contained by
        `overflow-x: clip` on <body> in globals.css instead. */
     <div className="min-h-screen bg-transparent text-white relative">
-      {/* Scene art for this section of the city (original generated art).
+      {/* Scene art for this section of the city.
           `key` forces a remount per scene so the fade-in replays on change. */}
       <div
         key={scene.src}
         className="fixed inset-0 bg-cover bg-center pointer-events-none animate-sceneFade"
         style={{ backgroundImage: `url('${scene.src}')` }}
       />
-      {/* The crew in silhouette down at street level */}
-      <div
-        className="fixed inset-x-0 bottom-0 h-[38vh] pointer-events-none opacity-40"
-        style={{
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'bottom center',
-          backgroundSize: 'cover',
-          backgroundImage: "url('/city-crew.svg')",
-          WebkitMaskImage: 'linear-gradient(to top, #000 62%, transparent 100%)',
-          maskImage: 'linear-gradient(to top, #000 62%, transparent 100%)',
-        }}
-      />
+      {/* NOTE: the hand-drawn city-crew.svg silhouettes (1940s fedoras and
+          long coats) used to sit here. They read as wrong over the
+          neon-cyberpunk scenes, so they're now login/register-only. */}
       {/* Readability scrim - the game UI has to stay legible over the art.
           Per-scene, since a busy casino floor needs more cover than a skyline. */}
       <div

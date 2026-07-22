@@ -1,14 +1,28 @@
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 
 // Shared login helper for smoke tests. Uses the standing test accounts
 // (see memory: heistbuddy_test / riptarget_test, testpass123) - never
 // real player credentials.
 export async function loginAs(page: Page, email: string, password = 'testpass123') {
-  await page.goto('/login');
-  await page.locator('input[type="email"], input[name="email"]').fill(email);
-  await page.locator('input[type="password"]').fill(password);
-  await page.getByRole('button', { name: /sign in/i }).click();
-  await page.waitForURL('**/dashboard', { timeout: 15000 });
+  await page.goto('/login', { waitUntil: 'domcontentloaded' });
+
+  // The submit handler only exists once React has hydrated. Playwright is
+  // fast enough to fill and click before that happens, and a pre-hydration
+  // click is swallowed silently - no request, no error, the form just sits
+  // there. Retry the whole fill+submit until the navigation actually starts
+  // rather than sleeping a fixed amount and hoping.
+  const email$ = page.locator('input[type="email"], input[name="email"]');
+  const pass$ = page.locator('input[type="password"]');
+  const submit$ = page.getByRole('button', { name: /sign in/i });
+
+  await expect(async () => {
+    if (!page.url().includes('/login')) return; // already through
+    await email$.fill(email, { timeout: 5000 });
+    await pass$.fill(password, { timeout: 5000 });
+    await submit$.click({ timeout: 5000 });
+    await page.waitForURL('**/dashboard', { timeout: 6000 });
+  }).toPass({ timeout: 45000, intervals: [500, 1000, 2000] });
+
   await dismissWelcomeModal(page);
 }
 

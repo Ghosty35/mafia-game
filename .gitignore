@@ -16,6 +16,12 @@
 /playwright-report/
 /playwright/.cache/
 
+# Source artwork kept locally for re-exporting. Anything under public/ is
+# served publicly and deployed, so only the optimised bg-*.webp / char-*.webp
+# derivatives are committed - not the raw originals.
+/public/Neon backgrounds/
+/public/StockCake-*.jpg
+
 # next.js
 /.next/
 /out/
