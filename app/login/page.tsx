@@ -99,24 +99,15 @@ export default function LoginPage() {
       </div>
 
       {/* ===== ENHANCED BACKGROUNDS ===== */}
-      {/* Noir harbour skyline under a full moon (original art, generated for
-          this project - not stock or third-party game art). */}
+      {/* Neon city skyline - matches the in-game scene set so signing in
+          flows straight into the world instead of switching art direction. */}
       <div
         className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: "url('/bg-login-city.webp')" }}
+        style={{ backgroundImage: "url('/bg-neon-login.webp')" }}
       />
-      {/* The crew in silhouette along the waterfront, in front of the skyline */}
-      <div
-        className="absolute inset-x-0 bottom-0 h-[42vh] pointer-events-none opacity-60 z-[1]"
-        style={{
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'bottom center',
-          backgroundSize: 'cover',
-          backgroundImage: "url('/city-crew.svg')",
-          WebkitMaskImage: 'linear-gradient(to top, #000 65%, transparent 100%)',
-          maskImage: 'linear-gradient(to top, #000 65%, transparent 100%)',
-        }}
-      />
+      {/* NOTE: the city-crew.svg silhouettes (1940s fedoras / long coats) are
+          intentionally NOT here on this variant - they only read correctly
+          against the noir harbour art on master. */}
       {/* Player character standing at the right edge of the waterfront.
           Sits above the scrim so she reads as foreground, but behind the
           form (z-10). Hidden below xl where there's no room beside the
@@ -151,8 +142,8 @@ export default function LoginPage() {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(185,28,28,0.16)_0%,transparent_45%)] z-[2]" />
       {/* Warm amber city-lights glow rising from the bottom */}
       <div className="absolute inset-0 bg-[radial-gradient(130%_70%_at_50%_112%,rgba(245,158,11,0.12)_0%,transparent_50%)] z-[2]" />
-      {/* NOTE: the old repeating skyline.svg layer was removed here - the new
-          bg-login-city.webp already has its own skyline, and stacking both
+      {/* NOTE: the old repeating skyline.svg layer was removed here - the
+          background art already has its own skyline, and stacking both
           produced two mismatched horizons. */}
 
       <div className="relative z-10 w-full max-w-[1400px] mx-auto px-4">
