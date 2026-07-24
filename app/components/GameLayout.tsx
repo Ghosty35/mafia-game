@@ -93,7 +93,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
       <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,rgba(245,158,11,0.03),transparent_50%)]" />
       <LanguageSync />
       <Toast />
-      <GameNav />
+      {/* <GameNav /> */}
       <div className="flex max-w-7xl mx-auto relative">
         {/* Left Sidebar - Crime Related */}
         <Suspense fallback={<div className="w-64 bg-zinc-950 border-r border-zinc-800" />}>
