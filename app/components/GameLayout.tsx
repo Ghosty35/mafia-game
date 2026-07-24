@@ -96,9 +96,9 @@ function LayoutContent({ children }: { children: ReactNode }) {
       <GameNav />
       <div className="flex max-w-7xl mx-auto relative">
         {/* Left Sidebar - Crime Related */}
-        {/* <Suspense fallback={<div className="w-64 bg-zinc-950 border-r border-zinc-800" />}>
+        <Suspense fallback={<div className="w-64 bg-zinc-950 border-r border-zinc-800" />}>
           <Sidebar />
-        </Suspense> */}
+        </Suspense>
 
         <main className="flex-1 p-4 sm:p-6 min-w-0 pb-24 lg:pb-6">
           <div className="max-w-5xl mx-auto">
