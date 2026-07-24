@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { sceneForPath } from './sceneBackgrounds';
 import GameNav from './GameNav';
@@ -96,7 +96,9 @@ function LayoutContent({ children }: { children: ReactNode }) {
       <GameNav />
       <div className="flex max-w-7xl mx-auto relative">
         {/* Left Sidebar - Crime Related */}
-        <Sidebar />
+        <Suspense fallback={<div className="w-64 bg-zinc-950 border-r border-zinc-800" />}>
+          <Sidebar />
+        </Suspense>
 
         <main className="flex-1 p-4 sm:p-6 min-w-0 pb-24 lg:pb-6">
           <div className="max-w-5xl mx-auto">
@@ -106,7 +108,9 @@ function LayoutContent({ children }: { children: ReactNode }) {
         </main>
 
         {/* Right Sidebar - Family / Info / Murder / Economy */}
-        <RightSidebar />
+        <Suspense fallback={<div className="w-64 bg-zinc-950 border-l border-zinc-800" />}>
+          <RightSidebar />
+        </Suspense>
       </div>
       <MobileBottomNav />
     </div>
