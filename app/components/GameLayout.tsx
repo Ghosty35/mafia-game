@@ -102,7 +102,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
 
         <main className="flex-1 p-4 sm:p-6 min-w-0 pb-24 lg:pb-6">
           <div className="max-w-5xl mx-auto">
-            {/* <PlayerInfoCard /> */}
+            <PlayerInfoCard />
             {children}
           </div>
         </main>
@@ -112,7 +112,7 @@ function LayoutContent({ children }: { children: ReactNode }) {
           <RightSidebar />
         </Suspense> */}
       </div>
-      {/* <MobileBottomNav /> */}
+      <MobileBottomNav />
     </div>
   );
 }
