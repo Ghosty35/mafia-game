@@ -61,10 +61,10 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const fm = (amount: number | string | null | undefined) =>
     formatMoney(amount, language);
 
+  const providerValue = { language, setLanguage, t, fm, currency: moneySymbol(language) };
+
   return (
-    <LanguageContext.Provider
-      value={{ language, setLanguage, t, fm, currency: moneySymbol(language) }}
-    >
+    <LanguageContext.Provider {...{ value: providerValue, suppressHydrationWarning: true }}>
       {children}
     </LanguageContext.Provider>
   );
