@@ -7,14 +7,18 @@ const STORAGE_KEY = 'hustlers_way_welcome_dismissed';
 
 export default function WelcomeModal({ createdAt }: { createdAt?: string }) {
   const { t } = useLanguage();
-  const [open, setOpen] = useState(() => {
-    if (typeof window === 'undefined') return false;
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
     const dismissed = window.localStorage.getItem(STORAGE_KEY);
-    if (dismissed) return false;
-    if (!createdAt) return true;
+    if (dismissed) return;
+    if (!createdAt) {
+      setOpen(true);
+      return;
+    }
     const ageMs = Date.now() - new Date(createdAt).getTime();
-    return ageMs < 7 * 24 * 60 * 60 * 1000;
-  });
+    if (ageMs < 7 * 24 * 60 * 60 * 1000) setOpen(true);
+  }, [createdAt]);
 
   useEffect(() => {
     if (!open) return;

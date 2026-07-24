@@ -2,11 +2,14 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
-  // Explicitly set the Turbopack root to this folder.
-  // This stops Next.js from walking up and finding the parent package-lock.json.
   turbopack: {
     root: path.resolve(__dirname),
   },
+  allowedDevOrigins: [
+    '192.168.178.165',
+    'localhost',
+    '127.0.0.1',
+  ],
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'loremflickr.com' },

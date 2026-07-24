@@ -97,24 +97,6 @@ export default function PlayerInfoCard({ player: propPlayer, familyStatus: propF
         const { createClient } = await import('@/lib/supabase/client');
         const supabase = createClient();
         const { data } = await supabase.rpc('get_hustler_tasks');
-        if (data) {
-          setHustler({ hustler_rank: data.hustler_rank ?? 0, daily_streak: data.daily_streak ?? 0 });
-        }
-      } catch {
-        /* keep null */
-      }
-    };
-    fetchHustler();
-  }, [player?.id]);
-
-  // Hustler's Way rank + streak (surfaced as a chip in the HUD header).
-  useEffect(() => {
-    if (!player?.id) return;
-    const fetchHustler = async () => {
-      try {
-        const { createClient } = await import('@/lib/supabase/client');
-        const supabase = createClient();
-        const { data } = await supabase.rpc('get_hustler_tasks');
         if (data) setHustler({ hustler_rank: data.hustler_rank ?? 0, daily_streak: data.daily_streak ?? 0 });
       } catch {
         /* keep null */

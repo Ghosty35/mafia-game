@@ -63,7 +63,6 @@ export default function DashboardClient({
 
   useEffect(() => {
     const tick = setInterval(() => {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setNow(Date.now());
     }, 1000);
     return () => clearInterval(tick);

@@ -21,10 +21,14 @@ export default async function DashboardPage() {
     console.error('get_my_player error:', playerError);
   }
 
+  const playerErrorSerialized = playerError
+    ? { message: (playerError as { message?: string }).message ?? 'Unknown error', code: (playerError as { code?: string }).code ?? null, details: (playerError as { details?: string }).details ?? null, hint: (playerError as { hint?: string }).hint ?? null }
+    : null;
+
   return (
     <DashboardClient
       initialPlayer={(player as Player) ?? null}
-      playerError={playerError}
+      playerError={playerErrorSerialized}
     />
   );
 }

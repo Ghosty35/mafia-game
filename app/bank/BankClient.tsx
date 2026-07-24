@@ -269,7 +269,7 @@ export default function BankClient({ initialPlayer }: { initialPlayer: Player | 
             <input
               type="number"
               value={amount}
-              onChange={(e) => setAmount(Math.max(1, parseInt(e.target.value) || 1))}
+              onChange={(e) => setAmount(Math.max(0, parseInt(e.target.value) || 0))}
               className="w-full bg-zinc-950 border border-emerald-800 rounded-lg px-3 py-2.5 font-mono text-sm text-emerald-400 focus:outline-none focus:border-emerald-600"
             />
             <div className="flex gap-1.5 mt-2">
@@ -304,7 +304,7 @@ export default function BankClient({ initialPlayer }: { initialPlayer: Player | 
             <input
               type="number"
               value={amount}
-              onChange={(e) => setAmount(Math.max(1, parseInt(e.target.value) || 1))}
+              onChange={(e) => setAmount(Math.max(0, parseInt(e.target.value) || 0))}
               className="w-full bg-zinc-950 border border-amber-800 rounded-lg px-3 py-2.5 font-mono text-sm text-amber-400 focus:outline-none focus:border-amber-600"
             />
             <div className="flex gap-1.5 mt-2">

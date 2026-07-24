@@ -31,6 +31,8 @@ export default function RipButton({ targetUsername }: { targetUsername: string }
 
   const loadStatus = useCallback(async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
       const { data } = await supabase.rpc('get_rip_target_status', { target_username: targetUsername });
       if (data) setStatus(data as TargetStatus);
     } catch {

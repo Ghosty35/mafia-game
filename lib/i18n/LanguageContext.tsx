@@ -4,6 +4,7 @@ import {
   createContext,
   useContext,
   useState,
+  useEffect,
   type ReactNode,
 } from 'react';
 import { createClient } from '@/lib/supabase/client';
@@ -34,18 +35,19 @@ type LanguageContextType = {
 const LanguageContext = createContext<LanguageContextType | null>(null);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>(() => {
-    if (typeof window === 'undefined') return 'en';
+  const [language, setLanguageState] = useState<Language>('en');
+
+  useEffect(() => {
     const saved = localStorage.getItem('game-language');
-    return saved === 'en' || saved === 'nl' ? saved : 'en';
-  });
+    if (saved === 'en' || saved === 'nl') {
+      setLanguageState(saved);
+    }
+  }, []);
 
   const setLanguage = (lang: Language, options?: SetLanguageOptions) => {
     setLanguageState(lang);
     if (options?.persist === false) return;
     localStorage.setItem('game-language', lang);
-    // Persist per player so the choice follows them across devices.
-    // Fire-and-forget: on logged-out pages (landing/login) this simply fails silently.
     const supabase = createClient();
     supabase.rpc('set_my_language', { p_language: lang }).then(
       () => {},
