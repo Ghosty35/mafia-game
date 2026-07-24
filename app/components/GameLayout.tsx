@@ -93,26 +93,26 @@ function LayoutContent({ children }: { children: ReactNode }) {
       <div className="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,rgba(245,158,11,0.03),transparent_50%)]" />
       <LanguageSync />
       <Toast />
-      {/* <GameNav /> */}
+      <GameNav />
       <div className="flex max-w-7xl mx-auto relative">
         {/* Left Sidebar - Crime Related */}
-        <Suspense fallback={<div className="w-64 bg-zinc-950 border-r border-zinc-800" />}>
+        {/* <Suspense fallback={<div className="w-64 bg-zinc-950 border-r border-zinc-800" />}>
           <Sidebar />
-        </Suspense>
+        </Suspense> */}
 
         <main className="flex-1 p-4 sm:p-6 min-w-0 pb-24 lg:pb-6">
           <div className="max-w-5xl mx-auto">
-            <PlayerInfoCard />
+            {/* <PlayerInfoCard /> */}
             {children}
           </div>
         </main>
 
         {/* Right Sidebar - Family / Info / Murder / Economy */}
-        <Suspense fallback={<div className="w-64 bg-zinc-950 border-l border-zinc-800" />}>
+        {/* <Suspense fallback={<div className="w-64 bg-zinc-950 border-l border-zinc-800" />}>
           <RightSidebar />
-        </Suspense>
+        </Suspense> */}
       </div>
-      <MobileBottomNav />
+      {/* <MobileBottomNav /> */}
     </div>
   );
 }
