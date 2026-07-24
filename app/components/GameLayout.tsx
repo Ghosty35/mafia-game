@@ -108,9 +108,9 @@ function LayoutContent({ children }: { children: ReactNode }) {
         </main>
 
         {/* Right Sidebar - Family / Info / Murder / Economy */}
-        {/* <Suspense fallback={<div className="w-64 bg-zinc-950 border-l border-zinc-800" />}>
+        <Suspense fallback={<div className="w-64 bg-zinc-950 border-l border-zinc-800" />}>
           <RightSidebar />
-        </Suspense> */}
+        </Suspense>
       </div>
       <MobileBottomNav />
     </div>
