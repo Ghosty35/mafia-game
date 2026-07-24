@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
+import { getRank } from '@/lib/ranks';
 import type { Player } from '@/lib/types';
 import UsernamePrompt from './UsernamePrompt';
 import WelcomeModal from './WelcomeModal';
@@ -215,7 +216,7 @@ export default function DashboardClient({
             <div className="space-y-2 text-sm">
               <div className="flex justify-between"><span className="text-zinc-400">City</span><span className="font-mono text-white">{player.current_city ?? 'New York'}</span></div>
               <div className="flex justify-between"><span className="text-zinc-400">Properties</span><span className="font-mono text-amber-400">{(player.owned_properties || []).length}{(player as { staff_role?: string })?.staff_role ? '' : '/11'}</span></div>
-              <div className="flex justify-between"><span className="text-zinc-400">Rank</span><span className="font-mono text-red-400">{player.money_rank ?? 'Hobo'}</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">Rank</span><span className="font-mono text-red-400">{t(getRank(player.level ?? 1).key)}</span></div>
               <div className="flex justify-between"><span className="text-zinc-400">Diamonds</span><span className="font-mono text-amber-300">💎 {player.diamonds ?? 0}</span></div>
             </div>
           </div>

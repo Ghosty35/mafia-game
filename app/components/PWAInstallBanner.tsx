@@ -58,7 +58,7 @@ export default function PWAInstallBanner() {
   if (!showBanner) return null;
 
   return (
-    <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom,0px))] left-4 right-4 md:left-auto md:right-4 md:w-96 bg-zinc-900 border border-amber-800/50 rounded-xl p-4 shadow-2xl z-50 animate-slideIn">
+    <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom,0px))] left-4 right-4 md:bottom-auto md:top-20 md:left-auto md:right-4 md:w-96 bg-zinc-900 border border-amber-800/50 rounded-xl p-4 shadow-2xl z-50 animate-slideIn">
       <div className="flex items-start gap-3">
         <div className="text-3xl shrink-0">♛</div>
         <div className="flex-1 min-w-0">
